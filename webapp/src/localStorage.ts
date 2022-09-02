@@ -81,13 +81,13 @@ class StoredItem<T> {
 }
 
 class Storage {
-  symptoms: StoredItem<object[] | undefined>;
-  history: StoredItem<object[] | undefined>;
+  tasks: StoredItem<object[] | undefined>;
+  views: StoredItem<object[] | undefined>;
 
   constructor() {
     const prefix = STORAGE_PREFIX;
-    this.symptoms = new StoredItem(`${prefix}__symptoms`, ValueType.object);
-    this.history = new StoredItem(`${prefix}__history`, ValueType.object);
+    this.tasks = new StoredItem(`${prefix}__tasks`, ValueType.object);
+    this.views = new StoredItem(`${prefix}__views`, ValueType.object);
     // this.b = new StoredItem("b", 123);
     // this.c = new StoredItem("c");
   }
