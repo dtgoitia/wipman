@@ -9,7 +9,7 @@ interface ThemeColours {
   backgroundColor: string;
 }
 
-function get_theme(theme: Theme): ThemeColours {
+function getTheme(theme: Theme): ThemeColours {
   switch (theme) {
     case Theme.light:
       return {
@@ -32,6 +32,13 @@ interface Props {
 }
 export const GlobalStyle = createGlobalStyle<Props>`
   html {
-    background-color: ${({ theme }) => get_theme(theme).backgroundColor};
+    background-color: ${({ theme }) => getTheme(theme).backgroundColor};
+  }
+
+  ul,
+  ol {
+    list-style: none;
+    margin: 0;
+    padding: 0;
   }
 `;
