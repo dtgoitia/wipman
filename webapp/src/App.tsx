@@ -1,4 +1,5 @@
 import "./App.css";
+import CenteredPage from "./components/CenteredPage";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
 // import ReloadPage from "./components/ReloadPage";
@@ -12,6 +13,7 @@ import {
   taskInitializationService,
   TaskInitializationStatus,
 } from "./services/tasks";
+import { Spinner, SpinnerSize } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import styled from "styled-components";
@@ -26,16 +28,24 @@ const FullPage = styled.div`
   height: 100vh;
 `;
 
+const FullPageVerticallyCentered = styled(FullPage)`
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+`;
+
+const SpinnerText = styled.p`
+  margin: 1rem;
+  font-size: large;
+`;
+
 function App() {
   const [initializationIsComplete, setInitializationIsComplete] =
     useState(false);
 
   useEffect(() => {
-    const initSubscription = taskInitializationService.status$.subscribe(
+    const subscription = taskInitializationService.status$.subscribe(
       (status) => {
-        console.log(
-          `App::useEffect::taskInitializationService.status: ${status}`
-        );
         if (status === TaskInitializationStatus.loadCompleted) {
           setInitializationIsComplete(true);
         }
@@ -44,14 +54,18 @@ function App() {
 
     taskInitializationService.initialize();
 
-    return initSubscription.unsubscribe;
+    return subscription.unsubscribe;
   }, []);
 
   if (initializationIsComplete === false) {
-    // TODO: show spinner
     return (
       <FullPage>
-        <div>Loading data...</div>
+        <FullPageVerticallyCentered>
+          <CenteredPage>
+            <Spinner />
+            <SpinnerText>Loading data...</SpinnerText>
+          </CenteredPage>
+        </FullPageVerticallyCentered>
       </FullPage>
     );
   }

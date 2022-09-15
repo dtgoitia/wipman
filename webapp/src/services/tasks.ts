@@ -106,6 +106,7 @@ SAMPLE_TASKS.forEach((task) => {
 const taskManager = new TaskManager({});
 export default taskManager;
 
+// TODO: is this really only a TASK initialization status? or it initializes all data?
 export enum TaskInitializationStatus {
   browserLoadStarted = "browserLoadStarted",
   browserLoadCompleted = "browserLoadCompleted",
