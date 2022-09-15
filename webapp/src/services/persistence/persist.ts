@@ -77,8 +77,8 @@ class Storage {
    * Read raw data from browser storage, cast data to domain types, and return it.
    */
   public readTasksFromBrowser(): Task[] {
+    console.debug("Reading tasks from browser...");
     // TODO: return Result
-    console.log(1);
     if (browserStorage.tasks.exists() === false) {
       return [];
     }

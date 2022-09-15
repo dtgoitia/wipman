@@ -8,8 +8,11 @@ import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
 import ViewPage from "./pages/ViewPage";
 import Paths from "./routes";
-import { taskInitializationService } from "./services/tasks";
-import { useEffect } from "react";
+import {
+  taskInitializationService,
+  TaskInitializationStatus,
+} from "./services/tasks";
+import { useEffect, useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import styled from "styled-components";
 
@@ -24,9 +27,34 @@ const FullPage = styled.div`
 `;
 
 function App() {
+  const [initializationIsComplete, setInitializationIsComplete] =
+    useState(false);
+
   useEffect(() => {
+    const initSubscription = taskInitializationService.status$.subscribe(
+      (status) => {
+        console.log(
+          `App::useEffect::taskInitializationService.status: ${status}`
+        );
+        if (status === TaskInitializationStatus.loadCompleted) {
+          setInitializationIsComplete(true);
+        }
+      }
+    );
+
     taskInitializationService.initialize();
-  });
+
+    return initSubscription.unsubscribe;
+  }, []);
+
+  if (initializationIsComplete === false) {
+    // TODO: show spinner
+    return (
+      <FullPage>
+        <div>Loading data...</div>
+      </FullPage>
+    );
+  }
 
   return (
     <BrowserRouter basename={BASE_URL}>
