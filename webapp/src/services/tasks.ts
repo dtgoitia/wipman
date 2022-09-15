@@ -111,6 +111,7 @@ export enum TaskInitializationStatus {
   browserLoadCompleted = "browserLoadCompleted",
   backendLoadStarted = "backendLoadStarted",
   backendLoadCompleted = "backendLoadCompleted",
+  loadCompleted = "loadCompleted",
 }
 
 class TaskInitializationService {
@@ -124,6 +125,7 @@ class TaskInitializationService {
   }
 
   public initialize(): void {
+    console.log("Starting initialization...");
     // During the initial load, the storage layer is the source of truth. Once the
     // persisted data is loaded, the domain layer becomes the source of truth, and the
     // storage layer reacts to domain state changes.
@@ -146,7 +148,10 @@ class TaskInitializationService {
     // // TODO: if API load fails, use taskManager to publish tasks (to work offline)
     // this.status.next(TaskInitializationStatus.backendLoadCompleted);
 
+    console.debug("Configure storage to react to TaskManager");
     storage.listenTasks(taskManager.tasks$);
+
+    this.status.next(TaskInitializationStatus.loadCompleted);
   }
 }
 
