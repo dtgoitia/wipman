@@ -1,5 +1,4 @@
 import { Task, TaskId } from "../../domain/types";
-import taskManager from "../tasks";
 import browserStorage from "./localStorage";
 import { first, skip } from "rxjs";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -10,25 +9,27 @@ export enum StorageStatus {
   SAVED = "saved",
 }
 
-interface StorageProps {
-  tasks: Observable<Map<TaskId, Task>>;
-}
-
 // TODO: use this class to persist either using browser-git, or whatever DB you want
 class Storage {
   public tasks: Map<TaskId, Task> = new Map(); // persisted tasks
   public draftTasks: Map<TaskId, Task> = new Map(); // in-memory tasks
   public status$: Observable<StorageStatus>;
 
-  private tasks$: Observable<Map<TaskId, Task>>;
+  private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
   public statusSubject = new BehaviorSubject<StorageStatus>(
     StorageStatus.SAVED
   );
 
-  constructor({ tasks }: StorageProps) {
-    this.tasks$ = tasks;
+  constructor() {
     this.status$ = this.statusSubject.asObservable();
+  }
+
+  // Returns `false` if there are pending changes to save, else `true`.
+  public changesSaved: boolean = true;
+
+  public listenTasks(tasks: Observable<Map<TaskId, Task>>): void {
+    this.tasks$ = tasks;
 
     /** TODO: think if it's easier to test when the subscription happens inside the
      * Storage instance or there is something else that does the wiring and the Storage
@@ -46,26 +47,24 @@ class Storage {
 
     // On later task emissions, set status as required
     this.tasks$.pipe(skip(1)).subscribe((tasks) => {
-      // Optimization: do not reemit if it's already DRAFT
+      // Optimization: do not reemit if it's already DRAFT -----------------------------
       if (this.lastStatus !== StorageStatus.DRAFT) {
         this.changesSaved = false;
         console.debug('Storage.constructor - emitting "DRAFT"');
         this.statusSubject.next(StorageStatus.DRAFT);
       }
+      // Optimization ------------------------------------------------------------------
 
       this.draftTasks = tasks;
     });
   }
-
-  // Returns `false` if there are pending changes to save, else `true`.
-  public changesSaved: boolean = true;
 
   public save(): void {
     console.debug("Storage.save: saving...");
     this.tasks = this.draftTasks;
 
     this.statusSubject.next(StorageStatus.SAVING);
-    // TODO: save tasks to localstorage
+    this.saveTasksToBrowser();
 
     // TODO: save tasks to git thingy  - this probably should be a s
     // tasksToGitRepo(gitClient, this.tasks)
@@ -100,15 +99,36 @@ class Storage {
     return [];
   }
 
+  /**
+   * Read latest task data from the domain layer and persist the data
+   */
   private saveTasksToBrowser(): void {
     // TODO: return Result
-    // ..
+    // TODO: read latest tasks from domain and persist them to
+    console.log("Storage::saveTasksToBrowser");
+    const serializedTasks = [...this.tasks.values()].map(taskToRaw);
+
+    browserStorage.tasks.set(serializedTasks);
   }
 
   private saveTasksToBackend(): void {
     // TODO: return Result
     // ..
   }
+}
+
+function taskToRaw(task: Task): SerializedTask {
+  const raw: SerializedTask = {
+    id: task.id,
+    title: task.title,
+    content: task.content,
+    created: task.created,
+    updated: task.updated,
+    tags: [...task.tags],
+    blockedBy: [...task.blockedBy],
+    blocks: [...task.blocks],
+  };
+  return raw;
 }
 
 interface SerializedTask {
@@ -136,6 +156,7 @@ function rawToTask(raw: SerializedTask) {
   return task;
 }
 
-const storage = new Storage({ tasks: taskManager.tasks$ });
+// const storage = new Storage({ tasks: taskManager.tasks$ });
+const storage = new Storage();
 
 export default storage;

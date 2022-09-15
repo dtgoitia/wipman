@@ -124,6 +124,10 @@ class TaskInitializationService {
   }
 
   public initialize(): void {
+    // During the initial load, the storage layer is the source of truth. Once the
+    // persisted data is loaded, the domain layer becomes the source of truth, and the
+    // storage layer reacts to domain state changes.
+
     this.status.next(TaskInitializationStatus.browserLoadStarted);
     const browserTasks = storage.readTasksFromBrowser();
     this.taskManager.bulkLoadTasks(browserTasks, false);
@@ -141,6 +145,8 @@ class TaskInitializationService {
     // this.taskManager.bulkLoadTasks(apiTasks, true);
     // // TODO: if API load fails, use taskManager to publish tasks (to work offline)
     // this.status.next(TaskInitializationStatus.backendLoadCompleted);
+
+    storage.listenTasks(taskManager.tasks$);
   }
 }
 
