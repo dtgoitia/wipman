@@ -1,4 +1,4 @@
-import { STORAGE_PREFIX } from "./config";
+import { STORAGE_PREFIX } from "../../config";
 
 enum ValueType {
   string = "string",
@@ -20,7 +20,7 @@ class StoredItem<T> {
   }
 
   public read(): T {
-    if (!this.exists) {
+    if (!this.exists()) {
       throw new Error(`Could not find ${this.key} in local storage`);
     }
 
@@ -93,6 +93,6 @@ class Storage {
   }
 }
 
-const storage = new Storage();
+const browserStorage = new Storage();
 
-export default storage;
+export default browserStorage;

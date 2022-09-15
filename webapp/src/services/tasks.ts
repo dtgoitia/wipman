@@ -1,5 +1,7 @@
 import { TaskManager } from "../domain/task";
 import { Tag, Task, TaskId } from "../domain/types";
+import storage from "./persistence/persist";
+import { Observable, Subject } from "rxjs";
 
 /**
  * TODO
@@ -36,6 +38,37 @@ import { Tag, Task, TaskId } from "../domain/types";
  * "some initialization logic" could be a function in the Domain - separate from the
  * TaskManager and ViewManager - that could be called by the UI when the UI decides to
  * do so. This way, the UI can show spinners, while loading data async in the background
+ *
+ * ON START:
+ *   - UI subscribes to TaskManager
+ *   - UI subscribes to domain initialization observable (OIO)
+ *   - OIO subscribes to Storage observable (SO)
+ * ON START: loading from browser
+ *   - OIO requests browser data to Storage - as opposed to via TaskManager (only for initialization)
+ *   - SO emits ('reading data from browser', null)
+ *   - OIO emits 'reading data from browser'
+ *   - UI starts spinner
+ *   - SO reads data from browser
+ *   - SO emits ('data from browser read', <data>)
+ *   - OIO receives data and bulk-loads data load in TaskManager
+ *   - OIO emits 'data from browser loaded'
+ *   - UI stops spinner
+ *   - TaskManager emits new state
+ *   - UI receives new state via TaskManager subscription and renders tasks
+ * ON START: loading from API
+ *   - OIO requests API data to Storage - as opposed to via TaskManager (only for initialization)
+ *   - SO emits ('reading data from API', null)
+ *   - OIO emits 'reading data from API'
+ *   - SO reads data from API
+ *   - SO emits ('data from API read', <data>)
+ *   - OIO receives data and bulk-loads data load in TaskManager
+ *   - OIO emits 'data from API loaded'
+ *   - UI stops spinner
+ *   - TaskManager emits new state
+ *   - UI receives new state via TaskManager subscription and renders tasks
+ * ON START: after loading data
+ *   - cancel subscriptions
+ *   - Store subscribes to TaskManager -- to persist any in-memory editions
  */
 
 // TODO: read this from storage
@@ -62,10 +95,55 @@ const SAMPLE_TASKS: Task[] = [
   },
 ];
 
+// console.log(JSON.stringify(SAMPLE_TASKS));
+
 const taskMap = new Map<TaskId, Task>();
 SAMPLE_TASKS.forEach((task) => {
   taskMap.set(task.id, task);
 });
 
-const taskManager = new TaskManager({ tasks: taskMap });
+// const taskManager = new TaskManager({ tasks: taskMap });
+const taskManager = new TaskManager({});
 export default taskManager;
+
+export enum TaskInitializationStatus {
+  browserLoadStarted = "browserLoadStarted",
+  browserLoadCompleted = "browserLoadCompleted",
+  backendLoadStarted = "backendLoadStarted",
+  backendLoadCompleted = "backendLoadCompleted",
+}
+
+class TaskInitializationService {
+  public status$: Observable<TaskInitializationStatus>;
+  private status: Subject<TaskInitializationStatus>;
+  private taskManager: TaskManager;
+  constructor(taskManager: TaskManager) {
+    this.taskManager = taskManager;
+    this.status = new Subject();
+    this.status$ = this.status.asObservable();
+  }
+
+  public initialize(): void {
+    this.status.next(TaskInitializationStatus.browserLoadStarted);
+    const browserTasks = storage.readTasksFromBrowser();
+    this.taskManager.bulkLoadTasks(browserTasks, false);
+    this.status.next(TaskInitializationStatus.browserLoadCompleted);
+
+    // TODO: remove
+    // this is temporary: under normal circumstances, tasks are published once the
+    // backend tasks are loaded. However, the backend load is not implemented yet. Until
+    // then, publish tasks once they are loaded from the browser.
+    this.taskManager.publishTasks();
+
+    // TODO: load from API
+    // this.status.next(TaskInitializationStatus.backendLoadStarted);
+    // const apiTasks = getTasksFromBrowser();
+    // this.taskManager.bulkLoadTasks(apiTasks, true);
+    // // TODO: if API load fails, use taskManager to publish tasks (to work offline)
+    // this.status.next(TaskInitializationStatus.backendLoadCompleted);
+  }
+}
+
+export const taskInitializationService = new TaskInitializationService(
+  taskManager
+);

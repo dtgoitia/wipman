@@ -1,5 +1,6 @@
-import { Task, TaskId } from "../domain/types";
-import taskManager from "./tasks";
+import { Task, TaskId } from "../../domain/types";
+import taskManager from "../tasks";
+import browserStorage from "./localStorage";
 import { first, skip } from "rxjs";
 import { BehaviorSubject, Observable } from "rxjs";
 
@@ -21,7 +22,6 @@ class Storage {
 
   private tasks$: Observable<Map<TaskId, Task>>;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
-  private stores: Store[] = [];
   public statusSubject = new BehaviorSubject<StorageStatus>(
     StorageStatus.SAVED
   );
@@ -67,14 +67,6 @@ class Storage {
     this.statusSubject.next(StorageStatus.SAVING);
     // TODO: save tasks to localstorage
 
-    this.stores.forEach((store) => {
-      console.debug(`Storage.save: saving to ${store.name}`);
-      store.save({
-        tasks: this.tasks,
-        // views: this.views,
-      });
-    });
-
     // TODO: save tasks to git thingy  - this probably should be a s
     // tasksToGitRepo(gitClient, this.tasks)
 
@@ -82,20 +74,68 @@ class Storage {
     this.statusSubject.next(StorageStatus.SAVED);
   }
 
-  public registerStore(client: Store): void {
-    this.stores.push(client);
+  /**
+   * Read raw data from browser storage, cast data to domain types, and return it.
+   */
+  public readTasksFromBrowser(): Task[] {
+    // TODO: return Result
+    console.log(1);
+    if (browserStorage.tasks.exists() === false) {
+      return [];
+    }
+
+    const rawTasks = browserStorage.tasks.read() as SerializedTask[];
+    if (!rawTasks) {
+      return [];
+    }
+
+    const tasks = rawTasks.map(rawToTask);
+
+    return tasks;
   }
+
+  public readTasksFromBackend(): Task[] {
+    // TODO: return Result
+    // ..
+    return [];
+  }
+
+  private saveTasksToBrowser(): void {
+    // TODO: return Result
+    // ..
+  }
+
+  private saveTasksToBackend(): void {
+    // TODO: return Result
+    // ..
+  }
+}
+
+interface SerializedTask {
+  id: string;
+  title: string;
+  content: string;
+  created: string;
+  updated: string;
+  tags: string[];
+  blockedBy: string[];
+  blocks: string[];
+}
+
+function rawToTask(raw: SerializedTask) {
+  const task: Task = {
+    id: raw.id,
+    title: raw.title,
+    content: raw.content,
+    created: raw.created,
+    updated: raw.updated,
+    tags: new Set(raw.tags),
+    blockedBy: new Set(raw.blockedBy),
+    blocks: new Set(raw.blocks),
+  };
+  return task;
 }
 
 const storage = new Storage({ tasks: taskManager.tasks$ });
 
 export default storage;
-
-interface StorableData {
-  tasks: Map<TaskId, Task>;
-  // views: TODO
-}
-interface Store {
-  name: string; // 'git', 'localStore'
-  save: (data: StorableData) => void; // TODO: return Result
-}
