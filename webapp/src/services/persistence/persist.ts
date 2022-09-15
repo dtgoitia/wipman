@@ -104,7 +104,6 @@ class Storage {
    */
   private saveTasksToBrowser(): void {
     // TODO: return Result
-    // TODO: read latest tasks from domain and persist them to
     console.log("Storage::saveTasksToBrowser");
     const serializedTasks = [...this.tasks.values()].map(taskToRaw);
 
