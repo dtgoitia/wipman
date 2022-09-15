@@ -1,5 +1,5 @@
 import Paths from "../routes";
-import storage, { StorageStatus } from "../services/persist";
+import storage, { StorageStatus } from "../services/persistence/persist";
 import {
   Alignment,
   Button,

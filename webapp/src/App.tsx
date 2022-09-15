@@ -1,7 +1,6 @@
 import "./App.css";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
-import storage from "./localStorage";
 // import ReloadPage from "./components/ReloadPage";
 import PageNotFound from "./pages/PageNotFound";
 import TaskExplorer from "./pages/TaskExplorer";
@@ -9,6 +8,8 @@ import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
 import ViewPage from "./pages/ViewPage";
 import Paths from "./routes";
+import { taskInitializationService } from "./services/tasks";
+import { useEffect } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import styled from "styled-components";
 
@@ -23,6 +24,10 @@ const FullPage = styled.div`
 `;
 
 function App() {
+  useEffect(() => {
+    taskInitializationService.initialize();
+  });
+
   return (
     <BrowserRouter basename={BASE_URL}>
       <FullPage>

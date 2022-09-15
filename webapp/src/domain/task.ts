@@ -74,6 +74,20 @@ export class TaskManager {
     return this.tasks.get(id);
   }
 
+  /**
+   * Load multiple existing tasks that already contain a task ID. This method overwrites
+   * any existing tasks if the task ID matches.
+   */
+  public bulkLoadTasks(tasks: Task[], publish: boolean = false): void {
+    tasks.forEach((task) => {
+      this.tasks.set(task.id, task);
+    });
+
+    if (publish) {
+      this.publishTasks();
+    }
+  }
+
   public publishTasks(): void {
     console.debug("TaskManager.publishTasks()");
     this.tasksSubject.next(this.tasks);
