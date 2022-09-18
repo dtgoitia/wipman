@@ -29,3 +29,9 @@ services:
     container_name: qr
     volumes:
       - ./qr:/app
+
+  dynamodb:
+    image: amazon/dynamodb-local
+    container_name: dynamodb
+    ports:
+      - "8000:8000"

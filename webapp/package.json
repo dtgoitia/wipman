@@ -4,6 +4,7 @@
   "private": true,
   "homepage": "https://davidtorralba.com/wipman",
   "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.172.0",
     "@blueprintjs/core": "^4.2.1",
     "@blueprintjs/datetime": "^4.3.2",
     "@testing-library/jest-dom": "^5.16.1",
