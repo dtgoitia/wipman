@@ -1,4 +1,5 @@
 import { Task, TaskId } from "../../domain/types";
+import { DynamoDbClient, getClient } from "./dynamodb";
 import browserStorage from "./localStorage";
 import { first, skip } from "rxjs";
 import { BehaviorSubject, Observable } from "rxjs";
@@ -14,6 +15,7 @@ class Storage {
   public tasks: Map<TaskId, Task> = new Map(); // persisted tasks
   public draftTasks: Map<TaskId, Task> = new Map(); // in-memory tasks
   public status$: Observable<StorageStatus>;
+  public lastBackendFetch: Date;
 
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
@@ -21,8 +23,16 @@ class Storage {
     StorageStatus.SAVED
   );
 
+  private dynamoDbClient: DynamoDbClient;
+
   constructor() {
     this.status$ = this.statusSubject.asObservable();
+
+    // TODO: load these from localstorage
+    const [url, region] = ["http://localhost:8000", "localhost"];
+    this.dynamoDbClient = getClient({ url, region });
+
+    this.lastBackendFetch = this.getLastFetchDate();
   }
 
   // Returns `false` if there are pending changes to save, else `true`.
@@ -93,10 +103,20 @@ class Storage {
     return tasks;
   }
 
-  public readTasksFromBackend(): Task[] {
-    // TODO: return Result
-    // ..
-    return [];
+  // TODO: return Result
+  public readTasksFromBackend(): Promise<Task[]> {
+    return this.dynamoDbClient.getTasksUpdatedAfter(this.lastBackendFetch);
+  }
+
+  private getLastFetchDate(): Date {
+    if (browserStorage.lastBackendFetch.exists() === false) {
+      console.log("Date of last API fetch not found in browser storage");
+      return new Date(0); // old date in the past
+    }
+
+    const raw = browserStorage.lastBackendFetch.read() as string;
+
+    return new Date(raw);
   }
 
   /**

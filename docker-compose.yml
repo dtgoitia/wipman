@@ -30,8 +30,13 @@ services:
     volumes:
       - ./qr:/app
 
+  # https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/DynamoDBLocal.DownloadingAndRunning.html#docker
   dynamodb:
     image: amazon/dynamodb-local
     container_name: dynamodb
     ports:
       - "8000:8000"
+    volumes:
+      - "./docker/dynamodb:/home/dynamodblocal/data"
+    working_dir: /home/dynamodblocal
+    command: "-jar DynamoDBLocal.jar -inMemory -cors http://localhost:3000"

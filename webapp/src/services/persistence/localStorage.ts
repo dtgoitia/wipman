@@ -83,13 +83,16 @@ class StoredItem<T> {
 class Storage {
   tasks: StoredItem<object[] | undefined>;
   views: StoredItem<object[] | undefined>;
+  lastBackendFetch: StoredItem<string | undefined>;
 
   constructor() {
     const prefix = STORAGE_PREFIX;
     this.tasks = new StoredItem(`${prefix}__tasks`, ValueType.object);
     this.views = new StoredItem(`${prefix}__views`, ValueType.object);
-    // this.b = new StoredItem("b", 123);
-    // this.c = new StoredItem("c");
+    this.lastBackendFetch = new StoredItem(
+      `${prefix}__lastFetch`,
+      ValueType.string
+    );
   }
 }
 
