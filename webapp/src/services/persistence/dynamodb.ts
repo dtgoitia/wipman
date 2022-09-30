@@ -14,6 +14,7 @@ import {
   DynamoDBClientConfig,
   BatchGetItemCommand,
   QueryCommand,
+  ScanCommand,
 } from "@aws-sdk/client-dynamodb";
 import { Credentials } from "@aws-sdk/types/dist-types/credentials";
 
@@ -178,21 +179,73 @@ export class DynamoDbClient {
      */
 
     console.debug(`Fetching tasks updated after ${date.toISOString()}`);
+    console.debug(`updated_at       = ${dateToEpoch(date)}`);
+    console.debug(`updated_at_month = ${dateToMonth(date)}`);
 
     const command = new QueryCommand({
       TableName: TableNames.tasks,
       IndexName: TASK_INDEX.name,
-      KeyConditionExpression: "updated_at_month = :m AND updated_at >= :t",
+      KeyConditionExpression:
+        "updated_at >= :epoch AND updated_at_month = :month",
       ExpressionAttributeValues: {
-        ":m": { [ATTRIBUTE_TYPE.string]: dateToMonth(date) },
-        ":t": { [ATTRIBUTE_TYPE.number]: dateToEpoch(date) },
+        /**
+         *
+         *   ":month": { [ATTRIBUTE_TYPE.string]: "2022-09" },
+         *
+         * The fact that the "updated_at_month" is a string does not allow to compare
+         * bigger and lower than
+         *
+         * would it be better to use a number like 202209 instead of "2022-09" ?
+         * pro: you can compare ">="
+         */
+        ":month": { [ATTRIBUTE_TYPE.string]: dateToMonth(date) },
+        ":epoch": { [ATTRIBUTE_TYPE.number]: dateToEpoch(date) },
       },
     });
     console.log(1);
-
     const result = await this.client.send(command);
     console.log(2);
     console.log(result);
+    console.log(JSON.stringify(result.Items, null, 2));
+    // result_if_you_use_ScanCommand
+    // [
+    //   {
+    //     updated_at: { N: "1663498800000" },
+    //     created: { S: "2022-09-18T01:00:02+01:00" },
+    //     blocks: { S: "[]" },
+    //     id: { S: "b" },
+    //     blockedBy: { S: "[]" },
+    //     title: { S: "task title" },
+    //     updated: { S: "2022-09-18 11:00Z" },
+    //     updated_at_month: { S: "2022-09" },
+    //     content: { S: "task content!" },
+    //     tags: { S: "[]" },
+    //   },
+    //   {
+    //     updated_at: { N: "1663502400000" },
+    //     created: { S: "2022-09-18T01:00:02+01:00" },
+    //     blocks: { S: "[]" },
+    //     id: { S: "c" },
+    //     blockedBy: { S: "[]" },
+    //     title: { S: "task title" },
+    //     updated: { S: "2022-09-18 12:00Z" },
+    //     updated_at_month: { S: "2022-09" },
+    //     content: { S: "task content!" },
+    //     tags: { S: "[]" },
+    //   },
+    //   {
+    //     updated_at: { N: "1663495200000" },
+    //     created: { S: "2022-09-18T01:00:02+01:00" },
+    //     blocks: { S: "[]" },
+    //     id: { S: "a" },
+    //     blockedBy: { S: "[]" },
+    //     title: { S: "task title" },
+    //     updated: { S: "2022-09-18 10:00Z" },
+    //     updated_at_month: { S: "2022-09" },
+    //     content: { S: "task content!" },
+    //     tags: { S: "[]" },
+    //   },
+    // ];
 
     if (result.$metadata.httpStatusCode !== 200) {
       throw new Error(`${result}`);
