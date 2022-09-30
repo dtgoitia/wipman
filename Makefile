@@ -33,3 +33,17 @@ build-webapp:
 	scripts/build_webapp.sh
 
 set-up-development-environment: install-dev-tools rebuild-webapp
+
+run-db:
+	docker-compose up dynamodb
+
+migrate-db:
+	bash ./db-migration-scripts/migrate-using-webapp-logic.sh
+
+compile_python_dependencies:
+	docker-compose run --rm db-migrations \
+		pip-compile requirements.in \
+			--output-file requirements.txt \
+			--no-header \
+			--no-emit-index-url \
+			--verbose
