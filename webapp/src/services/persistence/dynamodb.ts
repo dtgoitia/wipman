@@ -34,10 +34,15 @@ enum TableNames {
 const TASK_INDEX = {
   name: "UpdatedAt",
   keys: {
-    month: "updated_at_month", // e.g.: 2022-09
-    epoch: "updated_at", //       Unix timestamp, but in miliseconds instead of seconds
+    deleted: "deleted", //  0=False, 1=True
+    epoch: "updated_at", // Unix timestamp, but in miliseconds instead of seconds
   },
 };
+
+enum Deleted {
+  false = "0",
+  true = "1",
+}
 
 export class DynamoDbClient {
   private client: DynamoDBClient;
@@ -68,8 +73,8 @@ export class DynamoDbClient {
           AttributeType: ATTRIBUTE_TYPE.number,
         },
         {
-          AttributeName: TASK_INDEX.keys.month,
-          AttributeType: ATTRIBUTE_TYPE.string,
+          AttributeName: TASK_INDEX.keys.deleted,
+          AttributeType: ATTRIBUTE_TYPE.number,
         },
       ],
       KeySchema: [{ AttributeName: "id", KeyType: "HASH" }],
@@ -77,19 +82,21 @@ export class DynamoDbClient {
         {
           IndexName: TASK_INDEX.name,
           KeySchema: [
-            { AttributeName: TASK_INDEX.keys.month, KeyType: "HASH" },
+            // Secondary indexes must have a HASH key. A HASH key does not support `>`
+            // or `>` operations
+            { AttributeName: TASK_INDEX.keys.deleted, KeyType: "HASH" },
+            // if you want to run `>` or `<` operations on a secondary index, you need
+            // to add a RANGE key alongside with the HASH key. You cannot have a=
+            // standalone RANGE key
             { AttributeName: TASK_INDEX.keys.epoch, KeyType: "RANGE" },
           ],
-          // ...
-          // ...
-          // ...
-          // ...
-          Projection: { ProjectionType: "ALL" }, // TODO: understand what is this? it's mandatory but I just copy-pasted
+          Projection: { ProjectionType: "ALL" },
           /**
-           * `Projection` probably affect to the performance of the query: look for "Keep the size of your index as small as possible to improve performance. This means choosing your projections carefully!" here: https://medium.com/cloud-native-the-gathering/querying-dynamodb-by-date-range-899b751a6ef2
-           *
-           *
-           *
+           * TODO: understand what is this? it's mandatory but I just copy-pasted
+           * `Projection` probably affect to the performance of the query: look
+           * for "Keep the size of your index as small as possible to improve
+           * performance. This means choosing your projections carefully!" here:
+           * https://medium.com/cloud-native-the-gathering/querying-dynamodb-by-date-range-899b751a6ef2
            */
           ProvisionedThroughput: {
             ReadCapacityUnits: 1,
@@ -114,8 +121,9 @@ export class DynamoDbClient {
 
   public async addTask(task: Task): Promise<PutItemCommandOutput> {
     const updated = new Date(task.updated);
-    const month = dateToMonth(updated);
     const epoch = dateToEpoch(updated);
+
+    console.log(`Adding Task #${task.id} with epoch ${epoch}`);
 
     const command = new PutItemCommand({
       TableName: TableNames.tasks,
@@ -133,7 +141,7 @@ export class DynamoDbClient {
 
         // Optimization: these keys are added for filtering purposes
         [TASK_INDEX.keys.epoch]: { [ATTRIBUTE_TYPE.number]: epoch },
-        [TASK_INDEX.keys.month]: { [ATTRIBUTE_TYPE.string]: month },
+        [TASK_INDEX.keys.deleted]: { [ATTRIBUTE_TYPE.number]: Deleted.false },
       },
     });
     const result = await this.client.send(command);
@@ -180,25 +188,13 @@ export class DynamoDbClient {
 
     console.debug(`Fetching tasks updated after ${date.toISOString()}`);
     console.debug(`updated_at       = ${dateToEpoch(date)}`);
-    console.debug(`updated_at_month = ${dateToMonth(date)}`);
 
     const command = new QueryCommand({
       TableName: TableNames.tasks,
       IndexName: TASK_INDEX.name,
-      KeyConditionExpression:
-        "updated_at >= :epoch AND updated_at_month = :month",
+      KeyConditionExpression: `deleted = :deleted AND ${TASK_INDEX.keys.epoch} >= :epoch`,
       ExpressionAttributeValues: {
-        /**
-         *
-         *   ":month": { [ATTRIBUTE_TYPE.string]: "2022-09" },
-         *
-         * The fact that the "updated_at_month" is a string does not allow to compare
-         * bigger and lower than
-         *
-         * would it be better to use a number like 202209 instead of "2022-09" ?
-         * pro: you can compare ">="
-         */
-        ":month": { [ATTRIBUTE_TYPE.string]: dateToMonth(date) },
+        ":deleted": { [ATTRIBUTE_TYPE.number]: Deleted.false },
         ":epoch": { [ATTRIBUTE_TYPE.number]: dateToEpoch(date) },
       },
     });
@@ -207,45 +203,6 @@ export class DynamoDbClient {
     console.log(2);
     console.log(result);
     console.log(JSON.stringify(result.Items, null, 2));
-    // result_if_you_use_ScanCommand
-    // [
-    //   {
-    //     updated_at: { N: "1663498800000" },
-    //     created: { S: "2022-09-18T01:00:02+01:00" },
-    //     blocks: { S: "[]" },
-    //     id: { S: "b" },
-    //     blockedBy: { S: "[]" },
-    //     title: { S: "task title" },
-    //     updated: { S: "2022-09-18 11:00Z" },
-    //     updated_at_month: { S: "2022-09" },
-    //     content: { S: "task content!" },
-    //     tags: { S: "[]" },
-    //   },
-    //   {
-    //     updated_at: { N: "1663502400000" },
-    //     created: { S: "2022-09-18T01:00:02+01:00" },
-    //     blocks: { S: "[]" },
-    //     id: { S: "c" },
-    //     blockedBy: { S: "[]" },
-    //     title: { S: "task title" },
-    //     updated: { S: "2022-09-18 12:00Z" },
-    //     updated_at_month: { S: "2022-09" },
-    //     content: { S: "task content!" },
-    //     tags: { S: "[]" },
-    //   },
-    //   {
-    //     updated_at: { N: "1663495200000" },
-    //     created: { S: "2022-09-18T01:00:02+01:00" },
-    //     blocks: { S: "[]" },
-    //     id: { S: "a" },
-    //     blockedBy: { S: "[]" },
-    //     title: { S: "task title" },
-    //     updated: { S: "2022-09-18 10:00Z" },
-    //     updated_at_month: { S: "2022-09" },
-    //     content: { S: "task content!" },
-    //     tags: { S: "[]" },
-    //   },
-    // ];
 
     if (result.$metadata.httpStatusCode !== 200) {
       throw new Error(`${result}`);
@@ -290,11 +247,6 @@ export class DynamoDbClient {
     } as Task;
     return task;
   }
-}
-
-function dateToMonth(date: Date): string {
-  const month = date.toISOString().slice(0, 7); // YYYY-MM
-  return month;
 }
 
 function dateToEpoch(date: Date): string {
