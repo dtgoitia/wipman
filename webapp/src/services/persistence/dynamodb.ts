@@ -202,7 +202,7 @@ export class DynamoDbClient {
     const result = await this.client.send(command);
     console.log(2);
     console.log(result);
-    console.log(JSON.stringify(result.Items, null, 2));
+    // console.log(JSON.stringify(result.Items, null, 2));
 
     if (result.$metadata.httpStatusCode !== 200) {
       throw new Error(`${result}`);
