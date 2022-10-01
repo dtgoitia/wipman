@@ -105,7 +105,12 @@ class Storage {
 
   // TODO: return Result
   public readTasksFromBackend(): Promise<Task[]> {
-    return this.dynamoDbClient.getTasksUpdatedAfter(this.lastBackendFetch);
+    return this.dynamoDbClient
+      .getTasksUpdatedAfter(this.lastBackendFetch)
+      .then((result) => {
+        this.updateLastFetchDate(new Date());
+        return result;
+      });
   }
 
   private getLastFetchDate(): Date {
@@ -117,6 +122,11 @@ class Storage {
     const raw = browserStorage.lastBackendFetch.read() as string;
 
     return new Date(raw);
+  }
+
+  private updateLastFetchDate(date: Date): void {
+    this.lastBackendFetch = date;
+    browserStorage.lastBackendFetch.set(date.toISOString());
   }
 
   /**
