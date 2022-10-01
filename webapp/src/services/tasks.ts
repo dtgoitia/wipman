@@ -169,11 +169,11 @@ class TaskInitializationService {
 
     this.taskManager.bulkLoadTasks({ tasks: apiTasks, publish: true });
     this.status.next(TaskInitializationStatus.backendLoadCompleted);
-    // TODO: store API tasks in browser - only during initialization
 
     console.debug("Configuring storage to react to TaskManager...");
     storage.listenTasks(taskManager.tasks$);
 
+    storage.save();
     this.status.next(TaskInitializationStatus.loadCompleted);
     this.status.complete();
     console.debug("Initialization completed");

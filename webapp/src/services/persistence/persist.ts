@@ -75,9 +75,7 @@ class Storage {
 
     this.statusSubject.next(StorageStatus.SAVING);
     this.saveTasksToBrowser();
-
-    // TODO: save tasks to git thingy  - this probably should be a s
-    // tasksToGitRepo(gitClient, this.tasks)
+    this.saveTasksToBackend();
 
     // TODO: if something fails - report error to error service and keep as StorageStatus.DRAFT
     this.statusSubject.next(StorageStatus.SAVED);
@@ -134,7 +132,7 @@ class Storage {
    */
   private saveTasksToBrowser(): void {
     // TODO: return Result
-    console.log("Storage::saveTasksToBrowser");
+    console.debug("Storage::saveTasksToBrowser");
     const serializedTasks = [...this.tasks.values()].map(taskToRaw);
 
     browserStorage.tasks.set(serializedTasks);
@@ -142,7 +140,15 @@ class Storage {
 
   private saveTasksToBackend(): void {
     // TODO: return Result
-    // ..
+    /**
+     * TODO:
+     * Phase 1: save everything in browser to DynamoDB - super inefficient
+     * Phase 2: save only the items changed in browser to DynamoDB - optimal
+     */
+    console.debug("Storage::saveTasksToBackend");
+    for (const task of this.tasks.values()) {
+      this.dynamoDbClient.addTask(task);
+    }
   }
 }
 
