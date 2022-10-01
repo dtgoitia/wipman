@@ -146,9 +146,19 @@ class Storage {
      * Phase 2: save only the items changed in browser to DynamoDB - optimal
      */
     console.debug("Storage::saveTasksToBackend");
-    for (const task of this.tasks.values()) {
-      this.dynamoDbClient.addTask(task);
+    const tasks = [...this.tasks.values()];
+    if (tasks.length > 25) {
+      /**
+       * TODO
+       * DynamoDB supports up to 25 items up to 400KB each, or a maximum of 16MB for the
+       * bulk write request (whichever occurs first) per API call.
+       * Source: https://dynobase.dev/dynamodb-batch-write-update-delete/
+       */
+      throw new Error(
+        `Apparently DynamoDB doesn't support more than 25 items per batch write, have a look and see if that's true`
+      );
     }
+    this.dynamoDbClient.addTasks(tasks);
   }
 }
 

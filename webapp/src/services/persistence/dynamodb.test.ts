@@ -32,19 +32,29 @@ describe("DynamoDB", () => {
     expect(deleted).toEqual(undefined);
   });
 
+  it("create multiple tasks", async () => {
+    const a = createTask({ id: "a", updated: "2022-09-18 10:00Z" });
+    const b = createTask({ id: "b", updated: "2022-09-18 11:00Z" });
+    const c = createTask({ id: "c", updated: "2022-09-18 12:00Z" });
+    const tasks = [a, b, c];
+
+    await db.addTasks(tasks);
+
+    await Promise.all(
+      tasks.map(async (task) => {
+        const retrieved = await db.getTaskById(task.id);
+        expect(retrieved).toEqual(task);
+      })
+    );
+  });
+
   it("create multiple tasks, and retrieve them by updated date", async () => {
     const a = createTask({ id: "a", updated: "2022-09-18 10:00Z" });
     const b = createTask({ id: "b", updated: "2022-09-18 11:00Z" });
     const c = createTask({ id: "c", updated: "2022-09-18 12:00Z" });
     const tasks = [a, b, c];
 
-    await Promise.all(
-      tasks.map(async (task) => {
-        await db.addTask(task);
-        const retrieved = await db.getTaskById(task.id);
-        console.log(retrieved);
-      })
-    );
+    await db.addTasks(tasks);
 
     const after = new Date("2022-09-18 10:30Z");
 

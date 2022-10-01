@@ -1,4 +1,4 @@
-import { ISODatetimeString, Task, TaskId } from "../../domain/types";
+import { Task, TaskId } from "../../domain/types";
 import {
   DynamoDBClient,
   CreateTableCommand,
@@ -7,14 +7,13 @@ import {
   CreateTableCommandOutput,
   DeleteBackupCommandOutput,
   PutItemCommandOutput,
-  GetItemCommandOutput,
   GetItemCommand,
   AttributeValue,
   DeleteItemCommand,
   DynamoDBClientConfig,
-  BatchGetItemCommand,
   QueryCommand,
-  ScanCommand,
+  BatchWriteItemCommand,
+  BatchWriteItemCommandOutput,
 } from "@aws-sdk/client-dynamodb";
 import { Credentials } from "@aws-sdk/types/dist-types/credentials";
 
@@ -120,31 +119,38 @@ export class DynamoDbClient {
   }
 
   public async addTask(task: Task): Promise<PutItemCommandOutput> {
-    const updated = new Date(task.updated);
-    const epoch = dateToEpoch(updated);
-
-    console.log(`Adding Task #${task.id} with epoch ${epoch}`);
+    console.log(`Adding Task #${task.id}`);
 
     const command = new PutItemCommand({
       TableName: TableNames.tasks,
-      Item: {
-        id: { [ATTRIBUTE_TYPE.string]: task.id },
-        title: { [ATTRIBUTE_TYPE.string]: task.title },
-        content: { [ATTRIBUTE_TYPE.string]: task.content },
-        updated: { [ATTRIBUTE_TYPE.string]: task.updated },
-        created: { [ATTRIBUTE_TYPE.string]: task.created },
-        tags: { [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.tags]) },
-        blocks: { [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.blocks]) },
-        blockedBy: {
-          [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.blockedBy]),
-        },
-
-        // Optimization: these keys are added for filtering purposes
-        [TASK_INDEX.keys.epoch]: { [ATTRIBUTE_TYPE.number]: epoch },
-        [TASK_INDEX.keys.deleted]: { [ATTRIBUTE_TYPE.number]: Deleted.false },
-      },
+      Item: this.taskToItem(task),
     });
     const result = await this.client.send(command);
+    return result;
+  }
+
+  public async addTasks(tasks: Task[]): Promise<BatchWriteItemCommandOutput> {
+    const taskIds = tasks.map((task) => `#${task.id}`).join(", ");
+    console.log(`Adding Tasks ${taskIds}`);
+    const command = new BatchWriteItemCommand({
+      RequestItems: {
+        [TableNames.tasks]: tasks.map((task) => ({
+          PutRequest: {
+            Item: this.taskToItem(task),
+          },
+        })),
+      },
+    });
+
+    const result = await this.client.send(command);
+    /**
+     * The batchWrite method returns a list of unprocessed items in the request. To
+     * ensure that all the items get inserted, AWS recommends you perform bulk writes in
+     * a loop using the exponential backoff algorithm:
+     * https://docs.aws.amazon.com/general/latest/gr/api-retries.html
+     *
+     * Source: https://dynobase.dev/dynamodb-batch-write-update-delete/
+     *  */
     return result;
   }
 
@@ -229,6 +235,34 @@ export class DynamoDbClient {
     const result = await this.client.send(command);
     console.log(result); // TODO: assert result.$metadata.httpStatusCode === 200
     return;
+  }
+
+  private taskToItem(task: Task): Record<string, AttributeValue> {
+    const updated = new Date(task.updated);
+    const epoch = dateToEpoch(updated);
+    const item = {
+      id: { [ATTRIBUTE_TYPE.string]: task.id },
+      title: { [ATTRIBUTE_TYPE.string]: task.title },
+      content: { [ATTRIBUTE_TYPE.string]: task.content },
+      updated: { [ATTRIBUTE_TYPE.string]: task.updated },
+      created: { [ATTRIBUTE_TYPE.string]: task.created },
+      tags: {
+        [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.tags]),
+      },
+      blocks: {
+        [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.blocks]),
+      },
+      blockedBy: {
+        [ATTRIBUTE_TYPE.string]: JSON.stringify([...task.blockedBy]),
+      },
+
+      // Optimization: these keys are added for filtering purposes
+      [TASK_INDEX.keys.epoch]: { [ATTRIBUTE_TYPE.number]: epoch },
+      [TASK_INDEX.keys.deleted]: {
+        [ATTRIBUTE_TYPE.number]: Deleted.false,
+      },
+    };
+    return item;
   }
 
   private itemToTask(item: Record<string, AttributeValue>): Task {
