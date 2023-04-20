@@ -1,14 +1,15 @@
 import { generateHash } from "./domain/hash";
-import { ISODatetimeString, Task } from "./domain/types";
+import { ISODatetimeString, Task, TaskId } from "./domain/types";
 
 interface CreateTaskProps {
-  id?: string;
+  id?: TaskId;
+  title?: string;
   updated?: ISODatetimeString;
 }
-export function createTask({ id, updated }: CreateTaskProps): Task {
+export function createTask({ id, title, updated }: CreateTaskProps): Task {
   const task: Task = {
     id: id ? id : generateHash(),
-    title: "task title",
+    title: title ? title : "task title",
     content: "task content!",
     tags: new Set(["tag1"]),
     blocks: new Set(["taskId1"]),
