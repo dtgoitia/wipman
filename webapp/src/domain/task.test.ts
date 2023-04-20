@@ -1,5 +1,7 @@
-import { TaskManager } from "./task";
-import { Tag, Task } from "./types";
+import { todo } from "../devex";
+import { createTask } from "../testHelpers";
+import { TaskManager, mergeTasks } from "./task";
+import { Task } from "./types";
 
 describe("TaskManager", () => {
   it("can be initialized empty", () => {
@@ -65,5 +67,41 @@ describe("TaskManager", () => {
 
     const retrieved = man.getTask(existing.id);
     expect(retrieved).toEqual(existing);
+  });
+});
+
+describe("mergeTasks", () => {
+  it(`preserves most up to date entries when present in both groups`, () => {
+    const yesterday = "2023-04-19T00:00:00+00:00";
+    const today = "2023-04-20T00:00:00+00:00";
+
+    const task_a1 = createTask({ title: "task a", updated: today });
+    const task_b1 = createTask({ title: "task b", updated: yesterday });
+    const task_c = createTask({ title: "task c", updated: today });
+
+    const task_a2: Task = { ...task_a1, updated: yesterday };
+    const task_b2: Task = { ...task_b1, updated: today };
+
+    const a: Task[] = [task_a1, task_b1];
+    const b: Task[] = [task_a2, task_b2, task_c];
+
+    expect(mergeTasks({ a, b })).toEqual([task_a1, task_b2, task_c]);
+  });
+
+  it(`handles first being empty`, () => {
+    const task = createTask({});
+    const b: Task[] = [task];
+    expect(mergeTasks({ a: [], b })).toEqual([task]);
+  });
+  it(`handles second being empty`, () => {
+    const task = createTask({});
+    const a: Task[] = [task];
+    expect(mergeTasks({ a, b: [] })).toEqual([task]);
+  });
+  it(`handles both being empty`, () => {
+    expect(mergeTasks({ a: [], b: [] })).toEqual([]);
+  });
+  xit(`handles entries with different timezones`, () => {
+    todo();
   });
 });

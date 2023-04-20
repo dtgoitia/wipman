@@ -251,8 +251,40 @@ interface MergeTaskArgs {
 }
 
 export function mergeTasks({ a, b }: MergeTaskArgs): Task[] {
-  // TODO
-  return b;
+  // Index tasks in B by ID
+  const bIndex = new Map<TaskId, Task>();
+  for (const task of b) {
+    bIndex.set(task.id, task);
+  }
+
+  const result: Task[] = [];
+
+  // traverse A, comparing each task with its counterpart in B
+  for (const aTask of a) {
+    const id = aTask.id;
+    const bCounterpart = bIndex.get(id);
+    if (bCounterpart === undefined) {
+      result.push(aTask);
+      continue;
+    }
+
+    const ta = new Date(aTask.updated).getTime();
+    const tb = new Date(bCounterpart.updated).getTime();
+    const mostRecent = ta < tb ? bCounterpart : aTask;
+    result.push(mostRecent);
+
+    // by removing B items already checks, at the end of the loop the map will only
+    // contain those items in B that were not in A and still need to be included in
+    // the result
+    bIndex.delete(id);
+  }
+
+  // append remaining items B that were not present in A
+  for (const task_b of bIndex.values()) {
+    result.push(task_b);
+  }
+
+  return result;
 }
 
 interface TaskAdded {
