@@ -12,6 +12,7 @@ export interface Task {
   tags: Set<Tag>;
   blockedBy: Set<TaskId>; // tasks must be done before the current task
   blocks: Set<TaskId>; // tasks that are blocked until the current task is done
+  completed: boolean;
 }
 
 // this is not called Group because in this new design, you don't need to have different types of tags to specify "tags", "precedent task", "next task", etc. All the task dependencies are now specified in the task content as metadata

@@ -82,6 +82,7 @@ const SAMPLE_TASKS: Task[] = [
     tags: new Set<Tag>(["hiru", "foo"]),
     blockedBy: new Set<TaskId>(),
     blocks: new Set<TaskId>(),
+    completed: false,
   },
   {
     id: "bbbbbbb",
@@ -92,6 +93,7 @@ const SAMPLE_TASKS: Task[] = [
     tags: new Set<Tag>(),
     blockedBy: new Set<TaskId>(),
     blocks: new Set<TaskId>(),
+    completed: false,
   },
 ];
 

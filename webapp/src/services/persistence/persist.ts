@@ -140,6 +140,7 @@ function taskToRaw(task: Task): SerializedTask {
     tags: [...task.tags],
     blockedBy: [...task.blockedBy],
     blocks: [...task.blocks],
+    completed: task.completed,
   };
   return raw;
 }
@@ -153,6 +154,7 @@ interface SerializedTask {
   tags: string[];
   blockedBy: string[];
   blocks: string[];
+  completed: boolean;
 }
 
 function rawToTask(raw: SerializedTask) {
@@ -165,6 +167,7 @@ function rawToTask(raw: SerializedTask) {
     tags: new Set(raw.tags),
     blockedBy: new Set(raw.blockedBy),
     blocks: new Set(raw.blocks),
+    completed: raw.completed,
   };
   return task;
 }

@@ -15,6 +15,7 @@ export function createTask({ id, updated }: CreateTaskProps): Task {
     blockedBy: new Set(["taskId2"]),
     created: "2022-09-18T01:00:02+01:00",
     updated: updated ? updated : "2022-09-18T07:09:18+01:00",
+    completed: false,
   };
   return task;
 }
