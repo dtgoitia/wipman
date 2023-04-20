@@ -1,5 +1,8 @@
-export function todo({ message }: { message?: string }): never {
-  throw new Error(message ? message : "TODO");
+interface TodoArgs {
+  message?: string;
+}
+export function todo(args: TodoArgs | undefined = undefined): never {
+  throw new Error(args && args.message ? args.message : "TODO");
 }
 
 export function unreachable(
