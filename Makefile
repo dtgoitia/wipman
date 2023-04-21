@@ -36,3 +36,12 @@ set-up-development-environment: install-dev-tools rebuild-webapp
 
 run-api:
 	bash ./api/bin/run_api
+
+compile_api_development_dependencies:
+	bash api/bin/dev/compile_dev_deps
+
+compile_api_production_dependencies:
+	bash api/bin/dev/compile_dev_deps
+
+install_api_development_dependencies:
+	bash api/bin/dev/install_dev_deps
