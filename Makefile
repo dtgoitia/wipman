@@ -33,3 +33,6 @@ build-webapp:
 	scripts/build_webapp.sh
 
 set-up-development-environment: install-dev-tools rebuild-webapp
+
+run-api:
+	bash ./api/bin/run_api

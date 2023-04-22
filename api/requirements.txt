@@ -1,0 +1,11 @@
+Flask
+flask-cors
+
+ipdb
+pudb
+flake8
+isort
+black
+mypy
+ruff
+pytest
