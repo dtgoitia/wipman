@@ -13,6 +13,7 @@ class Storage {
   public tasks: Map<TaskId, Task> = new Map(); // persisted tasks
   public draftTasks: Map<TaskId, Task> = new Map(); // in-memory tasks
   public status$: Observable<StorageStatus>;
+  public lastBackendFetch: Date;
 
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
@@ -22,6 +23,7 @@ class Storage {
 
   constructor() {
     this.status$ = this.statusSubject.asObservable();
+    this.lastBackendFetch = this.getLastFetchDate();
   }
 
   // Returns `false` if there are pending changes to save, else `true`.
@@ -95,6 +97,22 @@ class Storage {
   // TODO: return Result
   public async readTasksFromBackend(): Promise<Task[]> {
     return [];
+  }
+
+  private getLastFetchDate(): Date {
+    if (browserStorage.lastBackendFetch.exists() === false) {
+      console.log("Date of last API fetch not found in browser storage");
+      return new Date(0); // old date in the past
+    }
+
+    const raw = browserStorage.lastBackendFetch.read() as string;
+
+    return new Date(raw);
+  }
+
+  private updateLastFetchDate(date: Date): void {
+    this.lastBackendFetch = date;
+    browserStorage.lastBackendFetch.set(date.toISOString());
   }
 
   /**
