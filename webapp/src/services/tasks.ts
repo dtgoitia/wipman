@@ -125,11 +125,21 @@ class TaskInitializationService {
     this.status$ = this.status.asObservable();
   }
 
-  public initialize(): void {
-    console.log("Starting initialization...");
+  public async initialize(): Promise<void> {
     // During the initial load, the storage layer is the source of truth. Once the
     // persisted data is loaded, the domain layer becomes the source of truth, and the
     // storage layer reacts to domain state changes.
+
+    // Enable logging
+    console.log("Starting initialization...");
+    this.status.subscribe({
+      next: (status) => {
+        console.log(`TaskInitializationService.status$ = ${status}`);
+      },
+      error: (error) => console.error(error),
+      complete: () =>
+        console.log(`TaskInitializationService.status$ is now complete`),
+    });
 
     this.status.next(TaskInitializationStatus.browserLoadStarted);
     const browserTasks = storage.readTasksFromBrowser();
@@ -140,19 +150,33 @@ class TaskInitializationService {
     // this is temporary: under normal circumstances, tasks are published once the
     // backend tasks are loaded. However, the backend load is not implemented yet. Until
     // then, publish tasks once they are loaded from the browser.
-    this.taskManager.publishTasks();
+    // this.taskManager.publishTasks();
 
-    // TODO: load from API
-    // this.status.next(TaskInitializationStatus.backendLoadStarted);
-    // const apiTasks = getTasksFromBrowser();
-    // this.taskManager.bulkLoadTasks(apiTasks, true);
-    // // TODO: if API load fails, use taskManager to publish tasks (to work offline)
-    // this.status.next(TaskInitializationStatus.backendLoadCompleted);
+    // load from API
+    this.status.next(TaskInitializationStatus.backendLoadStarted);
+    let apiTasks: Task[];
+    try {
+      apiTasks = await storage.readTasksFromBackend(); // TODO: return result and handle failure
+    } catch (error) {
+      // TODO: if API load fails, use taskManager to publish tasks (to work offline)
+      console.error(error);
+      console.log("foo");
+      this.taskManager.publishTasks();
+      this.status.next(TaskInitializationStatus.loadCompleted);
+      this.status.complete();
+      return;
+    }
 
-    console.debug("Configure storage to react to TaskManager");
+    this.taskManager.bulkLoadTasks(apiTasks, true);
+    this.status.next(TaskInitializationStatus.backendLoadCompleted);
+    // TODO: store API tasks in browser - only during initialization
+
+    console.debug("Configuring storage to react to TaskManager...");
     storage.listenTasks(taskManager.tasks$);
 
     this.status.next(TaskInitializationStatus.loadCompleted);
+    this.status.complete();
+    console.log("complete!!");
   }
 }
 

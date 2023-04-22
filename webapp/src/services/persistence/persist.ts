@@ -1,7 +1,6 @@
 import { Task, TaskId } from "../../domain/types";
 import browserStorage from "./localStorage";
-import { first, skip } from "rxjs";
-import { BehaviorSubject, Observable } from "rxjs";
+import { BehaviorSubject, Observable, first, skip } from "rxjs";
 
 export enum StorageStatus {
   DRAFT = "draft",
@@ -93,9 +92,8 @@ class Storage {
     return tasks;
   }
 
-  public readTasksFromBackend(): Task[] {
-    // TODO: return Result
-    // ..
+  // TODO: return Result
+  public async readTasksFromBackend(): Promise<Task[]> {
     return [];
   }
 
