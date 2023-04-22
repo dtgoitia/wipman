@@ -4,5 +4,5 @@ set -o errexit
 set -o pipefail
 set -o nounset
 
-# TODO: replace with gunicorn once get this working
+# TODO: replace this with a good entrypoint with debugging enabled
 python -m src.api

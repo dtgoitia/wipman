@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-  wipman-webapp:
+  wipman-webapp:  # TODO: append '-dev' suffix to be explicit that this image is not designed for production
     build:
       context: ./webapp
       dockerfile: Dockerfile
@@ -29,3 +29,17 @@ services:
     container_name: qr
     volumes:
       - ./qr:/app
+
+  wipman-api-dev:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: dev
+    image: wipman-api-dev
+    container_name: wipman-api-dev
+    ports:
+      - "5000:5000"
+    # environment:
+    volumes:
+      - ./api:/app
+    # healthcheck:

@@ -1,4 +1,5 @@
 WEBAPP_NAME:=wipman-webapp
+API_NAME:=wipman-api-dev
 
 set_up_development_environment:
 	@echo ""
@@ -64,13 +65,16 @@ build_webapp:
 	scripts/build_webapp.sh
 
 run_api:
-	bash ./api/bin/run_api
+	docker-compose up $(API_NAME)
 
 compile_api_development_dependencies:
 	bash api/bin/dev/compile_dev_deps
 
 compile_api_production_dependencies:
-	bash api/bin/dev/compile_dev_deps
+	bash api/bin/dev/compile_prod_deps
 
 install_api_development_dependencies:
 	bash api/bin/dev/install_dev_deps
+
+rebuild_api:
+	@echo TODO
