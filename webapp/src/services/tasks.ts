@@ -173,6 +173,7 @@ class TaskInitializationService {
     console.debug("Configuring storage to react to TaskManager...");
     storage.listenTasks(taskManager.tasks$);
 
+    storage.save();
     this.status.next(TaskInitializationStatus.loadCompleted);
     this.status.complete();
     console.debug("Initialization completed");
