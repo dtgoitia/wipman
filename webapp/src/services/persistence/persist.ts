@@ -66,9 +66,7 @@ class Storage {
 
     this.statusSubject.next(StorageStatus.SAVING);
     this.saveTasksToBrowser();
-
-    // TODO: save tasks to git thingy  - this probably should be a s
-    // tasksToGitRepo(gitClient, this.tasks)
+    this.saveTasksToBackend();
 
     // TODO: if something fails - report error to error service and keep as StorageStatus.DRAFT
     this.statusSubject.next(StorageStatus.SAVED);
