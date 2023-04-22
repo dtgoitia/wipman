@@ -1,9 +1,9 @@
 WEBAPP_NAME:=wipman-webapp
 
-set-up-development-environment:
+set_up_development_environment:
 	@echo ""
 	@echo Installing git hooks...
-	make install-dev-tools
+	make install_dev_tools
 
 	@echo ""
 	@echo ""
@@ -14,46 +14,56 @@ set-up-development-environment:
 
 	@echo ""
 	@echo ""
+	@echo Installing Python dependencies outside of the container, so that the IDE can detect them
+	@# this step is necessary because otherwise docker-compose creates a node_modules
+	@# folder with root permissions and outside-container build fails
+	cd api;~/.pyenv/versions/3.11.2/bin/python -m venv .venv/
+	bash api/bin/dev/install_dev_deps
+
+	@echo ""
+	@echo ""
 	@echo Creating development docker images...
-	make rebuild-webapp
+	make rebuild_webapp
+	make rebuild_api
 
 	@echo ""
 	@echo ""
-	@echo To start app:  make run-webapp
+	@echo To start webapp:  make run_webapp
+	@echo To start api:     make run_api
 
-install-dev-tools:
+install_dev_tools:
 	pre-commit install  # pre-commit is (default)
 	pre-commit install --hook-type pre-push
 
-uninstall-dev-tools:
+uninstall_dev_tools:
 	pre-commit uninstall  # pre-commit is (default)
 	pre-commit uninstall --hook-type pre-push
 
-run-webapp:
+run_webapp:
 	scripts/print_local_ip_via_qr.sh
 	docker-compose up $(WEBAPP_NAME)
 
 # Recreate web app docker image
-rebuild-webapp:
+rebuild_webapp:
 	docker-compose down
 	docker image rm $(WEBAPP_NAME) || (echo "No $(WEBAPP_NAME) found, all good."; exit 0)
 	docker-compose build --no-cache $(WEBAPP_NAME)
 
-test-dev-webapp:
+test_dev_webapp:
 	docker-compose run --rm $(WEBAPP_NAME) npm test
 
-shell-webapp:
+shell_webapp:
 	docker-compose run --rm $(WEBAPP_NAME) bash
 
-deploy-webapp-from-local:
+deploy_webapp_from_local:
 	cd ./webapp \
 		&& npm run deploy_from_local
 	@# TODO: docker-compose run --rm $(WEBAPP_NAME) npm run deploy_from_local
 
-build-webapp:
+build_webapp:
 	scripts/build_webapp.sh
 
-run-api:
+run_api:
 	bash ./api/bin/run_api
 
 compile_api_development_dependencies:
