@@ -1,0 +1,170 @@
+- [x] devex: set up pip-tools and makefile for API
+- [x] feat: load wipman_dir in memory -- use fs_adapter
+- [x] feat: dump in-memory data into sqlite db file -- use sqlite_adapter
+- [x] feat: read all changes since date sqlite db file -- use sqlite_adapter
+- [x] feat: update task in sqlite db file -- use sqlite_adapter
+- [x] feat: update view in sqlite db file -- use sqlite_adapter
+- [x] feat: read all changes since via API -- get data from DB
+- [x] feat: update task via API -- get data from DB
+- [x] feat: update view via API -- get data from DB
+- [x] feat: expose API via ngrok -- dirty and hacky, you'll abstract and tidy up later
+- [x] feat: ui: fetch all Tasks via Wipman
+- [x] feat: ui: list all Tasks via Wipman
+- [x] feat: ui: show one Task via Wipman
+- [x] feat: ui: update one Task via Wipman (to API)
+- [x] feat: ui: update Task to include the `completed` field
+- [x] deps: api: set up pip-tools
+- [x] devex: api: containerize app
+- [x] devex: ci: set up GitHub Actions to deploy frontend
+- [x] devex: ui: deploy UI in GitHub
+- [x] feat: ui: add API URL in settings
+- [x] feat: api: add script to restore DB backup into remote server
+- [x] devex: vps: delete push to GitLab remove - not needed anymore, you have IPv4
+- [x] devex: vps: delete GitLab account - not needed anymore, you have IPv4
+- [x] devex: vps: remove SSH fingerprint from old VPS
+- [x] devex: vps: destroy current VPS
+- [x] devex: vps: create a new VPS properly - rootless user
+- [x] devex: vps: new GitHub keys
+- [x] devex: vps: install docker and docker-compose
+- [x] devex: vps: install nginx
+- [x] devex: vps: configure nginx to route to wipman-api
+- [x] feat: api: add script to back up DB from remote server
+- [x] devex: vps: update Namecheap DNS records api.dtgoitia.dev --> VPS IP  -- update SSH config HostName
+- [x] feat: api: add health endpoint
+- [x] feat: decouple webapp views from logic by moving logic into a `webapp/src/domain/wipman.ts::Wipman` class
+- [x] feat: ui: expose error service in wipman
+- [x] feat: ui: display ErrorService errors in the UI
+- [x] feat: vps: transfer DNS nameservers from Namecheap to Cloudflare
+- [x] devex: vps: configure certbot with nginx - you are reaching Cloudflare via HTTPS... but the Cloudflare<>VPS connection is in plain HTTP
+- [x] feat: local: add script to restore local wipman_dir from a local copy of remote DB
+- [x] feat: ui: allow user updating Task title
+- [x] feat: ui: add search bar for tasks (there are too many!)
+- [x] fix: ui: if a Task exists in webapp and not in API, when webapp deletes Task, API will try to delete and fail
+- [x] feat: api: normalize Views in DB to only have a sorted list of Task IDs
+- [x] WIP: ui: organize commit
+- [x] test: CRUD Tasks
+- [x] test: CRUD Views
+- [x] test: CLIs to dump/restore from files<>DB
+- [x] feat: ui: ViewManager.getViewsByTask()
+- [x] feat: ui: add an "admin" section in the Settings page, to clean browser storage -- useful to dump all the data from API into phone clean
+- [x] fix: UI has corrupted views - some of them have old `View.content` mixed with task IDs - clean old `View.content`
+- [x] fix: push all Tasks from wipman-data to remote DB, so that they are in the webapp as well
+- [x] feat: ui: allow adding Tags to Task in TaskPage
+- [x] feat: ui: allow adding Tags to Views in ViewPage
+- [x] feat: ui: add button to recompute Tasks for all Views
+- [x] feat: api: replace manual serde for `apischema`
+- [x] feat: ui: update serde to logic to match `apischema` flavour
+- [x] feat: local: restore wipman dir from API
+- [x] feat: local: push wipman dir to API
+- [x] devex: ui: add script to deploy API from local
+- [x] devex: ui: migrate from CRA to Vite
+- [x] devex: ui: migrate from Blueprint to PrimeReact
+- [x] devex: show TS compiler errors on `make run_webapp` - currently only show if I `cd webapp;npm run build`
+- [x] fix: ui: allow fully deleting values in Settings
+- [x] devex: ui: run type-checks on precommit if changes in `webapp/` dir
+- [x] feat: ui: allow sorting Tasks by click-and-dragging
+- [x] feat: ui: add support toggle to hide/show completed Tasks
+- [x] feat: ui: add support marking Tasks as completed
+- [x] feat: ui: add support toggle to hide/show completed Tasks in View Task page too
+- [ ] devex: ui: run tests on precommit if changes in `webapp/` dir
+- [ ] devex: api: run tests on precommit if changes in `api/` dir
+- [ ] feat: ui: add support to mark Tasks as deleted
+- [ ] feat: ui: purge deleted Tasks once they've been deleted 30 days ago
+
+Top priority: to get minimum working
+  - Make sure to sync Tasks between laptop-api-webapp correctly  - Views later
+
+- [ ] feat: ui: set up Jest - https://maous.medium.com/setup-testing-environment-for-react-typescript-with-jest-1f5eb453aa2
+- [ ] feat: ui: allow deleting Tags -- ensure they are not used, if used report how many tasks are using it and their titles
+- [ ] feat: ui: allow creating a Task from the ViewPage - and Task.tags = View.tags
+- [ ] fix: api: do not 5xx if you try to delete Task that does not exist in API yet -- use case -> user creates Task offline, and when online tries to delete it before last browser changes are sent to API
+- [ ] fix: api: do not 5xx if you try to delete View that does not exist in API yet -- use case -> user creates View offline, and when online tries to delete it before last browser changes are sent to API
+- [ ] fix: ui: allow to load the app if no API URL in Settings -- use a new Firefox container
+- [ ] devex: ci: only deploy api if files under ./api changed
+- [ ] devex: ci: only deploy webapp if files under ./webapp changed
+- [ ] feat: ui: wipman only exposes 4 events - initialization.started | initialization.ended | changes.ongoing | changes.completed  - and the rest of events should be abstracted away by Wipman
+- [ ] devex: ci: set up GitHub Actions to deploy API: build container in CI, push to GitLab, take down current container in VPS, pull new one, spin up new one - purge old image
+- [ ] feat: ui: ViewExplorer: preview the first top 5 tasks inside a view, so that you quickly find tasks to do without opening views one by one
+- [ ] feat: ui: allow renaming a tag -- if the chosen name exists, show a pop up asking confirmation that both tags will get 'merged'
+- [ ] devex: ci: deploy API to VPS
+    - Example: https://gist.github.com/stancl/cab04a411f136047e80c1de81528eb23
+    - GitHub SSH actions: https://github.com/appleboy/ssh-action
+- [ ] feat: ui: on init, save latest API changes to browser local storage - browser storage only gets latest tasks once TaskManager emits (which only happens if you create/update/delete after init)
+- [ ] feat: ui: on init, save latest browser changes to API
+- [ ] feat: api: extend config to Config.debug - by default False, allow changing via envvar (cast from str to bool, if fails, fallback to default value provided on casting function)
+- [ ] devex: investigate an app versioning system that works fine with CI
+- [ ] devex: ui: only build frontend if frontend files have changed since last push
+- [ ] feat: ui: update NavBar to show the "Save" button on TaskManager.changes$=TaskAdded/TaskUpdated/TaskDeleted so that user can press 'Save' button and changes are propagated to browser LocalStorage and API
+- [ ] devex: api: use Python<>SQLite adapters (https://docs.python.org/3/library/sqlite3.html#sqlite3-adapters) and row factories (https://docs.python.org/3/library/sqlite3.html#how-to-create-and-use-row-factories)
+- [ ] test: api: add test to ensure healthy endpoint breaks when DB file is missing
+- [ ] test: api: add test to ensure healthy endpoint breaks when a random error ocurs
+- [ ] test: api: add test to ensure healthy endpoint does not leak reasons if debug mode if off
+- [ ] test: api: add test to ensure healthy endpoint works when app is healthy
+
+- [ ] feat: local: watch file changes and update DB - nice to have, not MVP
+
+- [ ] refactor: ui: rewrite mergeTasks and mergeViews function into a generic mergeByDate function that uses TypeScript advanced types to check that the passed parameters have `created` and `updated` string dates (like a Python Protocol)
+- [ ] devex: vps: build small daemon that looks for apt updates regularly (1h?) and notifies to Telegram
+- [ ] devex: vps: update Namecheap DNS records dtgoitia.dev --> davidtorralba.com
+- [ ] devex: vps: update Namecheap DNS records www.dtgoitia.dev --> www.davidtorralba.com
+- [ ] devex: vps: update Namecheap DNS records api.davidtorralba.com --> VPS IP  -- update SSH config HostName
+
+- [ ] feat: local: update files when API changes - websocket?
+- [ ] feat: ui: add support for views
+- [ ] devex: vps: automate recreation of server - @Hetzner CLI? Terraform?
+- [ ] feat: ui: add support for searching tasks
+- [ ] feat: ui: click on "blocks"/"blocked by" tasks to go to them
+- [ ] devex: vsp: set up docker in VPS
+- [ ] devex: api: push container image to DockerHub registry for the time being (later use GitLab registry - allows more private images)
+- [ ] devex: api: push container image to GitLab registry - allows more private images
+- [ ] devex: vps: pull container image and run in VPS
+- [ ] devex: vps: add firewalls
+- [ ] devex: vps: see best practices of VPS maintenance
+- [ ] devex: api: add Sentry
+- [ ] devex: vps: add script to backup remote SQLite DB file into local laptop (Dropbox)
+
+epic: watch file changes and update in-memory state and DB
+  feat:
+      watch for transaction start events
+      watch for transaction end events
+      watch for file change events
+
+
+workflow:
+  react to file changes and keep state in memory
+  cache state in sqlite DB for faster reaction after initial load
+  expose data via API for webapp to read -- ngrok locally
+  expose data via API for webapp to write -- ngrok locally
+    - on API call update DB and files
+  set up vps
+
+rewrite the above in rust to minimize memory footprint
+
+
+to test DB:
+```shell
+sqlite3 --json ./kk.db 'select * from tasks;' | jq ".[].title"
+```
+
+
+DESIGN
+  on init:
+    - Managers are empty
+    - data source: browser + API
+
+  after init:
+    - online:
+      - source: Managers
+      - read: Managers (then API?)
+        - Q: when do I fetch from API? on each screen change feels a bit too much
+          - backend pushes changes to frontend (see HTTP streaming)
+            - or simpler solution to start with, FE polls BE: https://www.learnrxjs.io/learn-rxjs/recipes/http-polling
+          - event base: API -> storage -> wipman -> Managers -> storage(browser) (storage ends event chaing)
+      - write: Managers first --> browser + API
+        - rx: for UI to react to progress of change persistence
+
+    - offline:
+      - source: Managers
+      - read: Managers only
+      - write: Managers --> browser only (no API)
+        - rx: for UI to react to progress of change persistence
