@@ -25,12 +25,12 @@ repos:
         types: [file]
         files: \.(ts|tsx)$
 
-  # - repo: local
-  #   hooks:
-  #     - id: build-webapp
-  #       name: Build webapp before pushing to master
-  #       entry: scripts/build_webapp_only_in_master.sh
-  #       verbose: true
-  #       language: system
-  #       stages: [push]
-  #       pass_filenames: false
+  - repo: local
+    hooks:
+      - id: build-webapp
+        name: Build webapp before pushing to master
+        entry: scripts/build_webapp_only_in_master.sh
+        verbose: true
+        language: system
+        stages: [push]
+        pass_filenames: false
