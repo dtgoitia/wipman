@@ -80,7 +80,11 @@ def update_view():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    # By default, flask serves in `localhost`, which makes the webserver
+    # inaccessible once you containerize it.
+    host='0.0.0.0'
+
+    app.run(host=host, port=5000,  debug=True)
 
 """
 # On start:
