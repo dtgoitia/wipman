@@ -16,7 +16,9 @@ function TaskExplorer() {
   const navigate = useNavigate();
 
   const [tasks, setTasks] = useState<Task[]>([]);
-  const [showSpinner, setShowSpinner] = useState(false);
+  // TODO: do we even care about showing the spinner? -- maybe when we are updating one task?
+  const [showSpinner, setShowSpinner] = useState(true);
+  console.log(showSpinner);
 
   useEffect(() => {
     // en este punto, el manager está vacío, pásaselo a la function del domain que va a
