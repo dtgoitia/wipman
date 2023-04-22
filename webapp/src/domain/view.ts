@@ -1,6 +1,5 @@
-import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { Hash, TaskId, Task, View, ViewId, Tag } from "./types";
+import { Hash, Tag, View, ViewId } from "./types";
 import { BehaviorSubject, Observable } from "rxjs";
 
 interface NewView {

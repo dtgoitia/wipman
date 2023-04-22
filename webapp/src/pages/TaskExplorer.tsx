@@ -3,7 +3,6 @@ import CenteredPage from "../components/CenteredPage";
 import ListedTask from "../components/ListedTask";
 import { Task, TaskId } from "../domain/types";
 import { getTaskPath } from "../routes";
-import { errorsService } from "../services/errors";
 import taskManager, {
   taskInitializationService,
   TaskInitializationStatus,

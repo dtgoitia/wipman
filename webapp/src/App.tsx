@@ -13,7 +13,7 @@ import {
   taskInitializationService,
   TaskInitializationStatus,
 } from "./services/tasks";
-import { Spinner, SpinnerSize } from "@blueprintjs/core";
+import { Spinner } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import styled from "styled-components";
