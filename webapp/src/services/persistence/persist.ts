@@ -120,7 +120,7 @@ class Storage {
    */
   private saveTasksToBrowser(): void {
     // TODO: return Result
-    console.log("Storage::saveTasksToBrowser");
+    console.debug("Storage::saveTasksToBrowser");
     const serializedTasks = [...this.tasks.values()].map(taskToRaw);
 
     browserStorage.tasks.set(serializedTasks);

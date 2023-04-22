@@ -175,7 +175,7 @@ class TaskInitializationService {
 
     this.status.next(TaskInitializationStatus.loadCompleted);
     this.status.complete();
-    console.log("complete!!");
+    console.debug("Initialization completed");
   }
 }
 
