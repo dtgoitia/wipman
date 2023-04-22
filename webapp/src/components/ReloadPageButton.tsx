@@ -11,7 +11,7 @@ const Container = styled.div`
   padding: 0.5rem 0;
 `;
 
-function ReloadPage() {
+function ReloadPageButton() {
   return (
     <Container>
       <button type="button" className="bp4-button" onClick={refreshPage}>
@@ -21,4 +21,4 @@ function ReloadPage() {
   );
 }
 
-export default ReloadPage;
+export default ReloadPageButton;
