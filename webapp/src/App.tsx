@@ -4,6 +4,7 @@ import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
 // import ReloadPage from "./components/ReloadPage";
 import PageNotFound from "./pages/PageNotFound";
+import SettingsPage from "./pages/SettingsPage";
 import TaskExplorer from "./pages/TaskExplorer";
 import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
@@ -82,7 +83,7 @@ function App() {
             {/* https://reactrouter.com/en/v6.3.0/getting-started/overview#configuring-routes */}
             <Route path={Paths.views} element={<ViewExplorer />} />
             <Route path={Paths.view} element={<ViewPage />} />
-            {/* <Route path={Paths.settings} element={<SettingsPage />} /> */}
+            <Route path={Paths.settings} element={<SettingsPage />} />
             <Route path={Paths.notFound} element={<PageNotFound />} />
           </Routes>
         </ScrollableSectionBellowNavBar>
