@@ -1,5 +1,26 @@
 WEBAPP_NAME:=wipman-webapp
 
+set-up-development-environment:
+	@echo ""
+	@echo Installing git hooks...
+	make install-dev-tools
+
+	@echo ""
+	@echo ""
+	@echo Installing NPM dependencies outside of the container, to support pre-push builds...
+	@# this step is necessary because otherwise docker-compose creates a node_modules
+	@# folder with root permissions and outside-container build fails
+	cd webapp; npm ci
+
+	@echo ""
+	@echo ""
+	@echo Creating development docker images...
+	make rebuild-webapp
+
+	@echo ""
+	@echo ""
+	@echo To start app:  make run-webapp
+
 install-dev-tools:
 	pre-commit install  # pre-commit is (default)
 	pre-commit install --hook-type pre-push
@@ -31,8 +52,6 @@ deploy-webapp-from-local:
 
 build-webapp:
 	scripts/build_webapp.sh
-
-set-up-development-environment: install-dev-tools rebuild-webapp
 
 run-api:
 	bash ./api/bin/run_api
