@@ -52,8 +52,6 @@ export class TaskManager {
     // TODO: create task in file system - maybe this needs to subscribe to the stream of tasks, that would make the domain independent of the persistence layer, and it probably would be more testable
 
     this.changeSubject$.next({ kind: "TaskAdded", id });
-    // publish all task - if any View is listening, it can rerender them and there, else you save that computation
-    this.publishTasks(); // TODO: needs testing
     return task;
   }
 
@@ -63,8 +61,6 @@ export class TaskManager {
     this.tasks.set(task.id, task);
 
     this.changeSubject$.next({ kind: "TaskUpdated", id: task.id });
-    // publish all task - if any View is listening, it can rerender them and there, else you save that computation
-    this.publishTasks(); // TODO: needs testing
     return task;
   }
 
@@ -73,8 +69,6 @@ export class TaskManager {
     this.tasks.delete(id);
 
     this.changeSubject$.next({ kind: "TaskDeleted", id });
-    // publish all task - if any View is listening, it can rerender them and there, else you save that computation
-    this.publishTasks(); // TODO: needs testing
   }
 
   public getTask(id: TaskId): Task | undefined {
@@ -88,21 +82,12 @@ export class TaskManager {
    * Load multiple existing tasks that already contain a task ID. This method overwrites
    * any existing tasks if the task ID matches.
    */
-  public bulkLoadTasks(p: { tasks: Task[]; publish: boolean }): void {
-    const { tasks, publish = false } = p;
-
+  public initialize({ tasks }: { tasks: Task[] }): void {
     tasks.forEach((task) => {
       this.tasks.set(task.id, task);
     });
 
-    if (publish) {
-      this.publishTasks();
-    }
-  }
-
-  public publishTasks(): void {
-    console.debug("TaskManager.publishTasks()");
-    this.tasksSubject.next(this.tasks);
+    this.changeSubject$.next({ kind: "TasksInitialized" });
   }
 
   private taskChanged(updated: Task): boolean {
@@ -287,19 +272,8 @@ export function mergeTasks({ a, b }: MergeTaskArgs): Task[] {
   return result;
 }
 
-interface TaskAdded {
-  readonly kind: "TaskAdded";
-  readonly id: TaskId;
-}
-
-interface TaskUpdated {
-  readonly kind: "TaskUpdated";
-  readonly id: TaskId;
-}
-
-interface TaskDeleted {
-  readonly kind: "TaskDeleted";
-  readonly id: TaskId;
-}
-
-export type TaskChanges = TaskAdded | TaskUpdated | TaskDeleted;
+export type TaskChanges =
+  | { readonly kind: "TasksInitialized" }
+  | { readonly kind: "TaskAdded"; readonly id: TaskId }
+  | { readonly kind: "TaskUpdated"; readonly id: TaskId }
+  | { readonly kind: "TaskDeleted"; readonly id: TaskId };

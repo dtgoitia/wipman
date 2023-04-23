@@ -148,7 +148,7 @@ class TaskInitializationService {
     this.status.next(TaskInitializationStatus.browserLoadStarted);
     const browserTasks: Task[] = []; // TEMPORARY to allow building
     // const browserTasks = storage.readTasksFromBrowser();
-    this.taskManager.bulkLoadTasks({ tasks: browserTasks, publish: false });
+    this.taskManager.initialize({ tasks: browserTasks });
     this.status.next(TaskInitializationStatus.browserLoadCompleted);
 
     // TODO: remove
@@ -172,7 +172,7 @@ class TaskInitializationService {
     //   return;
     // }
 
-    this.taskManager.bulkLoadTasks({ tasks: apiTasks, publish: true });
+    this.taskManager.initialize({ tasks: apiTasks });
     this.status.next(TaskInitializationStatus.backendLoadCompleted);
 
     console.debug("Configuring storage to react to TaskManager...");

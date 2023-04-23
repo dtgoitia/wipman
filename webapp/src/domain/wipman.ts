@@ -5,7 +5,7 @@ import { Storage } from "../services/persistence/persist";
 import { SettingsManager } from "./settings";
 import { TaskChanges, TaskManager, mergeTasks } from "./task";
 import { Task, TaskId } from "./types";
-import { Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 export enum WipmanStatus {
   InitStarted = "InitStarted",
@@ -43,6 +43,7 @@ export class Wipman {
   // public viewChanges$: Observable<ViewChanges>;
 
   private statusSubject: Subject<WipmanStatus>;
+  private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
   private api: WipmanApi;
   private taskManager: TaskManager;
   // private viewManager: ViewManager;
@@ -70,7 +71,14 @@ export class Wipman {
       this.lastStatus = status;
     });
 
-    this.tasks$ = this.taskManager.tasks$;
+    this.tasksSubject = new BehaviorSubject<Map<TaskId, Task>>(new Map());
+    this.tasks$ = this.tasksSubject.asObservable();
+
+    this.taskManager.change$.subscribe((change) => {
+      console.log(`Wipman.taskManager.changes$:`, change);
+      this.tasksSubject.next(this.taskManager.tasks);
+    });
+
     this.tasks$.subscribe((tasks) => {
       console.debug(`Wipman::tasks$:`, tasks);
     });
@@ -128,10 +136,7 @@ export class Wipman {
       // views = mergeViews({a: views, b: apiViews});
     }
 
-    console.debug(`Wipman.initialize::tasks loaded`);
-    console.debug(tasks);
-
-    this.taskManager.bulkLoadTasks({ tasks, publish: true });
+    this.taskManager.initialize({ tasks });
     // this.viewManager.init(views);
 
     //
@@ -179,6 +184,8 @@ export class Wipman {
 
   private handleTaskChanges(change: TaskChanges): void {
     switch (change.kind) {
+      case "TasksInitialized":
+        break;
       case "TaskAdded":
         this.addTaskInApi(change.id);
         break;
