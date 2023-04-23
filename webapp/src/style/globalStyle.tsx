@@ -21,7 +21,7 @@ function getTheme(theme: Theme): ThemeColours {
       };
 
     default:
-      throw Error("Requested theme is not supported");
+      throw new Error("Requested theme is not supported");
   }
 }
 
