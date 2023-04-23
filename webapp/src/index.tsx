@@ -1,19 +1,29 @@
 import App from "./App";
 import "./blueprint.css";
+import { TaskManager } from "./domain/task";
+import { Wipman } from "./domain/wipman";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
+import { WipmanApi } from "./services/api";
+import { Storage as BrowserStorage } from "./services/persistence/localStorage";
 import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
 import BlueprintThemeProvider from "./style/theme";
 import React from "react";
 import ReactDOM from "react-dom";
 
+// TODO: move this to a function that takes care of initializing all this for you - probably should live in wipman.ts
+const taskManager = new TaskManager({});
+const browserStorage = new BrowserStorage();
+const api = new WipmanApi({ local: browserStorage });
+const wipman = new Wipman({ api, taskManager });
+
 ReactDOM.render(
   <React.StrictMode>
     <GlobalStyle theme={activeTheme} />
     <BlueprintThemeProvider>
-      <App />
+      <App wipman={wipman} />
     </BlueprintThemeProvider>
   </React.StrictMode>,
   document.getElementById("root")

@@ -2,6 +2,7 @@ import "./App.css";
 import CenteredPage from "./components/CenteredPage";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
+import { Wipman, WipmanStatus } from "./domain/wipman";
 // import ReloadPage from "./components/ReloadPage";
 import PageNotFound from "./pages/PageNotFound";
 import SettingsPage from "./pages/SettingsPage";
@@ -10,10 +11,6 @@ import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
 import ViewPage from "./pages/ViewPage";
 import Paths from "./routes";
-import {
-  taskInitializationService,
-  TaskInitializationStatus,
-} from "./services/tasks";
 import { Spinner } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
@@ -40,23 +37,31 @@ const SpinnerText = styled.p`
   font-size: large;
 `;
 
-function App() {
+function App({ wipman }: { wipman: Wipman }) {
   const [initializationIsComplete, setInitializationIsComplete] =
     useState(false);
 
   useEffect(() => {
-    const subscription = taskInitializationService.status$.subscribe(
-      (status) => {
-        if (status === TaskInitializationStatus.loadCompleted) {
+    const subscription = wipman.status$.subscribe((status) => {
+      console.log(`App.useEffect::Wipman.status$: ${status}`);
+      switch (status) {
+        case WipmanStatus.InitStarted:
+          setInitializationIsComplete(false);
+          break;
+        case WipmanStatus.InitCompleted:
           setInitializationIsComplete(true);
-        }
+          break;
+        default:
+          break;
       }
-    );
+    });
 
-    taskInitializationService.initialize();
+    wipman
+      .initialize()
+      .then((x) => console.log("App.useEffect.wipman.init completed"));
 
     return subscription.unsubscribe;
-  }, []);
+  }, [wipman]);
 
   if (initializationIsComplete === false) {
     return (
@@ -78,8 +83,11 @@ function App() {
         <ScrollableSectionBellowNavBar>
           <Routes>
             <Route path={Paths.root} element={<ViewExplorer />} />
-            <Route path={Paths.tasks} element={<TaskExplorer />} />
-            <Route path={Paths.task} element={<TaskPage />} />
+            <Route
+              path={Paths.tasks}
+              element={<TaskExplorer wipman={wipman} />}
+            />
+            <Route path={Paths.task} element={<TaskPage wipman={wipman} />} />
             {/* https://reactrouter.com/en/v6.3.0/getting-started/overview#configuring-routes */}
             <Route path={Paths.views} element={<ViewExplorer />} />
             <Route path={Paths.view} element={<ViewPage />} />

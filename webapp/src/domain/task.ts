@@ -1,7 +1,7 @@
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { Hash, TaskId, Task, Tag } from "./types";
-import { BehaviorSubject, Observable } from "rxjs";
+import { Hash, Tag, Task, TaskId } from "./types";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 interface NewTask {
   title: string;
@@ -12,7 +12,10 @@ interface TaskManagerProps {
 }
 export class TaskManager {
   public tasks$: Observable<Map<TaskId, Task>>; // all tasks
+  public change$: Observable<TaskChanges>;
+
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
+  public changeSubject$: Subject<TaskChanges>;
 
   // latest state of tasks - it could be stored in a BehaviourSubject really... think about it
   public tasks: Map<TaskId, Task>;
@@ -26,6 +29,9 @@ export class TaskManager {
     //   code more readable, and then the BehaviourSubject is used to publish downstream
     this.tasksSubject = new BehaviorSubject<Map<TaskId, Task>>(this.tasks);
     this.tasks$ = this.tasksSubject.asObservable();
+
+    this.changeSubject$ = new Subject<TaskChanges>();
+    this.change$ = this.changeSubject$.asObservable();
   }
 
   public addTask({ title }: NewTask): Task {
@@ -39,11 +45,13 @@ export class TaskManager {
       tags: new Set<Tag>(),
       blockedBy: new Set<TaskId>(),
       blocks: new Set<TaskId>(),
+      completed: false,
     };
     this.tasks.set(id, task);
 
     // TODO: create task in file system - maybe this needs to subscribe to the stream of tasks, that would make the domain independent of the persistence layer, and it probably would be more testable
 
+    this.changeSubject$.next({ kind: "TaskAdded", id });
     // publish all task - if any View is listening, it can rerender them and there, else you save that computation
     this.publishTasks(); // TODO: needs testing
     return task;
@@ -54,6 +62,7 @@ export class TaskManager {
 
     this.tasks.set(task.id, task);
 
+    this.changeSubject$.next({ kind: "TaskUpdated", id: task.id });
     // publish all task - if any View is listening, it can rerender them and there, else you save that computation
     this.publishTasks(); // TODO: needs testing
     return task;
@@ -63,6 +72,7 @@ export class TaskManager {
     // TODO: you probably want to use Result --> https://github.com/badrap/result
     this.tasks.delete(id);
 
+    this.changeSubject$.next({ kind: "TaskDeleted", id });
     // publish all task - if any View is listening, it can rerender them and there, else you save that computation
     this.publishTasks(); // TODO: needs testing
   }
@@ -234,3 +244,30 @@ RenderedView: linked list, no indexing needed
 // // question: when using CRUD methods, should I use the Result pattern instead of returning `void`?
 // if ok, Result.status: SUCCESS
 // else, Result.status: ERROR, Result.reason: "blah blah"
+
+interface MergeTaskArgs {
+  a: Task[];
+  b: Task[];
+}
+
+export function mergeTasks({ a, b }: MergeTaskArgs): Task[] {
+  // TODO
+  return b;
+}
+
+interface TaskAdded {
+  readonly kind: "TaskAdded";
+  readonly id: TaskId;
+}
+
+interface TaskUpdated {
+  readonly kind: "TaskUpdated";
+  readonly id: TaskId;
+}
+
+interface TaskDeleted {
+  readonly kind: "TaskDeleted";
+  readonly id: TaskId;
+}
+
+export type TaskChanges = TaskAdded | TaskUpdated | TaskDeleted;

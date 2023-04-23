@@ -80,7 +80,7 @@ class StoredItem<T> {
   }
 }
 
-class Storage {
+export class Storage {
   tasks: StoredItem<object[] | undefined>;
   views: StoredItem<object[] | undefined>;
   lastBackendFetch: StoredItem<string | undefined>;
@@ -96,6 +96,8 @@ class Storage {
   }
 }
 
+// DEPRECATION NOTE, 2023-04-20: use Storage instead
 const browserStorage = new Storage();
 
+// DEPRECATION NOTE, 2023-04-20: use Storage instead
 export default browserStorage;

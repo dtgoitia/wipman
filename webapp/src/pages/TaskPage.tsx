@@ -1,9 +1,10 @@
 import CenteredPage from "../components/CenteredPage";
 import { Tag, Task, TaskId } from "../domain/types";
-import taskManager from "../services/tasks";
+import { Wipman, WipmanStatus } from "../domain/wipman";
+import { assertNever } from "../exhaustive-match";
 import PageNotFound from "./PageNotFound";
 import { EditableText } from "@blueprintjs/core";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
@@ -54,9 +55,10 @@ const Content = styled.section`
 
 interface TaskDetailProps {
   task: Task;
+  onUpdate: (task: Task) => void;
 }
 
-function TaskDetail({ task }: TaskDetailProps) {
+function TaskDetail({ task, onUpdate }: TaskDetailProps) {
   const [content, setContent] = useState<string>(task.content);
 
   function handleContentChange(updatedContent: string): void {
@@ -66,8 +68,7 @@ function TaskDetail({ task }: TaskDetailProps) {
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    console.log("submitting task");
-    taskManager.updateTask({ ...task, content });
+    onUpdate({ ...task, content });
   }
 
   function discardContentChanges(): void {
@@ -99,12 +100,65 @@ function TaskDetail({ task }: TaskDetailProps) {
   );
 }
 
-function TaskPage() {
+function isLoading(status: WipmanStatus): boolean {
+  switch (status) {
+    case WipmanStatus.InitStarted:
+      return true;
+    case WipmanStatus.InitCompleted:
+      return false;
+    case WipmanStatus.BackendLoadStarted:
+      return false;
+    case WipmanStatus.BackendLoadCompleted:
+      return false;
+    case WipmanStatus.BrowserLoadCompleted:
+      return false;
+    case WipmanStatus.BrowserLoadStarted:
+      return false;
+    case WipmanStatus.AddTaskInApiStarted:
+      return true;
+    case WipmanStatus.AddTaskInApiEnd:
+      return false;
+    case WipmanStatus.UpdateTaskInApiStarted:
+      return true;
+    case WipmanStatus.UpdateTaskInApiEnd:
+      return false;
+    default:
+      assertNever(status, `Unsupported WipmanStatus variant: ${status}`);
+  }
+}
+
+interface TaskPageProps {
+  wipman: Wipman;
+}
+function TaskPage({ wipman }: TaskPageProps) {
+  const [loading, setLoading] = useState<boolean>(true);
+
   // TODO: action: ?
   const params = useParams();
   const id = params.taskId as TaskId;
 
-  const maybeTask = taskManager.getTask(id);
+  useEffect(() => {
+    const subscription = wipman.status$.subscribe((status) => {
+      setLoading(isLoading(status));
+    });
+
+    const status = wipman.lastStatus;
+    if (status) {
+      setLoading(isLoading(status));
+    }
+
+    return subscription.unsubscribe;
+  }, [wipman]);
+
+  if (loading === true) {
+    return <div>LOADING TASK</div>;
+  }
+
+  function handleTaskUpdate(task: Task): void {
+    wipman.updateTask({ task });
+  }
+
+  const maybeTask = wipman.getTask({ id });
 
   if (maybeTask === undefined) {
     console.warn(`No task found with ID: ${id}`);
@@ -113,7 +167,7 @@ function TaskPage() {
 
   const task = maybeTask;
 
-  return <TaskDetail task={task} />;
+  return <TaskDetail task={task} onUpdate={handleTaskUpdate} />;
 }
 
 export default TaskPage;
