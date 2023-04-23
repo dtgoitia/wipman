@@ -24,3 +24,8 @@ export interface View {
   title: string;
   tags: Set<Tag>; // contains all tags in set, later you can add the possibility of more complex queries but don't prematurely optimize
 }
+
+export interface Settings {
+  readonly apiUrl?: string;
+  readonly apiToken?: string;
+}
