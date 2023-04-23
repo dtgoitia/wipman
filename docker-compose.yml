@@ -39,7 +39,10 @@ services:
     container_name: wipman-api-dev
     ports:
       - "5000:5000"
-    # environment:
+    environment:
+      - WIPMAN_DIR=/wipman_dir
+      - DB_PATH=${DB_PATH}
     volumes:
       - ./api:/app
+      - ${WIPMAN_DIR}:/wipman_dir
     # healthcheck:
