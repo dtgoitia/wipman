@@ -109,15 +109,18 @@ export class Wipman {
 
     let tasks: Task[] = [];
     // let views: View[] = [];
-    // tasks = this.browserStorage.readTasks();
+    const tasksInBrowser = this.storage.readTasksFromBrowser();
     // views = this.browserStorage.readViews();
+
+    tasks = tasksInBrowser;
+
     if (this.api.isOnline()) {
       console.debug(`Wipman.initialize::fetching tasks from API`);
       try {
         const { tasks: apiTasks, views: apiViews } =
           await this.api.getLastChanges();
         console.log(apiViews); // TODO: added to quiet linters :P
-        tasks = mergeTasks({ a: tasks, b: apiTasks });
+        tasks = mergeTasks({ a: tasksInBrowser, b: apiTasks });
       } catch (error) {
         console.debug(`Wipman.initialize::failed to fetch tasks from API`);
         console.warn(error);
