@@ -84,6 +84,7 @@ export class Storage {
   tasks: StoredItem<object[] | undefined>;
   views: StoredItem<object[] | undefined>;
   lastBackendFetch: StoredItem<string | undefined>;
+  settings: StoredItem<object | undefined>;
 
   constructor() {
     const prefix = STORAGE_PREFIX;
@@ -93,6 +94,7 @@ export class Storage {
       `${prefix}__lastFetch`,
       ValueType.string
     );
+    this.settings = new StoredItem(`${prefix}__settings`, ValueType.object);
   }
 }
 
