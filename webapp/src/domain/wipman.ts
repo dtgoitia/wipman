@@ -1,6 +1,7 @@
 import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
 import { WipmanApi } from "../services/api";
+import { Storage } from "../services/persistence/persist";
 import { SettingsManager } from "./settings";
 import { TaskChanges, TaskManager, mergeTasks } from "./task";
 import { Task, TaskId } from "./types";
@@ -21,7 +22,7 @@ export enum WipmanStatus {
 
 interface ConstructorArgs {
   settingsManager: SettingsManager;
-  // browserStorage: BrowserStorage;
+  storage: Storage;
   api: WipmanApi;
   taskManager: TaskManager;
   // viewManager: ViewManager;
@@ -37,20 +38,21 @@ export class Wipman {
   public lastStatus: WipmanStatus | undefined;
   public status$: Observable<WipmanStatus>;
   public settingsManager: SettingsManager;
+  public storage: Storage; // TODO: instead of exposing everything here... perhaps make it private and provide a narrower API?
   public tasks$: Observable<Map<TaskId, Task>>;
   // public viewChanges$: Observable<ViewChanges>;
 
   private statusSubject: Subject<WipmanStatus>;
-  // private browserStorage: BrowserStorage;
   private api: WipmanApi;
   private taskManager: TaskManager;
   // private viewManager: ViewManager;
 
-  constructor({ settingsManager, api, taskManager }: ConstructorArgs) {
+  constructor({ settingsManager, storage, api, taskManager }: ConstructorArgs) {
     this.statusSubject = new Subject<WipmanStatus>();
     this.status$ = this.statusSubject.asObservable();
 
     this.settingsManager = settingsManager;
+    this.storage = storage;
     this.taskManager = taskManager;
     this.api = api;
 

@@ -8,6 +8,7 @@ import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { WipmanApi } from "./services/api";
 import { Storage as BrowserStorage } from "./services/persistence/localStorage";
+import { Storage } from "./services/persistence/persist";
 import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
 import BlueprintThemeProvider from "./style/theme";
@@ -19,7 +20,8 @@ const taskManager = new TaskManager({});
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const api = new WipmanApi({ local: browserStorage });
-const wipman = new Wipman({ settingsManager, api, taskManager });
+const storage = new Storage({ browserStorage });
+const wipman = new Wipman({ settingsManager, storage, api, taskManager });
 
 ReactDOM.render(
   <React.StrictMode>

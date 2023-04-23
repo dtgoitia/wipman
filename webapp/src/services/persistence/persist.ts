@@ -1,5 +1,5 @@
 import { Task, TaskId } from "../../domain/types";
-import browserStorage from "./localStorage";
+import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
 import { BehaviorSubject, Observable, first, skip } from "rxjs";
 
 export enum StorageStatus {
@@ -8,20 +8,27 @@ export enum StorageStatus {
   SAVED = "saved",
 }
 
+interface StorageArgs {
+  browserStorage: BrowserStorage;
+}
+
 // TODO: use this class to persist either using browser-git, or whatever DB you want
-class Storage {
+export class Storage {
   public tasks: Map<TaskId, Task> = new Map(); // persisted tasks
   public draftTasks: Map<TaskId, Task> = new Map(); // in-memory tasks
   public status$: Observable<StorageStatus>;
   public lastBackendFetch: Date;
 
+  private browserStorage: BrowserStorage;
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
   public statusSubject = new BehaviorSubject<StorageStatus>(
     StorageStatus.SAVED
   );
 
-  constructor() {
+  constructor({ browserStorage }: StorageArgs) {
+    this.browserStorage = browserStorage;
+
     this.status$ = this.statusSubject.asObservable();
     this.lastBackendFetch = this.getLastFetchDate();
   }
@@ -78,11 +85,11 @@ class Storage {
   public readTasksFromBrowser(): Task[] {
     console.debug("Reading tasks from browser...");
     // TODO: return Result
-    if (browserStorage.tasks.exists() === false) {
+    if (this.browserStorage.tasks.exists() === false) {
       return [];
     }
 
-    const rawTasks = browserStorage.tasks.read() as SerializedTask[];
+    const rawTasks = this.browserStorage.tasks.read() as SerializedTask[];
     if (!rawTasks) {
       return [];
     }
@@ -98,19 +105,19 @@ class Storage {
   }
 
   private getLastFetchDate(): Date {
-    if (browserStorage.lastBackendFetch.exists() === false) {
+    if (this.browserStorage.lastBackendFetch.exists() === false) {
       console.log("Date of last API fetch not found in browser storage");
       return new Date(0); // old date in the past
     }
 
-    const raw = browserStorage.lastBackendFetch.read() as string;
+    const raw = this.browserStorage.lastBackendFetch.read() as string;
 
     return new Date(raw);
   }
 
   private updateLastFetchDate(date: Date): void {
     this.lastBackendFetch = date;
-    browserStorage.lastBackendFetch.set(date.toISOString());
+    this.browserStorage.lastBackendFetch.set(date.toISOString());
   }
 
   /**
@@ -121,7 +128,7 @@ class Storage {
     console.debug("Storage::saveTasksToBrowser");
     const serializedTasks = [...this.tasks.values()].map(taskToRaw);
 
-    browserStorage.tasks.set(serializedTasks);
+    this.browserStorage.tasks.set(serializedTasks);
   }
 
   private saveTasksToBackend(): void {
@@ -173,6 +180,6 @@ function rawToTask(raw: SerializedTask) {
 }
 
 // const storage = new Storage({ tasks: taskManager.tasks$ });
-const storage = new Storage();
+const storage = new Storage({ browserStorage: new BrowserStorage() });
 
 export default storage;
