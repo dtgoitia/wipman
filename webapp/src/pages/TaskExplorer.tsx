@@ -2,12 +2,9 @@ import AddTask from "../components/AddTask";
 import CenteredPage from "../components/CenteredPage";
 import ListedTask from "../components/ListedTask";
 import { Task, TaskId } from "../domain/types";
-import { Wipman } from "../domain/wipman";
+import { Wipman, WipmanStatus } from "../domain/wipman";
+import { assertNever } from "../exhaustive-match";
 import { getTaskPath } from "../routes";
-import {
-  taskInitializationService,
-  TaskInitializationStatus,
-} from "../services/tasks";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -37,44 +34,43 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
   }, [wipman]);
 
   useEffect(() => {
-    const initSubscription = taskInitializationService.status$.subscribe(
-      (status) => {
-        console.debug(`init status: ${status}`);
-
-        switch (status) {
-          case TaskInitializationStatus.browserLoadStarted:
-            setShowSpinner(true);
-            break;
-          case TaskInitializationStatus.browserLoadCompleted:
-            setShowSpinner(false);
-            break;
-          case TaskInitializationStatus.backendLoadStarted:
-            setShowSpinner(true);
-            break;
-          case TaskInitializationStatus.backendLoadCompleted:
-            setShowSpinner(false);
-            break;
-          default:
-            throw new Error("Did not expect to reach this line of code");
-        }
+    const subscription = wipman.status$.subscribe((status) => {
+      switch (status) {
+        case WipmanStatus.BrowserLoadStarted:
+          setShowSpinner(true);
+          break;
+        case WipmanStatus.BrowserLoadCompleted:
+          setShowSpinner(false);
+          break;
+        case WipmanStatus.BackendLoadStarted:
+          setShowSpinner(true);
+          break;
+        case WipmanStatus.BackendLoadCompleted:
+          setShowSpinner(false);
+          break;
+        case WipmanStatus.AddTaskInApiStarted:
+          setShowSpinner(true);
+          break;
+        case WipmanStatus.AddTaskInApiEnd:
+          setShowSpinner(false);
+          break;
+        case WipmanStatus.UpdateTaskInApiStarted:
+          setShowSpinner(true);
+          break;
+        case WipmanStatus.UpdateTaskInApiEnd:
+          setShowSpinner(false);
+          break;
+        case WipmanStatus.InitStarted:
+          break;
+        case WipmanStatus.InitCompleted:
+          break;
+        default:
+          assertNever(status, `Unsupported WipmanStatus variant: ${status}`);
       }
-    );
+    });
 
-    return initSubscription.unsubscribe;
-
-    // TODO: start spinner
-    // const fetchFromApi = async () => {
-    //   const updatedTasks = await ApiClient.getTasks({ after: lastUpdate });
-    //   taskManager.bulkLoadTasks(updatedTasks, true);
-    //   // TODO: stop spinner
-    // };
-    // fetchFromApi().catch((error) =>
-    //   errorsService.add({
-    //     header: "Failed to load tasks from API",
-    //     description: error,
-    //   })
-    // );
-  }, []);
+    return subscription.unsubscribe;
+  }, [wipman]);
 
   function openTask(id: TaskId): void {
     navigate(getTaskPath(id));
