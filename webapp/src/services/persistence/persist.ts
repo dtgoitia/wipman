@@ -178,8 +178,3 @@ function rawToTask(raw: SerializedTask) {
   };
   return task;
 }
-
-// const storage = new Storage({ tasks: taskManager.tasks$ });
-const storage = new Storage({ browserStorage: new BrowserStorage() });
-
-export default storage;

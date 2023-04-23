@@ -1,6 +1,5 @@
 import { TaskManager } from "../domain/task";
 import { Tag, Task, TaskId } from "../domain/types";
-import storage from "./persistence/persist";
 import { Observable, Subject } from "rxjs";
 
 /**
@@ -118,6 +117,9 @@ export enum TaskInitializationStatus {
 }
 
 class TaskInitializationService {
+  /**
+   * TODO: remove the entire module - but before make sure that this
+   */
   public status$: Observable<TaskInitializationStatus>;
   private status: Subject<TaskInitializationStatus>;
   private taskManager: TaskManager;
@@ -144,7 +146,8 @@ class TaskInitializationService {
     });
 
     this.status.next(TaskInitializationStatus.browserLoadStarted);
-    const browserTasks = storage.readTasksFromBrowser();
+    const browserTasks: Task[] = []; // TEMPORARY to allow building
+    // const browserTasks = storage.readTasksFromBrowser();
     this.taskManager.bulkLoadTasks({ tasks: browserTasks, publish: false });
     this.status.next(TaskInitializationStatus.browserLoadCompleted);
 
@@ -156,32 +159,28 @@ class TaskInitializationService {
 
     // load from API
     this.status.next(TaskInitializationStatus.backendLoadStarted);
-    let apiTasks: Task[];
-    try {
-      apiTasks = await storage.readTasksFromBackend(); // TODO: return result and handle failure
-    } catch (error) {
-      // TODO: if API load fails, use taskManager to publish tasks (to work offline)
-      console.error(error);
-      console.log("foo");
-      this.taskManager.publishTasks();
-      this.status.next(TaskInitializationStatus.loadCompleted);
-      this.status.complete();
-      return;
-    }
+    let apiTasks: Task[] = [];
+    // try {
+    //   apiTasks = await storage.readTasksFromBackend(); // TODO: return result and handle failure
+    // } catch (error) {
+    //   // TODO: if API load fails, use taskManager to publish tasks (to work offline)
+    //   console.error(error);
+    //   console.log("foo");
+    //   this.taskManager.publishTasks();
+    //   this.status.next(TaskInitializationStatus.loadCompleted);
+    //   this.status.complete();
+    //   return;
+    // }
 
     this.taskManager.bulkLoadTasks({ tasks: apiTasks, publish: true });
     this.status.next(TaskInitializationStatus.backendLoadCompleted);
 
     console.debug("Configuring storage to react to TaskManager...");
-    storage.listenTasks(taskManager.tasks$);
+    // storage.listenTasks(taskManager.tasks$);
 
-    storage.save();
+    // storage.save();
     this.status.next(TaskInitializationStatus.loadCompleted);
     this.status.complete();
     console.debug("Initialization completed");
   }
 }
-
-export const taskInitializationService = new TaskInitializationService(
-  taskManager
-);
