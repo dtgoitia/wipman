@@ -1,5 +1,6 @@
 import App from "./App";
 import "./blueprint.css";
+import { SettingsManager } from "./domain/settings";
 import { TaskManager } from "./domain/task";
 import { Wipman } from "./domain/wipman";
 import "./index.css";
@@ -16,8 +17,9 @@ import ReactDOM from "react-dom";
 // TODO: move this to a function that takes care of initializing all this for you - probably should live in wipman.ts
 const taskManager = new TaskManager({});
 const browserStorage = new BrowserStorage();
+const settingsManager = new SettingsManager();
 const api = new WipmanApi({ local: browserStorage });
-const wipman = new Wipman({ api, taskManager });
+const wipman = new Wipman({ settingsManager, api, taskManager });
 
 ReactDOM.render(
   <React.StrictMode>

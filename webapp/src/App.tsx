@@ -91,7 +91,10 @@ function App({ wipman }: { wipman: Wipman }) {
             {/* https://reactrouter.com/en/v6.3.0/getting-started/overview#configuring-routes */}
             <Route path={Paths.views} element={<ViewExplorer />} />
             <Route path={Paths.view} element={<ViewPage />} />
-            <Route path={Paths.settings} element={<SettingsPage />} />
+            <Route
+              path={Paths.settings}
+              element={<SettingsPage wipman={wipman} />}
+            />
             <Route path={Paths.notFound} element={<PageNotFound />} />
           </Routes>
         </ScrollableSectionBellowNavBar>

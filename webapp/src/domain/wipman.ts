@@ -1,6 +1,7 @@
 import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
 import { WipmanApi } from "../services/api";
+import { SettingsManager } from "./settings";
 import { TaskChanges, TaskManager, mergeTasks } from "./task";
 import { Task, TaskId } from "./types";
 import { Observable, Subject } from "rxjs";
@@ -19,7 +20,7 @@ export enum WipmanStatus {
 }
 
 interface ConstructorArgs {
-  // settingsManager: SettingsManager;
+  settingsManager: SettingsManager;
   // browserStorage: BrowserStorage;
   api: WipmanApi;
   taskManager: TaskManager;
@@ -35,23 +36,32 @@ interface ConstructorArgs {
 export class Wipman {
   public lastStatus: WipmanStatus | undefined;
   public status$: Observable<WipmanStatus>;
-  // public settingsChanges$: Observable<SettingsEvents>;
+  public settingsManager: SettingsManager;
   public tasks$: Observable<Map<TaskId, Task>>;
   // public viewChanges$: Observable<ViewChanges>;
 
   private statusSubject: Subject<WipmanStatus>;
-  // private settingsManager: SettingsManager;
   // private browserStorage: BrowserStorage;
   private api: WipmanApi;
   private taskManager: TaskManager;
   // private viewManager: ViewManager;
 
-  constructor({ taskManager, api }: ConstructorArgs) {
+  constructor({ settingsManager, api, taskManager }: ConstructorArgs) {
     this.statusSubject = new Subject<WipmanStatus>();
     this.status$ = this.statusSubject.asObservable();
 
+    this.settingsManager = settingsManager;
     this.taskManager = taskManager;
     this.api = api;
+
+    this.settingsManager.change$.subscribe((change) => {
+      console.debug(`Wipman.settingsManager.change$::`, change);
+    });
+    // # re-expose settings events to UI via Wipman
+    // settings_manager.changes$.subscribe(change => {
+    //   match change:
+    //     case: status$.next(`Settings::${change}`)
+    // })
 
     this.status$.subscribe((status) => {
       console.debug(`Wipman.status$::${status}`);
@@ -62,12 +72,6 @@ export class Wipman {
     this.tasks$.subscribe((tasks) => {
       console.debug(`Wipman::tasks$:`, tasks);
     });
-
-    // # re-expose settings events to UI via Wipman
-    // settings_manager.changes$.subscribe(change => {
-    //   match change:
-    //     case: status$.next(`Settings::${change}`)
-    // })
 
     // re-expose task events to UI via Wipman
     // taskManager.changes$.subscribe(change => {
@@ -88,6 +92,11 @@ export class Wipman {
 
   public async initialize(): Promise<void> {
     this.statusSubject.next(WipmanStatus.InitStarted);
+
+    //
+    //   Load settings from browser
+    //
+    this.settingsManager.init({});
 
     this.tasks$ = this.taskManager.tasks$;
     // this.views$ = this.viewManager.views$;
