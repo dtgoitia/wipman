@@ -1,4 +1,6 @@
-import { Task, TaskId } from "../../domain/types";
+import { SettingsChange, SettingsManager } from "../../domain/settings";
+import { Settings, Task, TaskId } from "../../domain/types";
+import { assertNever } from "../../exhaustive-match";
 import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
 import { BehaviorSubject, Observable, first, skip } from "rxjs";
 
@@ -9,6 +11,7 @@ export enum StorageStatus {
 }
 
 interface StorageArgs {
+  settingsManager: SettingsManager;
   browserStorage: BrowserStorage;
 }
 
@@ -19,6 +22,7 @@ export class Storage {
   public status$: Observable<StorageStatus>;
   public lastBackendFetch: Date;
 
+  private settings: SettingsManager;
   private browserStorage: BrowserStorage;
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
@@ -26,10 +30,16 @@ export class Storage {
     StorageStatus.SAVED
   );
 
-  constructor({ browserStorage }: StorageArgs) {
+  constructor({ settingsManager, browserStorage }: StorageArgs) {
     this.browserStorage = browserStorage;
 
     this.status$ = this.statusSubject.asObservable();
+
+    this.settings = settingsManager;
+    this.settings.change$.subscribe((change) =>
+      this.handleSettingsChange(change)
+    );
+
     this.lastBackendFetch = this.getLastFetchDate();
   }
 
@@ -102,6 +112,39 @@ export class Storage {
   // TODO: return Result
   public async readTasksFromBackend(): Promise<Task[]> {
     return [];
+  }
+
+  public readSettings(): Settings {
+    console.debug(`Storage.readSettings::reading settings from browser...`);
+    const noSettings = {};
+
+    if (this.browserStorage.settings.exists() === false) {
+      return noSettings;
+    }
+
+    const rawSettings = this.browserStorage.settings.read();
+    if (rawSettings === undefined) {
+      return noSettings;
+    }
+
+    const settings = rawToSettings(rawSettings);
+
+    return settings;
+  }
+
+  private handleSettingsChange(change: SettingsChange): void {
+    switch (change.kind) {
+      case "SettingsInitialized":
+        break; // do nothing
+      case "ApiUrlUpdated":
+        this.browserStorage.settings.set(this.settings.settings);
+        break;
+      case "ApiTokenUpdated":
+        this.browserStorage.settings.set(this.settings.settings);
+        break;
+      default:
+        assertNever(change, `Unsupported SettingsChange variant: ${change}`);
+    }
   }
 
   private getLastFetchDate(): Date {
@@ -177,4 +220,14 @@ function rawToTask(raw: SerializedTask) {
     completed: raw.completed,
   };
   return task;
+}
+
+interface SerializedSettings {
+  apiUrl?: string;
+  apiToken?: string;
+}
+
+function rawToSettings(raw: SerializedSettings) {
+  const settings: Settings = { ...raw };
+  return settings;
 }

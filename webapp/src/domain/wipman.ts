@@ -106,10 +106,8 @@ export class Wipman {
     //
     //   Load settings from browser
     //
-    this.settingsManager.init({});
-
-    this.tasks$ = this.taskManager.tasks$;
-    // this.views$ = this.viewManager.views$;
+    const settings = this.storage.readSettings();
+    this.settingsManager.init(settings);
 
     //
     //   Load data
@@ -228,5 +226,4 @@ export class Wipman {
   }
 }
 
-// type SettingsEvents = SettingsUpdated;
 // type ViewChanges = ViewAdded | ViewUpdated | ViewDeleted;

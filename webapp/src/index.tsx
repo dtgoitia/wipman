@@ -20,7 +20,7 @@ const taskManager = new TaskManager({});
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const api = new WipmanApi({ local: browserStorage });
-const storage = new Storage({ browserStorage });
+const storage = new Storage({ settingsManager, browserStorage });
 const wipman = new Wipman({ settingsManager, storage, api, taskManager });
 
 ReactDOM.render(
