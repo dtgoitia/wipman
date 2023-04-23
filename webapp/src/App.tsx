@@ -79,7 +79,7 @@ function App({ wipman }: { wipman: Wipman }) {
   return (
     <BrowserRouter basename={BASE_URL}>
       <FullPage>
-        <NavBar />
+        <NavBar wipman={wipman} />
         <ScrollableSectionBellowNavBar>
           <Routes>
             <Route path={Paths.root} element={<ViewExplorer />} />

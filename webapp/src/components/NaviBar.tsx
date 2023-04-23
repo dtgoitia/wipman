@@ -1,5 +1,6 @@
+import { Wipman } from "../domain/wipman";
 import Paths from "../routes";
-import storage, { StorageStatus } from "../services/persistence/persist";
+import { StorageStatus } from "../services/persistence/persist";
 import {
   Alignment,
   Button,
@@ -16,21 +17,23 @@ const SaveButtonContainer = styled.div`
   margin-right: 1rem;
 `;
 
-function SyncStatus() {
+interface SyncStatusProps {
+  wipman: Wipman;
+}
+function SyncStatus({ wipman }: SyncStatusProps) {
   const [status, setStatus] = useState<StorageStatus>(StorageStatus.SAVED);
   console.log(status);
 
   useEffect(() => {
-    const subscription = storage.status$.subscribe((status) => {
+    const subscription = wipman.storage.status$.subscribe((status) => {
       setStatus(status);
     });
-    // TODO do this with all subscriptions
     return subscription.unsubscribe;
-  }, []);
+  }, [wipman]);
 
   function handleClick() {
     if (status === StorageStatus.DRAFT) {
-      storage.save();
+      wipman.storage.save();
     }
   }
 
@@ -63,7 +66,10 @@ function SyncStatus() {
   );
 }
 
-function NavBar() {
+interface NavBarProps {
+  wipman: Wipman;
+}
+function NavBar({ wipman }: NavBarProps) {
   let navigate = useNavigate();
   const location = useLocation();
 
@@ -79,7 +85,7 @@ function NavBar() {
 
       <Navbar.Group align={Alignment.RIGHT}>
         {/*  */}
-        <SyncStatus />
+        <SyncStatus wipman={wipman} />
         <Tabs
           id="TabsExample"
           onChange={handleTabClick}
