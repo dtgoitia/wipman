@@ -5,6 +5,7 @@ from flask import Flask, request
 from flask_cors import CORS
 from src.adapter.json import json_to_task, json_to_view, task_to_json, view_to_json
 from src.config import get_config
+from src.use_cases.health import service_is_healthy
 from src.use_cases.read_from_db import read_tasks_updated_after, read_view_updated_after
 from src.use_cases.update_items import create_task as create_task_in_db
 from src.use_cases.update_items import update_task as update_task_in_db
@@ -18,6 +19,22 @@ app = Flask(__name__)
 
 # TODO; narrow down CORS allowed domain
 CORS(app)
+
+
+@app.route("/health", methods=["GET"])
+def health():
+    # Ideas: https://stackoverflow.com/questions/25389261/which-http-status-code-should-i-use-for-a-health-check-failure
+
+    in_debug_mode = True  # TODO: get this from...where? see WIP - take if from config
+
+    is_healthy, reason = service_is_healthy(config=config)
+
+    status = 200 if is_healthy else 503
+    payload = {"isHealthy": is_healthy}
+    if in_debug_mode and not is_healthy:
+        payload.update({"reason": reason or "unknown"})
+
+    return payload, status
 
 
 @app.route("/get-all", methods=["GET"])
@@ -95,9 +112,9 @@ if __name__ == "__main__":
 
     # By default, flask serves in `localhost`, which makes the webserver
     # inaccessible once you containerize it.
-    host='0.0.0.0'
+    host = "0.0.0.0"
 
-    app.run(host=host, port=5000,  debug=True)
+    app.run(host=host, port=5000, debug=True)
 
 """
 # On start:
