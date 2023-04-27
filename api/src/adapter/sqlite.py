@@ -108,6 +108,13 @@ class DbClient:
     def __init__(self, config: Config) -> None:
         self.connection = get_sqlite_connection(config=config)
 
+    def is_healthy(self) -> bool:
+        _healthy_db_result = (1,)
+        with self.connection:
+            query = "SELECT 1;"
+            results = self.connection.execute(query).fetchone()
+            return results == _healthy_db_result
+
     def dump_wipman(self, views: set[View], tasks: set[Task]) -> None:
         self._drop_tasks_table_if_exists()
         self._create_tasks_table()
