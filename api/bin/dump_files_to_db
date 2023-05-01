@@ -13,4 +13,4 @@ echo -n "Activating the Python environment... "
 source api/.venv/bin/activate
 echo "done"
 
-PYTHONPATH=./api python -m src.cli.files_to_db
+cd ./api && python -m src.cli.files_to_db
