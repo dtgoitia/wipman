@@ -22,7 +22,7 @@ const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const errors = new ErrorsService();
 const api = new WipmanApi({ local: browserStorage, errors });
-const storage = new Storage({ settingsManager, browserStorage });
+const storage = new Storage({ settingsManager, browserStorage, api });
 const wipman = new Wipman({
   settingsManager,
   storage,

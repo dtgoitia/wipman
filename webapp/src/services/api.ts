@@ -1,9 +1,11 @@
 import { Task, View } from "../domain/types";
+import { ErrorsService } from "./errors";
 import { Storage as BrowserStorage } from "./persistence/localStorage";
 import { Client } from "browser-http-client";
 
 interface ConstructorArgs {
   local: BrowserStorage;
+  errors: ErrorsService;
 }
 
 interface GetUpdatedAfterArgs {
@@ -13,9 +15,11 @@ interface GetUpdatedAfterArgs {
 export class WipmanApi {
   private local: BrowserStorage;
   private baseUrl: string;
+  private errors: ErrorsService;
 
-  constructor({ local }: ConstructorArgs) {
+  constructor({ local, errors }: ConstructorArgs) {
     this.local = local;
+    this.errors = errors;
 
     // TODO: move this to settings and inject it via constructor
     this.baseUrl = "http://localhost:5000";
@@ -39,7 +43,16 @@ export class WipmanApi {
           return parseTask(data.updated_task);
         },
         Err: (error) => {
-          throw new Error(error as unknown as string);
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to create Task",
+            description: reason,
+          });
+          return {} as Task;
         },
       });
     });
@@ -68,12 +81,29 @@ export class WipmanApi {
   private async getUpdatedAfter({
     date,
   }: GetUpdatedAfterArgs): Promise<{ tasks: Task[]; views: View[] }> {
+    const _NO_VIEWS: View[] = [];
+
     const url = `${this.baseUrl}/get-all`;
     const result = await Client.get(url).then((result) => {
       return result.match({
-        Ok: ({ data }) => ({ tasks: data.tasks.map(parseTask), views: [] }),
+        Ok: ({ data }) => ({
+          tasks: data.tasks.map(parseTask),
+          views: _NO_VIEWS,
+        }),
         Err: (error) => {
-          throw new Error(error as unknown as string);
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: `Failed while fetching changes from API after date`,
+            description: reason,
+          });
+          return {
+            tasks: [],
+            views: _NO_VIEWS,
+          };
         },
       });
     });

@@ -1,8 +1,19 @@
 import { SettingsChange, SettingsManager } from "../../domain/settings";
-import { Settings, Task, TaskId } from "../../domain/types";
+import { mergeTasks } from "../../domain/task";
+import { Settings, Task, TaskId, View } from "../../domain/types";
 import { assertNever } from "../../exhaustive-match";
 import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
-import { BehaviorSubject, Observable, first, skip } from "rxjs";
+import { WipmanApi } from "../api";
+import {
+  BehaviorSubject,
+  Observable,
+  first,
+  from,
+  map,
+  of,
+  skip,
+  zip,
+} from "rxjs";
 
 export enum StorageStatus {
   DRAFT = "draft",
@@ -13,6 +24,7 @@ export enum StorageStatus {
 interface StorageArgs {
   settingsManager: SettingsManager;
   browserStorage: BrowserStorage;
+  api: WipmanApi;
 }
 
 // TODO: use this class to persist either using browser-git, or whatever DB you want
@@ -24,14 +36,16 @@ export class Storage {
 
   private settings: SettingsManager;
   private browserStorage: BrowserStorage;
+  private api: WipmanApi;
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
   public statusSubject = new BehaviorSubject<StorageStatus>(
     StorageStatus.SAVED
   );
 
-  constructor({ settingsManager, browserStorage }: StorageArgs) {
+  constructor({ settingsManager, browserStorage, api }: StorageArgs) {
     this.browserStorage = browserStorage;
+    this.api = api;
 
     this.status$ = this.statusSubject.asObservable();
 
@@ -41,6 +55,37 @@ export class Storage {
     );
 
     this.lastBackendFetch = this.getLastFetchDate();
+  }
+
+  /**
+   * Retrieve data stored in browser and in API.
+   */
+  public readAll(): Observable<{ tasks: Task[]; views: View[] }> {
+    /**
+     * Decision: do not emit first browser data and later API data, because if they
+     * differ, the UI will show browser data for a second and the API data a bit later,
+     * which creates a bumpy UI. This can confuse the user and promote the user tapping
+     * where it does not intend. Just wait until the API emits too, and present all data
+     * at once.
+     */
+    const tasksInBrowser: Task[] = this.readTasksFromBrowser();
+    const fromBrowser$ = of<{ tasks: Task[]; views: View[] }>({
+      tasks: tasksInBrowser,
+      views: [],
+    }); // emits browser data as soon as is available
+    const fromApi$ = from(this.api.getLastChanges()); //     emits api     data as soon as is available -- if offline, emits immediately with nothing
+
+    return zip(fromBrowser$.pipe(first()), fromApi$.pipe(first())).pipe(
+      first(),
+      map(([browserItems, apiItems]) => {
+        const { tasks: browserTasks /*, views: browserViews */ } = browserItems;
+        const { tasks: apiTasks /*, views: apiViews */ } = apiItems;
+
+        const tasks = mergeTasks({ a: browserTasks, b: apiTasks });
+
+        return { tasks, views: [] };
+      })
+    );
   }
 
   // Returns `false` if there are pending changes to save, else `true`.
@@ -77,13 +122,22 @@ export class Storage {
     });
   }
 
+  /**
+   * The UI component will buffer all the changes locally until I exit the text bot, so
+   * I won't spam the backend on each keystroke.
+   *
+   * Once the UI passes the changes to Wipman, wipman will persist in localstorage and
+   * API.
+   *
+   * I don't think there is any benefit to having the save button now :S
+   */
   public save(): void {
     console.debug("Storage.save: saving...");
     this.tasks = this.draftTasks;
 
     this.statusSubject.next(StorageStatus.SAVING);
-    this.saveTasksToBrowser();
-    this.saveTasksToBackend();
+    // this.saveTasksToBrowser();
+    // this.saveTasksToBackend();
 
     // TODO: if something fails - report error to error service and keep as StorageStatus.DRAFT
     this.statusSubject.next(StorageStatus.SAVED);
@@ -92,7 +146,7 @@ export class Storage {
   /**
    * Read raw data from browser storage, cast data to domain types, and return it.
    */
-  public readTasksFromBrowser(): Task[] {
+  private readTasksFromBrowser(): Task[] {
     console.debug("Reading tasks from browser...");
     // TODO: return Result
     if (this.browserStorage.tasks.exists() === false) {
@@ -107,11 +161,6 @@ export class Storage {
     const tasks = rawTasks.map(rawToTask);
 
     return tasks;
-  }
-
-  // TODO: return Result
-  public async readTasksFromBackend(): Promise<Task[]> {
-    return [];
   }
 
   public readSettings(): Settings {

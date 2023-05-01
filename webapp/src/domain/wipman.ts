@@ -4,7 +4,7 @@ import { WipmanApi } from "../services/api";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
 import { SettingsManager } from "./settings";
-import { TaskChanges, TaskManager, mergeTasks } from "./task";
+import { TaskChanges, TaskManager } from "./task";
 import { Task, TaskId } from "./types";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 
@@ -108,6 +108,17 @@ export class Wipman {
     //   match change:
     //     case: status.next(`ViewManager::${change}`)
     // })
+
+    //
+    //   Hook-up persistence layer to react to domain changes
+    //
+    this.taskManager.change$.subscribe((change) =>
+      this.handleTaskChanges(change)
+    );
+    // this.viewManager.change$.subscribe(change => {
+    //   this.browserStorage.store(change.view)
+    //   this.api.push(change.view)
+    // })
   }
 
   public async initialize(): Promise<void> {
@@ -120,46 +131,15 @@ export class Wipman {
     this.settingsManager.init(settings);
 
     //
-    //   Load data
+    //   Load stored data
     //
+    this.storage.readAll().subscribe(({ tasks /*, views */ }) => {
+      console.log(`Wipman.init::data retrieved from browser and API`);
+      this.taskManager.initialize({ tasks });
+      // this.viewManager.initialize({views});
 
-    let tasks: Task[] = [];
-    // let views: View[] = [];
-    const tasksInBrowser = this.storage.readTasksFromBrowser();
-    // views = this.browserStorage.readViews();
-
-    tasks = tasksInBrowser;
-
-    if (this.api.isOnline()) {
-      console.debug(`Wipman.initialize::fetching tasks from API`);
-      try {
-        const { tasks: apiTasks, views: apiViews } =
-          await this.api.getLastChanges();
-        console.log(apiViews); // TODO: added to quiet linters :P
-        tasks = mergeTasks({ a: tasksInBrowser, b: apiTasks });
-      } catch (error) {
-        console.debug(`Wipman.initialize::failed to fetch tasks from API`);
-        console.warn(error);
-      }
-      // views = mergeViews({a: views, b: apiViews});
-    }
-
-    this.taskManager.initialize({ tasks });
-    // this.viewManager.init(views);
-
-    //
-    //   Hook-up persistence layer to react to domain changes
-    //
-
-    this.taskManager.change$.subscribe((change) =>
-      this.handleTaskChanges(change)
-    );
-    // this.viewManager.change$.subscribe(change => {
-    //   this.browserStorage.store(change.view)
-    //   this.api.push(change.view)
-    // })
-
-    this.statusSubject.next(WipmanStatus.InitCompleted);
+      this.statusSubject.next(WipmanStatus.InitCompleted);
+    });
   }
 
   public addTask({ title }: { title: string }): void {
