@@ -7,6 +7,7 @@ from src.adapter.json import json_to_task, json_to_view, task_to_json, view_to_j
 from src.config import get_config
 from src.use_cases.health import service_is_healthy
 from src.use_cases.read_from_db import read_tasks_updated_after, read_view_updated_after
+from src.use_cases.set_up_minimum_db import set_up_minimum_db
 from src.use_cases.update_items import create_task as create_task_in_db
 from src.use_cases.update_items import update_task as update_task_in_db
 from src.use_cases.update_items import update_view as update_view_in_db
@@ -109,6 +110,8 @@ if __name__ == "__main__":
             f"Expected to find DB file at {config.db_path.absolute()} but"
             " it does not exist. Aborting..."
         )
+
+    set_up_minimum_db(config=config)
 
     # By default, flask serves in `localhost`, which makes the webserver
     # inaccessible once you containerize it.

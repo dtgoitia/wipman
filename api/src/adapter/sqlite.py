@@ -115,6 +115,17 @@ class DbClient:
             results = self.connection.execute(query).fetchone()
             return results == _healthy_db_result
 
+    def create_tables_if_missing(self) -> None:
+        try:
+            self._create_tasks_table()
+        except Exception:
+            pass
+
+        try:
+            self._create_views_table()
+        except Exception:
+            pass
+
     def dump_wipman(self, views: set[View], tasks: set[Task]) -> None:
         self._drop_tasks_table_if_exists()
         self._create_tasks_table()
