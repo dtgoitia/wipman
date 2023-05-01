@@ -1,12 +1,13 @@
-import { ErrorMessage, errorsService } from "../services/errors";
+import { Wipman } from "../domain/wipman";
+import { ErrorMessage } from "../services/errors";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
-interface ErrorsProps {
+interface ErrorProps {
   error: ErrorMessage;
 }
 
-function Error({ error: { header, description } }: ErrorsProps) {
+function Error({ error: { header, description } }: ErrorProps) {
   return (
     <div>
       <h4>{header}</h4>
@@ -19,18 +20,21 @@ const ErrorsContainer = styled.div`
   margin: 0.2rem;
 `;
 
-export default function Errors() {
+interface ErrorPanelProps {
+  wipman: Wipman;
+}
+export function ErrorPanel({ wipman }: ErrorPanelProps) {
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
   useEffect(() => {
-    const subscription = errorsService.errorsFeed$.subscribe(setErrors);
+    const subscription = wipman.errors.errorsFeed$.subscribe(setErrors);
     return subscription.unsubscribe;
-  }, []);
+  }, [wipman]);
 
   if (!errors || errors.length === 0) return null;
 
   return (
     <ErrorsContainer>
-      <button onClick={() => errorsService.deleteAll()}>
+      <button onClick={() => wipman.errors.deleteAll()}>
         Clear all error messages
       </button>
       {errors.map((error, i) => (

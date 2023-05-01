@@ -1,5 +1,6 @@
 import "./App.css";
 import CenteredPage from "./components/CenteredPage";
+import { ErrorPanel } from "./components/ErrorPanel";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
 import { Wipman, WipmanStatus } from "./domain/wipman";
@@ -66,6 +67,7 @@ function App({ wipman }: { wipman: Wipman }) {
   if (initializationIsComplete === false) {
     return (
       <FullPage>
+        <ErrorPanel wipman={wipman} />
         <FullPageVerticallyCentered>
           <CenteredPage>
             <Spinner />
@@ -79,6 +81,7 @@ function App({ wipman }: { wipman: Wipman }) {
   return (
     <BrowserRouter basename={BASE_URL}>
       <FullPage>
+        <ErrorPanel wipman={wipman} />
         <NavBar wipman={wipman} />
         <ScrollableSectionBellowNavBar>
           <Routes>

@@ -7,6 +7,7 @@ import "./index.css";
 import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { WipmanApi } from "./services/api";
+import { ErrorsService } from "./services/errors";
 import { Storage as BrowserStorage } from "./services/persistence/localStorage";
 import { Storage } from "./services/persistence/persist";
 import { GlobalStyle } from "./style/globalStyle";
@@ -19,9 +20,16 @@ import ReactDOM from "react-dom";
 const taskManager = new TaskManager({});
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
-const api = new WipmanApi({ local: browserStorage });
+const errors = new ErrorsService();
+const api = new WipmanApi({ local: browserStorage, errors });
 const storage = new Storage({ settingsManager, browserStorage });
-const wipman = new Wipman({ settingsManager, storage, api, taskManager });
+const wipman = new Wipman({
+  settingsManager,
+  storage,
+  api,
+  taskManager,
+  errors,
+});
 
 ReactDOM.render(
   <React.StrictMode>

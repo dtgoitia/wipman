@@ -5,7 +5,7 @@ export interface ErrorMessage {
   description: string;
 }
 
-class ErrorsService {
+export class ErrorsService {
   public errorsFeed$: BehaviorSubject<ErrorMessage[]>;
   public lastError$: BehaviorSubject<ErrorMessage | undefined>;
   constructor() {
@@ -31,5 +31,3 @@ class ErrorsService {
     this.lastError$.next(undefined);
   }
 }
-
-export const errorsService = new ErrorsService();
