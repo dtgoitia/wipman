@@ -5,7 +5,7 @@ from textwrap import dedent
 from typing import TypeAlias
 
 from src.config import Config
-from src.model import Task, View
+from src.model import Task, TaskId, View, ViewId
 
 logger = logging.getLogger(__name__)
 
@@ -157,6 +157,18 @@ class DbClient:
         for task in tasks:
             self.insert_task(task=task)
 
+    def read_task(self, task_id: TaskId) -> Task:
+        query = f"SELECT * from {TASKS_TABLE_NAME} WHERE id = ?"
+        with self.connection:
+            result = self.connection.execute(query, (task_id,)).fetchone()
+            return _result_to_task(result)
+
+    def read_view(self, view_id: ViewId) -> View:
+        query = f"SELECT * from {VIEWS_TABLE_NAME} WHERE id = ?"
+        with self.connection:
+            result = self.connection.execute(query, (view_id,)).fetchone()
+            return _result_to_view(result)
+
     def read_tasks(self, updated_after: datetime.datetime) -> list[Task]:
         with self.connection:
             query = (
@@ -210,33 +222,33 @@ class DbClient:
 
     def insert_task(self, task: Task) -> Task:
         query = (
-            "INSERT INTO tasks "
+            f"INSERT INTO {TASKS_TABLE_NAME} "
             "(id, title, created, updated, tags, blocked_by, blocks, completed, content)"
             " "
             "VALUES "
-            "(?, ?, ?, ?, ?, ?, ?, ?, ?) "
-            "RETURNING *"
-            ";"
+            "(?, ?, ?, ?, ?, ?, ?, ?, ?);"
         )
         row = _task_to_row(task=task).values()
         with self.connection:
-            inserted = self.connection.execute(query, tuple(row)).fetchone()
-            return _result_to_task(inserted)
+            self.connection.execute(query, tuple(row))
+            inserted = self.read_task(task_id=task.id)
+            return inserted
 
     def insert_view(self, view: View) -> View:
-        query = (
-            "INSERT INTO views "
+        insert = (
+            f"INSERT INTO {VIEWS_TABLE_NAME} "
             "(id, title, created, updated, tags, content)"
             " "
             "VALUES "
-            "(?, ?, ?, ?, ?, ?) "
-            "RETURNING *"
-            ";"
+            "(?, ?, ?, ?, ?, ?);"
         )
+        retrieve = f"SELECT * from {VIEWS_TABLE_NAME} WHERE id = ?"
+
         row = _view_to_row(task=view).values()
         with self.connection:
-            inserted = self.connection.execute(query, tuple(row)).fetchone()
-            return _result_to_view(inserted)
+            self.connection.execute(insert, tuple(row))
+            inserted = self.read_view(view_id=view.id)
+            return inserted
 
     def update_task(self, task: Task) -> Task:
         row = _task_to_row(task=task).values()
@@ -256,7 +268,6 @@ class DbClient:
                 completed = ?,
                 content = ?
             WHERE id = ?
-            RETURNING *
             ;
             """
         ).strip()
@@ -265,8 +276,9 @@ class DbClient:
         params = (*remainder_fields, task_id)
 
         with self.connection:
-            updated = self.connection.execute(query, params).fetchone()
-            return _result_to_task(updated)
+            self.connection.execute(query, params)
+            updated = self.read_task(task_id=task.id)
+            return updated
 
     def update_view(self, view: View) -> View:
         row = _view_to_row(task=view).values()
@@ -283,7 +295,6 @@ class DbClient:
                 tags = ?,
                 content = ?
             WHERE id = ?
-            RETURNING *
             ;
             """
         ).strip()
@@ -292,18 +303,6 @@ class DbClient:
         params = (*remainder_fields, view_id)
 
         with self.connection:
-            updated = self.connection.execute(query, params).fetchone()
-            if not updated:
-                raise ViewDoesNotExist(
-                    f"View {view.id} cannot be updated because it does not exist in DB"
-                )
-
-            return _result_to_view(updated)
-
-
-class TaskDoesNotExist(Exception):
-    ...
-
-
-class ViewDoesNotExist(Exception):
-    ...
+            self.connection.execute(query, params)
+            updated = self.read_view(view_id=view.id)
+            return updated
