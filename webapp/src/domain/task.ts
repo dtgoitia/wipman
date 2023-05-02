@@ -101,7 +101,8 @@ export class TaskManager {
       existing.created !== updated.created ||
       existing.updated !== updated.updated ||
       existing.blockedBy !== updated.blockedBy ||
-      existing.blocks !== updated.blocks;
+      existing.blocks !== updated.blocks ||
+      existing.completed !== updated.completed;
 
     console.debug(`TaskManager.taskChanged: ${changed}`);
     return changed;
