@@ -83,3 +83,7 @@ rebuild_api:
 
 shell_into_api_container:
 	docker-compose run --rm $(API_NAME) /bin/bash
+
+delete_local_db:
+	find ./api -maxdepth 1 -type f -name $(DB_PATH) -delete
+	touch ./api/$(DB_PATH)
