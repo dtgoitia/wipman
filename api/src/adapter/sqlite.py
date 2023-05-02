@@ -118,13 +118,15 @@ class DbClient:
     def create_tables_if_missing(self) -> None:
         try:
             self._create_tasks_table()
+            logger.info("'task' table created")
         except Exception:
-            pass
+            logger.info("'task' table already existed, so it has not ben re-created")
 
         try:
             self._create_views_table()
+            logger.info("'views' table created")
         except Exception:
-            pass
+            logger.info("'views' table already existed, so it has not ben re-created")
 
     def dump_wipman(self, views: set[View], tasks: set[Task]) -> None:
         self._drop_tasks_table_if_exists()
