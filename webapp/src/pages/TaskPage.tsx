@@ -1,4 +1,5 @@
 import CenteredPage from "../components/CenteredPage";
+import { nowIsoString } from "../domain/dates";
 import { Tag, Task, TaskId } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
@@ -68,7 +69,7 @@ function TaskDetail({ task, onUpdate }: TaskDetailProps) {
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    onUpdate({ ...task, content });
+    onUpdate({ ...task, content, updated: nowIsoString() });
   }
 
   function discardContentChanges(): void {
