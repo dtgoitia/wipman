@@ -77,4 +77,6 @@ install_api_development_dependencies:
 	bash api/bin/dev/install_dev_deps
 
 rebuild_api:
-	@echo TODO
+	docker-compose down
+	docker image rm $(API_NAME) || (echo "No $(API_NAME) found, all good."; exit 0)
+	docker-compose build --no-cache $(API_NAME)
