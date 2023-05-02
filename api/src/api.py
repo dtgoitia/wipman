@@ -75,7 +75,7 @@ def create_task():
     created = create_task_in_db(task=task, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
-    return {"updated_task": task_to_json(task=created)}
+    return {"created_task": task_to_json(task=created)}
 
 
 @app.route("/task", methods=["PUT"])
