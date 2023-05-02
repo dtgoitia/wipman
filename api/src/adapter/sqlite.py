@@ -73,30 +73,46 @@ def _str_to_set(string: str) -> frozenset[str]:
 
 
 def _result_to_task(result: tuple) -> Task:
-    (id, title, created, updated, tags, blocked_by, blocks, completed, content) = result
-    return Task(
-        id=id,
-        title=title,
-        created=datetime.datetime.fromisoformat(created),
-        updated=datetime.datetime.fromisoformat(updated),
-        tags=_str_to_set(tags),
-        blocked_by=_str_to_set(blocked_by),
-        blocks=_str_to_set(blocks),
-        completed=_int_to_bool(completed),
-        content=content,
-    )
+    match result:
+        case (
+            id,
+            title,
+            created,
+            updated,
+            tags,
+            blocked_by,
+            blocks,
+            completed,
+            content,
+        ):
+            return Task(
+                id=id,
+                title=title,
+                created=datetime.datetime.fromisoformat(created),
+                updated=datetime.datetime.fromisoformat(updated),
+                tags=_str_to_set(tags),
+                blocked_by=_str_to_set(blocked_by),
+                blocks=_str_to_set(blocks),
+                completed=_int_to_bool(completed),
+                content=content,
+            )
+        case other:
+            raise ValueError(f"Failed to convert DB result into Task: {other}")
 
 
 def _result_to_view(result: tuple) -> View:
-    (id, title, created, updated, tags, content) = result
-    return View(
-        id=id,
-        title=title,
-        created=datetime.datetime.fromisoformat(created),
-        updated=datetime.datetime.fromisoformat(updated),
-        tags=_str_to_set(tags),
-        content=content,
-    )
+    match result:
+        case (id, title, created, updated, tags, content):
+            return View(
+                id=id,
+                title=title,
+                created=datetime.datetime.fromisoformat(created),
+                updated=datetime.datetime.fromisoformat(updated),
+                tags=_str_to_set(tags),
+                content=content,
+            )
+        case other:
+            raise ValueError(f"Failed to convert DB result into View: {other}")
 
 
 def get_sqlite_connection(config: Config) -> sqlite3.Connection:
