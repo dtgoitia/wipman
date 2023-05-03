@@ -117,11 +117,15 @@ function isLoading(status: WipmanStatus): boolean {
       return false;
     case WipmanStatus.AddTaskInApiStarted:
       return true;
-    case WipmanStatus.AddTaskInApiEnd:
+    case WipmanStatus.AddTaskInApiCompleted:
       return false;
     case WipmanStatus.UpdateTaskInApiStarted:
       return true;
-    case WipmanStatus.UpdateTaskInApiEnd:
+    case WipmanStatus.UpdateTaskInApiCompleted:
+      return false;
+    case WipmanStatus.DeleteTaskInApiStarted:
+      return true;
+    case WipmanStatus.DeleteTaskInApiCompleted:
       return false;
     default:
       assertNever(status, `Unsupported WipmanStatus variant: ${status}`);

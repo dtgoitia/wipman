@@ -51,13 +51,19 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
         case WipmanStatus.AddTaskInApiStarted:
           setShowSpinner(true);
           break;
-        case WipmanStatus.AddTaskInApiEnd:
+        case WipmanStatus.AddTaskInApiCompleted:
           setShowSpinner(false);
           break;
         case WipmanStatus.UpdateTaskInApiStarted:
           setShowSpinner(true);
           break;
-        case WipmanStatus.UpdateTaskInApiEnd:
+        case WipmanStatus.UpdateTaskInApiCompleted:
+          setShowSpinner(false);
+          break;
+        case WipmanStatus.DeleteTaskInApiStarted:
+          setShowSpinner(true);
+          break;
+        case WipmanStatus.DeleteTaskInApiCompleted:
           setShowSpinner(false);
           break;
         case WipmanStatus.InitStarted:

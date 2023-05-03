@@ -16,9 +16,11 @@ export enum WipmanStatus {
   BackendLoadStarted = "BackendLoadStarted",
   BackendLoadCompleted = "BackendLoadCompleted",
   AddTaskInApiStarted = "AddTaskInApiStarted",
-  AddTaskInApiEnd = "AddTaskInApiEnd",
+  AddTaskInApiCompleted = "AddTaskInApiCompleted",
   UpdateTaskInApiStarted = "UpdateTaskInApiStarted",
-  UpdateTaskInApiEnd = "UpdateTaskInApiEnd",
+  UpdateTaskInApiCompleted = "UpdateTaskInApiCompleted",
+  DeleteTaskInApiStarted = "DeleteTaskInApiStarted",
+  DeleteTaskInApiCompleted = "DeleteTaskInApiCompleted",
 }
 
 interface ConstructorArgs {
