@@ -9,14 +9,14 @@ set_up_development_environment:
 	@echo ""
 	@echo ""
 	@echo Installing NPM dependencies outside of the container, to support pre-push builds...
-	@# this step is necessary because otherwise docker-compose creates a node_modules
+	@# this step is necessary because otherwise docker compose creates a node_modules
 	@# folder with root permissions and outside-container build fails
 	cd webapp; npm ci
 
 	@echo ""
 	@echo ""
 	@echo Installing Python dependencies outside of the container, so that the IDE can detect them
-	@# this step is necessary because otherwise docker-compose creates a node_modules
+	@# this step is necessary because otherwise docker compose creates a node_modules
 	@# folder with root permissions and outside-container build fails
 	cd api;~/.pyenv/versions/3.11.2/bin/python -m venv .venv/
 	bash api/bin/dev/install_dev_deps
@@ -42,30 +42,30 @@ uninstall_dev_tools:
 
 run_webapp:
 	scripts/print_local_ip_via_qr.sh
-	docker-compose up $(WEBAPP_NAME)
+	docker compose up $(WEBAPP_NAME)
 
 # Recreate web app docker image
 rebuild_webapp:
-	docker-compose down
+	docker compose down
 	docker image rm $(WEBAPP_NAME) || (echo "No $(WEBAPP_NAME) found, all good."; exit 0)
-	docker-compose build --no-cache $(WEBAPP_NAME)
+	docker compose build --no-cache $(WEBAPP_NAME)
 
 test_dev_webapp:
-	docker-compose run --rm $(WEBAPP_NAME) npm test
+	docker compose run --rm $(WEBAPP_NAME) npm test
 
 shell_webapp:
-	docker-compose run --rm $(WEBAPP_NAME) bash
+	docker compose run --rm $(WEBAPP_NAME) bash
 
 deploy_webapp_from_local:
 	cd ./webapp \
 		&& npm run deploy_from_local
-	@# TODO: docker-compose run --rm $(WEBAPP_NAME) npm run deploy_from_local
+	@# TODO: docker compose run --rm $(WEBAPP_NAME) npm run deploy_from_local
 
 build_webapp:
 	scripts/build_webapp.sh
 
 run_api:
-	docker-compose up $(API_NAME)
+	docker compose up $(API_NAME)
 
 compile_api_development_dependencies:
 	bash api/bin/dev/compile_dev_deps
@@ -77,12 +77,12 @@ install_api_development_dependencies:
 	bash api/bin/dev/install_dev_deps
 
 rebuild_api:
-	docker-compose down
+	docker compose down
 	docker image rm $(API_NAME) || (echo "No $(API_NAME) found, all good."; exit 0)
-	docker-compose build --no-cache $(API_NAME)
+	docker compose build --no-cache $(API_NAME)
 
 shell_into_api_container:
-	docker-compose run --rm $(API_NAME) /bin/bash
+	docker compose run --rm $(API_NAME) /bin/bash
 
 delete_local_db:
 	find ./api -maxdepth 1 -type f -name $(DB_PATH) -delete
