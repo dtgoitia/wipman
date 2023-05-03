@@ -21,7 +21,7 @@ const taskManager = new TaskManager({});
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const errors = new ErrorsService();
-const api = new WipmanApi({ local: browserStorage, errors });
+const api = new WipmanApi({ local: browserStorage, errors, settingsManager });
 const storage = new Storage({
   settingsManager,
   browserStorage,

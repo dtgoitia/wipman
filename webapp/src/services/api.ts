@@ -1,3 +1,4 @@
+import { SettingsManager } from "../domain/settings";
 import { Task, TaskId, View } from "../domain/types";
 import { ErrorsService } from "./errors";
 import { Storage as BrowserStorage } from "./persistence/localStorage";
@@ -6,6 +7,7 @@ import { Client } from "browser-http-client";
 interface ConstructorArgs {
   local: BrowserStorage;
   errors: ErrorsService;
+  settingsManager: SettingsManager;
 }
 
 interface GetUpdatedAfterArgs {
@@ -14,15 +16,13 @@ interface GetUpdatedAfterArgs {
 
 export class WipmanApi {
   private local: BrowserStorage;
-  private baseUrl: string;
+  private settingsManager: SettingsManager;
   private errors: ErrorsService;
 
-  constructor({ local, errors }: ConstructorArgs) {
+  constructor({ local, errors, settingsManager }: ConstructorArgs) {
     this.local = local;
     this.errors = errors;
-
-    // TODO: move this to settings and inject it via constructor
-    this.baseUrl = "http://localhost:5000";
+    this.settingsManager = settingsManager;
   }
 
   public isOnline(): boolean {
@@ -34,7 +34,11 @@ export class WipmanApi {
   }
 
   public async createTask({ task }: { task: Task }): Promise<Task> {
-    const url = `${this.baseUrl}/task`;
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
 
     const result = await Client.post(url, payload).then((result) => {
@@ -59,7 +63,11 @@ export class WipmanApi {
   }
 
   public async updateTask({ task }: { task: Task }): Promise<Task> {
-    const url = `${this.baseUrl}/task`;
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
 
     const result = await Client.put(url, payload).then((result) => {
@@ -84,7 +92,11 @@ export class WipmanApi {
   }
 
   public async deleteTask({ taskId }: { taskId: TaskId }): Promise<TaskId> {
-    const url = `${this.baseUrl}/task/${taskId}`;
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/task/${taskId}`;
 
     const result = await Client.delete(url).then((result) => {
       return result.match({
@@ -107,12 +119,29 @@ export class WipmanApi {
     return result;
   }
 
+  private getBaseUrl(): string | undefined {
+    const url = this.settingsManager.settings.apiUrl;
+    if (url === undefined) {
+      this.errors.add({
+        header: "API URL not found",
+        description: "Could not find API URL in Settings",
+      });
+      return;
+    }
+
+    return url;
+  }
+
   private async getUpdatedAfter({
     date,
   }: GetUpdatedAfterArgs): Promise<{ tasks: Task[]; views: View[] }> {
     const _NO_VIEWS: View[] = [];
 
-    const url = `${this.baseUrl}/get-all`;
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/get-all`;
     const result = await Client.get(url).then((result) => {
       return result.match({
         Ok: ({ data }) => ({
