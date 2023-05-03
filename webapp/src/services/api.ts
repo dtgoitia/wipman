@@ -39,9 +39,7 @@ export class WipmanApi {
 
     const result = await Client.post(url, payload).then((result) => {
       return result.match({
-        Ok: ({ data }) => {
-          return parseTask(data.updated_task);
-        },
+        Ok: ({ data }) => parseTask(data.created_task),
         Err: (error) => {
           const reason =
             "response" in error && error.response.status === 0
