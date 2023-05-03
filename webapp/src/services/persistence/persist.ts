@@ -1,5 +1,5 @@
 import { SettingsChange, SettingsManager } from "../../domain/settings";
-import { mergeTasks } from "../../domain/task";
+import { TaskManager, mergeTasks } from "../../domain/task";
 import { Settings, Task, TaskId, View } from "../../domain/types";
 import { assertNever } from "../../exhaustive-match";
 import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
@@ -25,6 +25,7 @@ interface StorageArgs {
   settingsManager: SettingsManager;
   browserStorage: BrowserStorage;
   api: WipmanApi;
+  taskManager: TaskManager;
 }
 
 // TODO: use this class to persist either using browser-git, or whatever DB you want
@@ -35,15 +36,22 @@ export class Storage {
   public lastBackendFetch: Date;
 
   private settings: SettingsManager;
+  private taskManager: TaskManager;
   private browserStorage: BrowserStorage;
   private api: WipmanApi;
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
   private lastStatus: StorageStatus = StorageStatus.SAVED;
-  public statusSubject = new BehaviorSubject<StorageStatus>(
+  private statusSubject = new BehaviorSubject<StorageStatus>(
     StorageStatus.SAVED
   );
 
-  constructor({ settingsManager, browserStorage, api }: StorageArgs) {
+  constructor({
+    settingsManager,
+    taskManager,
+    browserStorage,
+    api,
+  }: StorageArgs) {
+    this.taskManager = taskManager;
     this.browserStorage = browserStorage;
     this.api = api;
 
@@ -212,20 +220,120 @@ export class Storage {
     this.browserStorage.lastBackendFetch.set(date.toISOString());
   }
 
+  public addTask({ taskId }: { taskId: TaskId }): Observable<AddTaskProgress> {
+    const $ = new Observable<AddTaskProgress>((observer) => {
+      const task = this.taskManager.getTask(taskId);
+      if (task === undefined) {
+        observer.next({ kind: "FailedToRetrieveTaskById", taskId });
+        observer.complete();
+        return;
+      }
+
+      // While you use browser local storage - as opposed to IndexDB -, there is no way to
+      // only update one task. Instead you need to update all the tasks object in local
+      // storage. This is not true if you use IndexDB.
+      this.saveAllTasksToBrowser();
+      observer.next({ kind: "TaskAddedToBrowserStore", task });
+
+      if (this.api.isOnline() === false) {
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .createTask({ task })
+        .then((task) => {
+          observer.next({ kind: "TaskAddedToApi", task });
+        })
+        .catch((reason) => {
+          observer.next({ kind: "FailedToAddTaskToApi", task, reason });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
+  public updateTask({
+    taskId,
+  }: {
+    taskId: TaskId;
+  }): Observable<UpdateTaskProgress> {
+    const $ = new Observable<UpdateTaskProgress>((observer) => {
+      const task = this.taskManager.getTask(taskId);
+      if (task === undefined) {
+        observer.next({ kind: "FailedToRetrieveTaskById", taskId });
+        observer.complete();
+        return;
+      }
+
+      // While you use browser local storage - as opposed to IndexDB -, there is no way to
+      // only update one task. Instead you need to update all the tasks object in local
+      // storage. This is not true if you use IndexDB.
+      this.saveAllTasksToBrowser();
+      observer.next({ kind: "TaskUpdatedInBrowserStore", task });
+
+      if (this.api.isOnline() === false) {
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .updateTask({ task })
+        .then((task) => {
+          observer.next({ kind: "TaskUpdatedInApi", task });
+        })
+        .catch((reason) => {
+          observer.next({ kind: "FailedToUpdateTaskInApi", task, reason });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
+  public deleteTask({
+    taskId,
+  }: {
+    taskId: TaskId;
+  }): Observable<DeleteTaskProgress> {
+    const $ = new Observable<DeleteTaskProgress>((observer) => {
+      // TODO: temporary hack;
+      this.saveAllTasksToBrowser();
+      observer.next({ kind: "TaskDeletedFromBrowserStore", taskId });
+
+      if (this.api.isOnline() === false) {
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .deleteTask({ taskId })
+        .then((task) => {
+          observer.next({ kind: "TaskDeletedFromApi", taskId });
+        })
+        .catch((reason) => {
+          observer.next({
+            kind: "FailedToDeleteTaskFromBrowserStore",
+            taskId,
+            reason,
+          });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
   /**
    * Read latest task data from the domain layer and persist the data
    */
-  private saveTasksToBrowser(): void {
+  private saveAllTasksToBrowser(): void {
     // TODO: return Result
-    console.debug("Storage::saveTasksToBrowser");
-    const serializedTasks = [...this.tasks.values()].map(taskToRaw);
+    console.debug("Storage::saveAllTasksToBrowser");
+    const serializedTasks = [...this.taskManager.tasks.values()].map(taskToRaw);
 
     this.browserStorage.tasks.set(serializedTasks);
-  }
-
-  private saveTasksToBackend(): void {
-    // TODO: return Result
-    // ..
   }
 }
 
@@ -280,3 +388,22 @@ function rawToSettings(raw: SerializedSettings) {
   const settings: Settings = { ...raw };
   return settings;
 }
+
+type AddTaskProgress =
+  | { kind: "FailedToRetrieveTaskById"; taskId: TaskId }
+  | { kind: "TaskAddedToBrowserStore"; task: Task }
+  | { kind: "FailedToAddTaskToBrowserStore"; task: Task }
+  | { kind: "TaskAddedToApi"; task: Task }
+  | { kind: "FailedToAddTaskToApi"; task: Task; reason: any };
+
+type UpdateTaskProgress =
+  | { kind: "FailedToRetrieveTaskById"; taskId: TaskId }
+  | { kind: "TaskUpdatedInBrowserStore"; task: Task }
+  | { kind: "FailedToUpdateTaskInBrowserStore"; task: Task }
+  | { kind: "TaskUpdatedInApi"; task: Task }
+  | { kind: "FailedToUpdateTaskInApi"; task: Task; reason: any };
+
+type DeleteTaskProgress =
+  | { kind: "TaskDeletedFromBrowserStore"; taskId: TaskId }
+  | { kind: "TaskDeletedFromApi"; taskId: TaskId }
+  | { kind: "FailedToDeleteTaskFromBrowserStore"; taskId: TaskId; reason: any };

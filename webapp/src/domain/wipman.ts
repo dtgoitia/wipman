@@ -1,4 +1,3 @@
-import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
 import { WipmanApi } from "../services/api";
 import { ErrorsService } from "../services/errors";
@@ -177,13 +176,13 @@ export class Wipman {
       case "TasksInitialized":
         break;
       case "TaskAdded":
-        this.addTaskInApi(change.id);
+        this.addTaskToStore(change.id);
         break;
       case "TaskUpdated":
-        this.updateTaskInApi(change.id);
+        this.updateTaskInStore(change.id);
         break;
       case "TaskDeleted":
-        todo({ message: "TODO: add support for TaskDeleted" });
+        this.deleteTaskfromStore(change.id);
         break;
 
       default:
@@ -191,30 +190,90 @@ export class Wipman {
     }
   }
 
-  private addTaskInApi(taskId: TaskId): void {
+  private addTaskToStore(taskId: TaskId): void {
+    /**
+     * Design note: this method should only be used once initialization is complete.
+     * This means that, after initialization, the Managers are the source of truth, and
+     * the Storage is only persisting the changes emited by the Managers. There is no
+     * need for the Storage to emit the new state to the Managers. Hence it's more
+     * convenient that the store returns an observable that represents the progress of
+     * the 'add task' transaction, instead of broadcasting changes to a wider audience
+     * (like Managers do).
+     */
+
     this.statusSubject.next(WipmanStatus.AddTaskInApiStarted);
 
-    const task = this.taskManager.getTask(taskId);
-    if (task === undefined) {
-      throw new Error(`Expected a Task with ID ${taskId} in TaskManager`);
-    }
+    this.storage.addTask({ taskId }).subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) => {
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        });
+        this.statusSubject.next(WipmanStatus.AddTaskInApiCompleted);
+      },
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.AddTaskInApiCompleted);
+      },
+    });
+    this.statusSubject.next(WipmanStatus.AddTaskInApiStarted);
+  }
 
-    this.api.createTask({ task }).then((_) => {
-      this.statusSubject.next(WipmanStatus.AddTaskInApiEnd);
+  private updateTaskInStore(taskId: TaskId): void {
+    this.statusSubject.next(WipmanStatus.UpdateTaskInApiStarted);
+
+    this.storage.updateTask({ taskId }).subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) => {
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        });
+        this.statusSubject.next(WipmanStatus.UpdateTaskInApiCompleted);
+      },
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.UpdateTaskInApiCompleted);
+      },
     });
   }
 
-  private updateTaskInApi(taskId: TaskId): void {
-    this.statusSubject.next(WipmanStatus.UpdateTaskInApiStarted);
+  private deleteTaskfromStore(taskId: TaskId): void {
+    const progress$ = this.storage.deleteTask({ taskId });
+    this.statusSubject.next(WipmanStatus.DeleteTaskInApiStarted);
 
-    const task = this.taskManager.getTask(taskId);
-    if (task === undefined) {
-      throw new Error(`Expected a Task with ID ${taskId} in TaskManager`);
-    }
-
-    this.api.updateTask({ task }).then((_) => {
-      this.statusSubject.next(WipmanStatus.UpdateTaskInApiEnd);
+    progress$.subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) =>
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        }),
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.DeleteTaskInApiCompleted);
+      },
     });
+    this.statusSubject.next(WipmanStatus.DeleteTaskInApiCompleted);
   }
 }
 

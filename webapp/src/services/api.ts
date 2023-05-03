@@ -1,4 +1,4 @@
-import { Task, View } from "../domain/types";
+import { Task, TaskId, View } from "../domain/types";
 import { ErrorsService } from "./errors";
 import { Storage as BrowserStorage } from "./persistence/localStorage";
 import { Client } from "browser-http-client";
@@ -64,11 +64,42 @@ export class WipmanApi {
 
     const result = await Client.put(url, payload).then((result) => {
       return result.match({
-        Ok: ({ data }) => {
-          return parseTask(data.updated_task);
-        },
+        Ok: ({ data }) => parseTask(data.updated_task),
         Err: (error) => {
-          throw new Error(error as unknown as string);
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to update Task",
+            description: reason,
+          });
+          return {} as Task;
+        },
+      });
+    });
+
+    return result;
+  }
+
+  public async deleteTask({ taskId }: { taskId: TaskId }): Promise<TaskId> {
+    const url = `${this.baseUrl}/task/${taskId}`;
+
+    const result = await Client.delete(url).then((result) => {
+      return result.match({
+        Ok: ({ data }) => data.deleted_task_id as TaskId,
+        Err: (error) => {
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to delete Task",
+            description: reason,
+          });
+          return undefined as unknown as TaskId;
         },
       });
     });
