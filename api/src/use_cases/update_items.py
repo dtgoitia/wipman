@@ -1,6 +1,6 @@
 from src.adapter.sqlite import DbClient
 from src.config import Config
-from src.model import Task, View
+from src.model import Task, TaskId, View
 
 
 def create_task(task: Task, config: Config) -> Task:
@@ -19,3 +19,9 @@ def update_view(view: View, config: Config) -> View:
     db = DbClient(config=config)
     updated = db.update_view(view=view)
     return updated
+
+
+def delete_task(task_id: TaskId, config: Config) -> TaskId:
+    db = DbClient(config=config)
+    deleted_id = db.delete_task(task_id=task_id)
+    return deleted_id

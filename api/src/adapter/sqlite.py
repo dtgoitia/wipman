@@ -10,6 +10,7 @@ from src.model import Task, TaskId, View, ViewId
 logger = logging.getLogger(__name__)
 
 SqliteRow: TypeAlias = dict[str, str | int]
+Success: TypeAlias = bool
 
 TASKS_TABLE_NAME = "tasks"
 VIEWS_TABLE_NAME = "views"
@@ -306,3 +307,27 @@ class DbClient:
             self.connection.execute(query, params)
             updated = self.read_view(view_id=view.id)
             return updated
+
+    def delete_task(self, task_id: TaskId) -> TaskId:
+        query = dedent(
+            f"""
+            DELETE FROM {TASKS_TABLE_NAME}
+            WHERE id = ?
+            ;
+            """
+        ).strip()
+        params = (task_id,)
+
+        with self.connection:
+            cursor = self.connection.execute(query, params)
+            success = cursor.rowcount == 1
+            if not success:
+                raise TaskDeletionError(
+                    "Expected to find only 1 row for the provided deletion criteria, but "
+                    f"found {cursor.rowcount} instead. Changes will be rolled back"
+                )
+            return task_id
+
+
+class TaskDeletionError(Exception):
+    ...

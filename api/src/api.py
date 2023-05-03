@@ -5,10 +5,12 @@ from flask import Flask, request
 from flask_cors import CORS
 from src.adapter.json import json_to_task, json_to_view, task_to_json, view_to_json
 from src.config import get_config
+from src.model import TaskId
 from src.use_cases.health import service_is_healthy
 from src.use_cases.read_from_db import read_tasks_updated_after, read_view_updated_after
 from src.use_cases.set_up_minimum_db import set_up_minimum_db
 from src.use_cases.update_items import create_task as create_task_in_db
+from src.use_cases.update_items import delete_task as delete_task_in_db
 from src.use_cases.update_items import update_task as update_task_in_db
 from src.use_cases.update_items import update_view as update_view_in_db
 
@@ -98,6 +100,15 @@ def update_view():
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"updated_view": view_to_json(view=updated)}
+
+
+@app.route("/task/<task_id>", methods=["DELETE"])
+def delete_task(task_id: TaskId):
+    # TODO: use marshmallow to serialize/deserialize/validate
+    deleted_id = delete_task_in_db(task_id=task_id, config=config)
+
+    # TODO: use marshmallow to serialize/deserialize/validate
+    return {"deleted_task_id": deleted_id}
 
 
 if __name__ == "__main__":
