@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+# Given a DB file, recreate the wipman directory
+
+set -eu
+
+if [[ -z "${DB_PATH}" ]]; then
+    echo "Please set DB_PATH environment variable"
+    exit 1
+fi
+
+if [[ -z "${WIPMAN_DIR}" ]]; then
+    echo "Please set WIPMAN_DIR environment variable"
+    exit 1
+fi
+
+# Make sure that the python environment is enabled
+echo -n "Activating the Python environment... "
+source api/.venv/bin/activate
+echo "done"
+
+
+cd ./api && python -m src.cli.restore_wipman_dir_from_db_file

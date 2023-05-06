@@ -170,6 +170,20 @@ class DbClient:
             result = self.connection.execute(query, (view_id,)).fetchone()
             return _result_to_view(result)
 
+    def read_all_tasks(self) -> list[Task]:
+        with self.connection:
+            query = f"SELECT * FROM {TASKS_TABLE_NAME} t"
+            results = self.connection.execute(query).fetchall()
+            tasks: list[Task] = list(map(_result_to_task, results))
+            return tasks
+
+    def read_all_views(self) -> list[View]:
+        with self.connection:
+            query = f"SELECT * FROM {VIEWS_TABLE_NAME} t"
+            results = self.connection.execute(query).fetchall()
+            views: list[View] = list(map(_result_to_view, results))
+            return views
+
     def read_tasks(self, updated_after: datetime.datetime) -> list[Task]:
         with self.connection:
             query = (
