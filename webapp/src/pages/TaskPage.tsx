@@ -4,7 +4,7 @@ import { Tag, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
 import PageNotFound from "./PageNotFound";
-import { EditableText } from "@blueprintjs/core";
+import { Button, EditableText, Intent } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
@@ -16,9 +16,18 @@ const StyledTaskTitle = styled.div`
 `;
 interface TaskTitleProps {
   title: TaskTitle;
+  onUpdate: (title: TaskTitle) => void;
 }
-function TaskTitleComponent({ title }: TaskTitleProps) {
-  return <StyledTaskTitle>{title}</StyledTaskTitle>;
+function TaskTitleComponent({ title, onUpdate }: TaskTitleProps) {
+  return (
+    <StyledTaskTitle>
+      <EditableText
+        value={title}
+        onChange={onUpdate}
+        selectAllOnFocus={false}
+      />
+    </StyledTaskTitle>
+  );
 }
 
 // TODO: load colors from theme
@@ -60,27 +69,54 @@ interface TaskDetailProps {
 }
 
 function TaskDetail({ task, onUpdate }: TaskDetailProps) {
+  const [title, setTitle] = useState<TaskTitle>(task.title);
   const [content, setContent] = useState<string>(task.content);
 
   function handleContentChange(updatedContent: string): void {
     setContent(updatedContent);
   }
 
+  function handleTaskTitleChange(title: TaskTitle): void {
+    setTitle(title);
+  }
+
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    onUpdate({ ...task, content, updated: nowIsoString() });
+    onUpdate({ ...task, title, content, updated: nowIsoString() });
   }
 
   function discardContentChanges(): void {
-    const lastSavedContent = task.content;
-    setContent(lastSavedContent);
+    setContent(task.title);
+    setContent(task.content);
   }
+
+  const changesSaved = task.title === title && task.content === content;
 
   return (
     <CenteredPage>
       <MetadataSection id="metadata">
-        <TaskTitleComponent title={task.title} />
+        {changesSaved === false && (
+          <div>
+            <Button
+              icon="floppy-disk"
+              large={true}
+              intent={Intent.PRIMARY}
+              onClick={handleTaskSubmit}
+            >
+              Save
+            </Button>
+            <Button
+              className="bp4-minimal"
+              large={true}
+              intent={Intent.NONE}
+              onClick={() => discardContentChanges()}
+            >
+              Discard
+            </Button>
+          </div>
+        )}
+        <TaskTitleComponent title={title} onUpdate={handleTaskTitleChange} />
         <TaskIdBadge id={task.id} />
         {[...task.tags.values()].map((tag) => (
           <TaskTag tag={tag} />
@@ -92,8 +128,7 @@ function TaskDetail({ task, onUpdate }: TaskDetailProps) {
           placeholder={`Add task details here...`}
           value={content}
           onChange={handleContentChange}
-          onConfirm={handleTaskSubmit} // this probably should be a button to make the UX more phone friendly
-          onCancel={() => discardContentChanges()} // this probably should be a button to make the UX more phone friendly
+          onCancel={() => discardContentChanges()}
           selectAllOnFocus={false}
         />
       </Content>
