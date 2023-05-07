@@ -83,7 +83,10 @@ export class Storage {
     }); // emits browser data as soon as is available
     const fromApi$ = from(this.api.getLastChanges()); //     emits api     data as soon as is available -- if offline, emits immediately with nothing
 
-    return zip(fromBrowser$.pipe(first()), fromApi$.pipe(first())).pipe(
+    const merged$ = zip(
+      fromBrowser$.pipe(first()),
+      fromApi$.pipe(first())
+    ).pipe(
       first(),
       map(([browserItems, apiItems]) => {
         const { tasks: browserTasks /*, views: browserViews */ } = browserItems;
@@ -94,6 +97,16 @@ export class Storage {
         return { tasks, views: [] };
       })
     );
+
+    merged$.subscribe(({ tasks, views }) => {
+      console.debug("Storage.readAll: storing merged tasks in the browser...");
+      const serializedTasks = tasks.map(taskToRaw);
+
+      this.browserStorage.tasks.set(serializedTasks);
+      console.debug("Storage.readAll: merged tasks stored in the browser");
+    });
+
+    return merged$;
   }
 
   // Returns `false` if there are pending changes to save, else `true`.
