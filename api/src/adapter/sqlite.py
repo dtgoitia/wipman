@@ -158,16 +158,20 @@ class DbClient:
         for task in tasks:
             self.insert_task(task=task)
 
-    def read_task(self, task_id: TaskId) -> Task:
+    def read_task(self, task_id: TaskId) -> Task | None:
         query = f"SELECT * from {TASKS_TABLE_NAME} WHERE id = ?"
         with self.connection:
             result = self.connection.execute(query, (task_id,)).fetchone()
+            if not result:
+                return None
             return _result_to_task(result)
 
-    def read_view(self, view_id: ViewId) -> View:
+    def read_view(self, view_id: ViewId) -> View | None:
         query = f"SELECT * from {VIEWS_TABLE_NAME} WHERE id = ?"
         with self.connection:
             result = self.connection.execute(query, (view_id,)).fetchone()
+            if not result:
+                return None
             return _result_to_view(result)
 
     def read_all_tasks(self) -> list[Task]:
