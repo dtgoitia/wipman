@@ -1,3 +1,4 @@
+import { ViewTitle } from "../domain/types";
 import { EditableText } from "@blueprintjs/core";
 import { useState } from "react";
 import styled from "styled-components";
@@ -16,7 +17,7 @@ const AlignLeft = styled.div`
 `;
 
 interface AddViewProps {
-  onAdd: (title: string) => void;
+  onAdd: (title: ViewTitle) => void;
 }
 function AddView({ onAdd }: AddViewProps) {
   const [viewTitleInputIsOpen, openViewTitleInput] = useState<boolean>(false);

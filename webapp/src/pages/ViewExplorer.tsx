@@ -1,6 +1,6 @@
 import AddView from "../components/AddView";
 import CenteredPage from "../components/CenteredPage";
-import { View, ViewId } from "../domain/types";
+import { View, ViewId, ViewTitle } from "../domain/types";
 import { getViewPath } from "../routes";
 import viewManager from "../services/views";
 import { useEffect, useState } from "react";
@@ -38,7 +38,7 @@ function ViewExplorer() {
     navigate(getViewPath(id));
   }
 
-  function addView(title: string): void {
+  function addView(title: ViewTitle): void {
     viewManager.addView({ title });
   }
 

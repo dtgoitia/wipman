@@ -2,6 +2,7 @@ export type ISODatetimeString = string; // "2022-07-19T07:11:00+01:00"
 export type Hash = string;
 export type TaskId = Hash;
 export type TaskTitle = string;
+export type ViewTitle = string;
 type MarkdownString = string;
 
 export interface Task {
@@ -22,7 +23,7 @@ export type Tag = string;
 export type ViewId = Hash;
 export interface View {
   id: ViewId;
-  title: string;
+  title: ViewTitle;
   tags: Set<Tag>; // contains all tags in set, later you can add the possibility of more complex queries but don't prematurely optimize
 }
 

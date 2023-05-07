@@ -1,9 +1,9 @@
 import { generateHash } from "./hash";
-import { Hash, Tag, View, ViewId } from "./types";
+import { Hash, Tag, View, ViewId, ViewTitle } from "./types";
 import { BehaviorSubject, Observable } from "rxjs";
 
 interface NewView {
-  title: string;
+  title: ViewTitle;
 }
 
 interface ViewManagerProps {
