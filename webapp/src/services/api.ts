@@ -26,7 +26,20 @@ export class WipmanApi {
   }
 
   public isOnline(): boolean {
+    const apiUrl = this.settingsManager.settings.apiUrl;
+    if (apiUrl === undefined) return false;
+    if (this.apiIsInLocalhost()) return true;
     return navigator.onLine;
+  }
+
+  private apiIsInLocalhost(): boolean {
+    const apiUrl = this.settingsManager.settings.apiUrl;
+    if (apiUrl === undefined) return false;
+
+    if (apiUrl.startsWith("http://localhost")) return true;
+    if (apiUrl.startsWith("http://127.0.0.1")) return true;
+
+    return false;
   }
 
   public getLastChanges(): Promise<{ tasks: Task[]; views: View[] }> {

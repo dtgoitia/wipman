@@ -274,6 +274,7 @@ export class Storage {
       observer.next({ kind: "TaskUpdatedInBrowserStore", task });
 
       if (this.api.isOnline() === false) {
+        console.debug("WipmanApi:offline - won't talk to API");
         observer.complete();
         return;
       }
