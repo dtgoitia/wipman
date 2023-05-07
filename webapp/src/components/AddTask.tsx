@@ -1,3 +1,4 @@
+import { TaskTitle } from "../domain/types";
 import { EditableText } from "@blueprintjs/core";
 import { useState } from "react";
 import styled from "styled-components";
@@ -16,7 +17,7 @@ const AlignLeft = styled.div`
 `;
 
 interface AddTaskProps {
-  onAdd: (title: string) => void;
+  onAdd: (title: TaskTitle) => void;
 }
 function AddTask({ onAdd }: AddTaskProps) {
   const [taskTitleInputIsOpen, openTaskTitleInput] = useState<boolean>(false);

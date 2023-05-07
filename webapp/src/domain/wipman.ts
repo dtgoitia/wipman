@@ -4,7 +4,7 @@ import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
 import { SettingsManager } from "./settings";
 import { TaskChanges, TaskManager } from "./task";
-import { Task, TaskId } from "./types";
+import { Task, TaskId, TaskTitle } from "./types";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 export enum WipmanStatus {
@@ -143,7 +143,7 @@ export class Wipman {
     });
   }
 
-  public addTask({ title }: { title: string }): void {
+  public addTask({ title }: { title: TaskTitle }): void {
     this.taskManager.addTask({ title });
   }
 
@@ -151,7 +151,7 @@ export class Wipman {
     this.taskManager.updateTask(task);
   }
 
-  public getTask({ id }: { id: string }): Task | undefined {
+  public getTask({ id }: { id: TaskTitle }): Task | undefined {
     return this.taskManager.getTask(id);
   }
 

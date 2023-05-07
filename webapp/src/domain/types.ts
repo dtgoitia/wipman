@@ -1,11 +1,12 @@
 export type ISODatetimeString = string; // "2022-07-19T07:11:00+01:00"
 export type Hash = string;
 export type TaskId = Hash;
+export type TaskTitle = string;
 type MarkdownString = string;
 
 export interface Task {
   id: TaskId;
-  title: string;
+  title: TaskTitle;
   content: MarkdownString;
   created: ISODatetimeString;
   updated: ISODatetimeString;

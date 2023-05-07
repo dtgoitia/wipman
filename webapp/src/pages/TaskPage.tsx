@@ -1,6 +1,6 @@
 import CenteredPage from "../components/CenteredPage";
 import { nowIsoString } from "../domain/dates";
-import { Tag, Task, TaskId } from "../domain/types";
+import { Tag, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
 import PageNotFound from "./PageNotFound";
@@ -15,9 +15,9 @@ const StyledTaskTitle = styled.div`
   margin: 1rem 0;
 `;
 interface TaskTitleProps {
-  title: string;
+  title: TaskTitle;
 }
-function TaskTitle({ title }: TaskTitleProps) {
+function TaskTitleComponent({ title }: TaskTitleProps) {
   return <StyledTaskTitle>{title}</StyledTaskTitle>;
 }
 
@@ -80,7 +80,7 @@ function TaskDetail({ task, onUpdate }: TaskDetailProps) {
   return (
     <CenteredPage>
       <MetadataSection id="metadata">
-        <TaskTitle title={task.title} />
+        <TaskTitleComponent title={task.title} />
         <TaskIdBadge id={task.id} />
         {[...task.tags.values()].map((tag) => (
           <TaskTag tag={tag} />

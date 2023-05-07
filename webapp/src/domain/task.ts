@@ -1,10 +1,10 @@
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { Hash, Tag, Task, TaskId } from "./types";
+import { Hash, Tag, Task, TaskId, TaskTitle } from "./types";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 interface NewTask {
-  title: string;
+  title: TaskTitle;
 }
 
 interface TaskManagerProps {

@@ -1,7 +1,7 @@
 import AddTask from "../components/AddTask";
 import CenteredPage from "../components/CenteredPage";
 import ListedTask from "../components/ListedTask";
-import { Task, TaskId } from "../domain/types";
+import { Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
 import { getTaskPath } from "../routes";
@@ -82,7 +82,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     navigate(getTaskPath(id));
   }
 
-  function addTask(title: string): void {
+  function addTask(title: TaskTitle): void {
     wipman.addTask({ title });
   }
 
