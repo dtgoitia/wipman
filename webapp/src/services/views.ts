@@ -4,14 +4,19 @@ import { ViewManager } from "../domain/view";
 // TODO: read this from storage
 const SAMPLE_VIEWS: View[] = [
   {
-    id: "cccc",
-    title: "HIRU related tasks",
-    tags: new Set(["hiru"]),
+    id: "0000000000",
+    title: "backlog",
+    tags: new Set(),
   },
   {
-    id: "ddd",
-    title: "View with no tasks",
-    tags: new Set(["nonexistenttag"]),
+    id: "bpsahzuhou",
+    title: "hiru",
+    tags: new Set(["hiru", "yld"]),
+  },
+  {
+    id: "zhdbkgwxtf",
+    title: "health-tracker",
+    tags: new Set(["health-tracker"]),
   },
 ];
 

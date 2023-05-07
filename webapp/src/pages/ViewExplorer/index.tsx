@@ -1,26 +1,12 @@
-import AddView from "../components/AddView";
-import CenteredPage from "../components/CenteredPage";
-import { View, ViewId, ViewTitle } from "../domain/types";
-import { getViewPath } from "../routes";
-import viewManager from "../services/views";
+import AddView from "../../components/AddView";
+import CenteredPage from "../../components/CenteredPage";
+import { View, ViewId, ViewTitle } from "../../domain/types";
+import { getViewPath } from "../../routes";
+import viewManager from "../../services/views";
+import { ViewSummary } from "./ViewSummary";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-interface SingleViewProps {
-  view: View;
-  onOpenView: (id: ViewId) => void;
-}
-function SingleView({ view, onOpenView }: SingleViewProps) {
-  // TODO: add styles
-  // TODO: display - view metadata
-  // TODO: action - edit metadata
-  // TODO: display - tasks filtered by view.tags
-  return (
-    <div onClick={() => onOpenView(view.id)}>
-      {view.id} {view.title}
-    </div>
-  );
-}
 function ViewExplorer() {
   const navigate = useNavigate();
   const [views, setViews] = useState<View[]>([]);
@@ -53,10 +39,9 @@ function ViewExplorer() {
 
   return (
     <CenteredPage>
-      <div>ViewExplorer</div>
       <ul>
         {views.map((view) => (
-          <SingleView key={view.id} view={view} onOpenView={openView} />
+          <ViewSummary key={view.id} view={view} onOpenView={openView} />
         ))}
       </ul>
       <AddView onAdd={addView} />
