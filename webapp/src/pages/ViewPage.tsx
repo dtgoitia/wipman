@@ -1,16 +1,29 @@
-import { View, ViewId } from "../domain/types";
+import CenteredPage from "../components/CenteredPage";
+import ListedTask from "../components/ListedTask";
+import { Task, View, ViewId } from "../domain/types";
 import viewManager from "../services/views";
 import PageNotFound from "./PageNotFound";
 import { useParams } from "react-router-dom";
+import styled from "styled-components";
+
+const ViewTitle = styled.h3``;
 
 interface ViewDetailProps {
   view: View;
 }
 function ViewDetail({ view }: ViewDetailProps) {
+  const tasks: Task[] = [];
   return (
-    <div>
-      View detail. ID: {view.id} -- Title: {view.title}
-    </div>
+    <ul>
+      {tasks.map((task, i) => (
+        <ListedTask
+          task={task}
+          key={task.id}
+          onOpenTaskView={() => alert("onOpenTaskView: TODO")}
+          onRemoveTask={() => alert("onRemoveTask: TODO")}
+        />
+      ))}
+    </ul>
   );
 }
 
@@ -26,7 +39,12 @@ function ViewPage() {
 
   const view = maybeView;
 
-  return <ViewDetail view={view} />;
+  return (
+    <CenteredPage>
+      <ViewTitle>{view.title}</ViewTitle>
+      <ViewDetail view={view} />
+    </CenteredPage>
+  );
 }
 
 export default ViewPage;
