@@ -1,7 +1,8 @@
 import AddTask from "../components/AddTask";
 import CenteredPage from "../components/CenteredPage";
 import ListedTask from "../components/ListedTask";
-import { Task, TaskId, TaskTitle } from "../domain/types";
+import SearchBox, { NO_FILTER_QUERY } from "../components/SearchBox";
+import { FilterQuery, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
 import { getTaskPath } from "../routes";
@@ -15,6 +16,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
   // TODO: action: open task view
   const navigate = useNavigate();
 
+  const [query, setQuery] = useState<FilterQuery>(NO_FILTER_QUERY);
   const [tasks, setTasks] = useState<Task[]>([]);
   // TODO: do we even care about showing the spinner? -- maybe when we are updating one task?
   const [showSpinner, setShowSpinner] = useState(true);
@@ -86,6 +88,14 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     wipman.addTask({ title });
   }
 
+  function handleFilterChange(query: FilterQuery): void {
+    setQuery(query);
+  }
+
+  function handleClearSearch(): void {
+    setQuery(NO_FILTER_QUERY);
+  }
+
   if (tasks.length === 0) {
     return (
       <CenteredPage>
@@ -95,10 +105,24 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     );
   }
 
+  function filterTask(task: Task): boolean {
+    const searchable = `${task.title} ${task.content}`;
+    return searchable.includes(query as string);
+  }
+
+  const filteredTasks =
+    query && query !== "" ? tasks.filter(filterTask) : tasks;
+
   return (
     <CenteredPage>
+      <SearchBox
+        query={query as string}
+        onChange={handleFilterChange}
+        clearSearch={handleClearSearch}
+        onFocus={() => {}}
+      />
       <ul>
-        {tasks.map((task) => (
+        {filteredTasks.map((task) => (
           <ListedTask
             key={task.id}
             task={task}
