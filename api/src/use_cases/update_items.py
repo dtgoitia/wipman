@@ -11,13 +11,13 @@ def create_task(task: Task, config: Config) -> Task:
 
 def update_task(task: Task, config: Config) -> Task:
     db = DbClient(config=config)
-    updated = db.update_task(task=task)
+    updated = db.update_task(task=task, upsert_if_needed=True)
     return updated
 
 
 def update_view(view: View, config: Config) -> View:
     db = DbClient(config=config)
-    updated = db.update_view(view=view)
+    updated = db.update_view(view=view, upsert_if_needed=True)
     return updated
 
 

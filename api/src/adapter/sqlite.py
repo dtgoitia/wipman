@@ -269,7 +269,7 @@ class DbClient:
             inserted = self.read_view(view_id=view.id)
             return inserted
 
-    def update_task(self, task: Task) -> Task:
+    def update_task(self, task: Task, upsert_if_needed: bool = False) -> Task:
         row = _task_to_row(task=task).values()
 
         task_id, *remainder_fields = tuple(row)
@@ -297,9 +297,17 @@ class DbClient:
         with self.connection:
             self.connection.execute(query, params)
             updated = self.read_task(task_id=task.id)
+
+            if not updated and upsert_if_needed:
+                self.insert_task(task=task)
+                inserted = self.read_task(task_id=task.id)
+                if not inserted:
+                    raise FailedToUpsertTask()
+                return inserted
+
             return updated
 
-    def update_view(self, view: View) -> View:
+    def update_view(self, view: View, upsert_if_needed: bool = False) -> View:
         row = _view_to_row(task=view).values()
 
         view_id, *remainder_fields = tuple(row)
@@ -324,6 +332,14 @@ class DbClient:
         with self.connection:
             self.connection.execute(query, params)
             updated = self.read_view(view_id=view.id)
+
+            if not updated and upsert_if_needed:
+                self.insert_view(view=view)
+                inserted = self.read_view(view_id=view.id)
+                if not inserted:
+                    raise FailedToUpsertView()
+                return inserted
+
             return updated
 
     def delete_task(self, task_id: TaskId) -> TaskId:
@@ -348,4 +364,12 @@ class DbClient:
 
 
 class TaskDeletionError(Exception):
+    ...
+
+
+class FailedToUpsertTask(Exception):
+    ...
+
+
+class FailedToUpsertView(Exception):
     ...
