@@ -1,13 +1,16 @@
 import ListedTask from "../../components/ListedTask";
 import { Task, TaskId, View } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
+import { getTaskPath } from "../../routes";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 interface ViewTasksProps {
   view: View;
   wipman: Wipman;
 }
 export function ViewTasks({ view, wipman }: ViewTasksProps) {
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
@@ -18,13 +21,17 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
     );
   }, [view, wipman]);
 
+  function openTask(id: TaskId): void {
+    navigate(getTaskPath(id));
+  }
+
   return (
     <ul>
       {tasks.map((task, i) => (
         <ListedTask
           key={task.id}
           task={task}
-          onOpenTaskView={() => alert("onOpenTaskView: TODO")}
+          onOpenTaskView={() => openTask(task.id)}
           onRemoveTask={() => alert("onRemoveTask: TODO")}
         />
       ))}
