@@ -32,7 +32,6 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
           key={task.id}
           task={task}
           onOpenTaskView={() => openTask(task.id)}
-          onRemoveTask={() => alert("onRemoveTask: TODO")}
         />
       ))}
     </ul>

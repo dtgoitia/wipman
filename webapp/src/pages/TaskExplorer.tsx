@@ -135,7 +135,6 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
             key={task.id}
             task={task}
             onOpenTaskView={() => openTask(task.id)}
-            onRemoveTask={() => wipman.removeTask(task.id)}
           />
         ))}
       </ul>

@@ -24,34 +24,17 @@ const Left = styled.div`
   flex-grow: 1;
   flex-shrink: 0;
   align-self: center;
-`;
-
-const Right = styled.div`
-  order: 1000;
-  flex-basis: auto;
-  flex-grow: 0;
-  flex-shrink: 0;
+  padding: 0.37rem 0;
 `;
 
 interface ListedTaskProp {
   task: Task;
   onOpenTaskView: () => void;
-  onRemoveTask: () => void;
 }
-export default function ListedTask({
-  task,
-  onOpenTaskView,
-  onRemoveTask,
-}: ListedTaskProp) {
+export default function ListedTask({ task, onOpenTaskView }: ListedTaskProp) {
   return (
     <Container>
       <Left onClick={onOpenTaskView}>{task.title}</Left>
-      <Right>
-        <button
-          className="bp4-button bp4-minimal bp4-icon-trash"
-          onClick={onRemoveTask}
-        />
-      </Right>
     </Container>
   );
 }
