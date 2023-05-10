@@ -36,7 +36,6 @@ const storage = new Storage({
 const wipman = new Wipman({
   settingsManager,
   storage,
-  api,
   taskManager,
   viewManager,
   operationsManager,

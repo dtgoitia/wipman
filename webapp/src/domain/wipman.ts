@@ -1,6 +1,5 @@
 import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
-import { WipmanApi } from "../services/api";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
 import {
@@ -46,7 +45,6 @@ export enum WipmanStatus {
 interface ConstructorArgs {
   settingsManager: SettingsManager;
   storage: Storage;
-  api: WipmanApi;
   taskManager: TaskManager;
   viewManager: ViewManager;
   operationsManager: OperationsManager;
@@ -72,7 +70,6 @@ export class Wipman {
   private statusSubject: Subject<WipmanStatus>;
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
   private viewsSubject: BehaviorSubject<Map<ViewId, View>>;
-  private api: WipmanApi;
   private taskManager: TaskManager;
   private viewManager: ViewManager;
   private operationsManager: OperationsManager;
@@ -80,7 +77,6 @@ export class Wipman {
   constructor({
     settingsManager,
     storage,
-    api,
     taskManager,
     viewManager,
     operationsManager,
@@ -94,7 +90,6 @@ export class Wipman {
     this.taskManager = taskManager;
     this.viewManager = viewManager;
     this.operationsManager = operationsManager;
-    this.api = api;
     this.errors = errors;
 
     this.operationChange$ = this.operationsManager.change$;
