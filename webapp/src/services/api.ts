@@ -148,8 +148,6 @@ export class WipmanApi {
   private async getUpdatedAfter({
     date,
   }: GetUpdatedAfterArgs): Promise<{ tasks: Task[]; views: View[] }> {
-    const _NO_VIEWS: View[] = [];
-
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
       return new Promise(() => {});
@@ -159,7 +157,7 @@ export class WipmanApi {
       return result.match({
         Ok: ({ data }) => ({
           tasks: data.tasks.map(parseTask),
-          views: _NO_VIEWS,
+          views: data.views.map(parseView),
         }),
         Err: (error) => {
           const reason =
@@ -171,10 +169,7 @@ export class WipmanApi {
             header: `Failed while fetching changes from API after date`,
             description: reason,
           });
-          return {
-            tasks: [],
-            views: _NO_VIEWS,
-          };
+          return { tasks: [], views: [] };
         },
       });
     });
@@ -239,5 +234,36 @@ function taskToJson(task: Task): ApiTask {
     blocked_by: setToJson(task.blockedBy),
     blocks: setToJson(task.blocks),
     completed: task.completed,
+  };
+}
+
+interface ApiView {
+  id: string;
+  title: string;
+  created: string;
+  updated: string;
+  tags: string;
+  task_ids: string[];
+}
+
+function parseView(apiView: ApiView): View {
+  return {
+    id: apiView.id,
+    title: apiView.title,
+    created: apiView.created,
+    updated: apiView.updated,
+    tags: parseSet(apiView.tags),
+    tasks: apiView.task_ids,
+  };
+}
+
+function viewToJson(view: View): ApiView {
+  return {
+    id: view.id,
+    title: view.title,
+    created: view.created,
+    updated: view.updated,
+    tags: setToJson(view.tags),
+    task_ids: view.tasks,
   };
 }
