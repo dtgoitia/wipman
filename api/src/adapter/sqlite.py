@@ -79,6 +79,8 @@ def _str_to_set(string: str) -> frozenset[str]:
 
 
 def _str_to_list(string: str) -> list[str]:
+    if string == "":
+        return []
     return string.split(",")
 
 
