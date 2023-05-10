@@ -53,8 +53,22 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
   }
 
   function filterTask(task: Task): boolean {
-    const searchable = `${task.title} ${task.content}`;
-    return searchable.includes(query as string);
+    const searchables = [task.title];
+    if (task.tags.size > 0) {
+      task.tags.forEach((tag) => searchables.push(tag));
+    }
+    if (!!task.content) {
+      searchables.push(task.content);
+    }
+
+    for (const searchable of searchables) {
+      const found = searchable.includes(query as string);
+      if (found) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   const filteredTasks =
