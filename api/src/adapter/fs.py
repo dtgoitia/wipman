@@ -1,9 +1,10 @@
 import datetime
+import re
 from collections import defaultdict
 from pathlib import Path
 
 from src.config import Config
-from src.model import Task, View
+from src.model import Task, TaskId, View
 
 END_OF_FILE_EMPTY_LINE = ""
 
@@ -89,14 +90,34 @@ def write_task_file(path: Path, task: Task) -> None:
     path.write_text("\n".join(lines))
 
 
+_TASK_ID_IN_VIEW_LINE_PATTERN = re.compile(r"^.*\[([a-z]{10})\]")
+
+
+class ReadViewError(Exception):
+    ...
+
+
+def _extract_task_id(*, line: str) -> TaskId:
+    matches = _TASK_ID_IN_VIEW_LINE_PATTERN.match(line)
+    if matches is None:
+        raise ReadViewError(
+            f"Failed to extract the Task ID from View content line: {line!r}"
+        )
+
+    return matches.group(1)
+
+
 def read_view_file(path: Path) -> View:
     content_delimiter_found = False
     tmp: defaultdict[str, str] = defaultdict(str)
+    task_ids: list[TaskId] = []
 
     with path.open("r") as f:
         for line in f:
             if content_delimiter_found:
-                tmp["content"] += line
+                # Extract task ID from View content line
+                task_id = _extract_task_id(line=line)
+                task_ids.append(task_id)
                 continue
 
             line = line.strip()
@@ -115,11 +136,11 @@ def read_view_file(path: Path) -> View:
         created=datetime.datetime.fromisoformat(data["created"]),
         updated=datetime.datetime.fromisoformat(data["updated"]),
         tags=_str_to_frozenset(data["tags"]),
-        content=data["content"],
+        task_ids=task_ids,
     )
 
 
-def write_view_file(path: Path, view: View) -> None:
+def write_view_file(path: Path, view: View, tasks: dict[TaskId, Task]) -> None:
     lines: list[str] = [
         f"id={view.id}",
         f"title={view.title}",
@@ -127,14 +148,27 @@ def write_view_file(path: Path, view: View) -> None:
         f"updated={view.updated.isoformat()}",
         f"tags={_set_to_str(view.tags)}",
         "---",
-        view.content,
     ]
+
+    for task_id in view.task_ids:
+        task = tasks[task_id]
+        completed_mark = "x" if task.completed else " "
+        view_content_line = (
+            f"- [{completed_mark}]"
+            f" {task.title}"
+            "  "  # double space!
+            f"[{task_id}](../{task_id[0:2]}/{task_id[2:]})"
+        )
+        lines.append(view_content_line)
+
+    # end of file newline
+    lines.append("")
 
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(lines))
 
 
-def load_wipman_dir(config: Config) -> tuple[set[View], set[Task]]:
+def load_wipman_dir(config: Config) -> tuple[list[View], set[Task]]:
     def _ignore_hidden(path: Path) -> bool:
         return not path.name.startswith(".")
 
@@ -145,7 +179,7 @@ def load_wipman_dir(config: Config) -> tuple[set[View], set[Task]]:
         return path.is_file() and _is_task_dir(path.parent) and len(path.name) == 8
 
     views_dir = config.wipman_dir / "views"
-    views = {read_view_file(path) for path in views_dir.glob("*")}
+    views = [read_view_file(path) for path in views_dir.glob("*")]
 
     non_hidden = filter(_ignore_hidden, config.wipman_dir.rglob("*"))
     tasks_paths = filter(_is_task_file, non_hidden)

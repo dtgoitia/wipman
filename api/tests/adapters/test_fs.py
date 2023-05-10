@@ -10,6 +10,7 @@ from src.adapter.fs import (
 )
 from src.config import Config
 from src.model import Task, TaskId, View
+from tests.factories import task
 
 
 def test_read_task_file(tmp_path: Path) -> None:
@@ -182,10 +183,7 @@ def test_read_view_file(tmp_path: Path) -> None:
         created=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         updated=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         tags=frozenset(),
-        content=(
-            "- [ ] On View open in editor, automatically select markdown language  [dkzjtmtmap](../dk/zjtmtmap)\n"
-            "- [x] Fix: Task status is not properly propagated  [xlyckwetrb](../xl/yckwetrb)\n"
-        ),
+        task_ids=["dkzjtmtmap", "xlyckwetrb"],
     )
 
 
@@ -196,14 +194,26 @@ def test_write_view_file(tmp_path: Path) -> None:
         created=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         updated=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         tags=frozenset(),
-        content=(
-            "- [ ] On View open in editor, automatically select markdown language  [dkzjtmtmap](../dk/zjtmtmap)\n"
-            "- [x] Fix: Task status is not properly propagated  [xlyckwetrb](../xl/yckwetrb)\n"
-        ),
+        task_ids=["dkzjtmtmap", "xlyckwetrb"],
     )
 
     path = tmp_path / "task"
-    write_view_file(path=path, view=view)
+    write_view_file(
+        path=path,
+        view=view,
+        tasks={
+            "dkzjtmtmap": task(
+                id="dkzjtmtmap",
+                title="On View open in editor, automatically select markdown language",
+                completed=False,
+            ),
+            "xlyckwetrb": task(
+                id="xlyckwetrb",
+                title="Fix: Task status is not properly propagated",
+                completed=True,
+            ),
+        },
+    )
 
     assert path.read_text() == (
         "id=0000000000\n"
@@ -238,10 +248,7 @@ def _build_fake_wipman_dir(container: Path) -> Path:
         created=datetime.datetime.fromisoformat("2022-10-01T18:00:00.000Z"),
         updated=datetime.datetime.fromisoformat("2022-10-01T18:00:00.000Z"),
         tags=frozenset(),
-        content=(
-            "- [ ] On View open in editor, automatically select markdown language  [dkzjtmtmap](../dk/zjtmtmap)\n"
-            "- [x] Fix: Task status is not properly propagated  [xlyckwetrb](../xl/yckwetrb)\n"
-        ),
+        task_ids=["dkzjtmtmap", "xlyckwetrb"],
     )
 
     task_a = Task(
@@ -287,7 +294,14 @@ def _build_fake_wipman_dir(container: Path) -> Path:
 
     write_task_file(path=task_a_path, task=task_a)
     write_task_file(path=task_b_path, task=task_b)
-    write_view_file(path=backlog_path, view=backlog)
+    write_view_file(
+        path=backlog_path,
+        view=backlog,
+        tasks={
+            task_a.id: task_a,
+            task_b.id: task_b,
+        },
+    )
 
     return wipman_dir
 

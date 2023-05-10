@@ -4,7 +4,7 @@ from pathlib import Path
 from src.adapter import fs
 from src.adapter.sqlite import DbClient
 from src.config import Config
-from src.model import Task, View
+from src.model import Task, TaskId, View
 
 logger = logging.getLogger(__name__)
 
@@ -22,9 +22,9 @@ def _create_task_file(config: Config, task: Task) -> None:
     fs.write_task_file(path=path, task=task)
 
 
-def _create_view_file(config: Config, view: View) -> None:
+def _create_view_file(config: Config, view: View, tasks: dict[TaskId, Task]) -> None:
     path = _build_view_path(view=view, wipman_dir=config.wipman_dir)
-    fs.write_view_file(path=path, view=view)
+    fs.write_view_file(path=path, view=view, tasks=tasks)
 
 
 def restore_wipman_dir_from_db_file(config: Config) -> None:
@@ -32,8 +32,11 @@ def restore_wipman_dir_from_db_file(config: Config) -> None:
     tasks: list[Task] = db.read_all_tasks()
     views: list[View] = db.read_all_views()
 
+    _task_map: dict[TaskId, Task] = {}
+
     for task in tasks:
         _create_task_file(task=task, config=config)
+        _task_map[task.id] = task
 
     for view in views:
-        _create_view_file(view=view, config=config)
+        _create_view_file(view=view, tasks=_task_map, config=config)
