@@ -70,7 +70,7 @@ def changes_after_date():
 
 
 @app.route("/task", methods=["POST"])
-def create_task():
+def create_task_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     task = json_to_task(request.json["task"])
 
@@ -81,7 +81,7 @@ def create_task():
 
 
 @app.route("/task", methods=["PUT"])
-def update_task():
+def update_task_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     task = json_to_task(request.json["task"])
 
@@ -92,7 +92,7 @@ def update_task():
 
 
 @app.route("/view", methods=["PUT"])
-def update_view():
+def update_view_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     view = json_to_view(request.json["view"])
 
@@ -103,7 +103,7 @@ def update_view():
 
 
 @app.route("/task/<task_id>", methods=["DELETE"])
-def delete_task(task_id: TaskId):
+def delete_task_route(task_id: TaskId):
     # TODO: use marshmallow to serialize/deserialize/validate
     deleted_id = delete_task_in_db(task_id=task_id, config=config)
 
