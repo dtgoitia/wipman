@@ -1,10 +1,13 @@
 import datetime
+import logging
 import re
 from collections import defaultdict
 from pathlib import Path
 
 from src.config import Config
 from src.model import Task, TaskId, View
+
+logger = logging.getLogger(__name__)
 
 END_OF_FILE_EMPTY_LINE = ""
 
@@ -151,7 +154,11 @@ def write_view_file(path: Path, view: View, tasks: dict[TaskId, Task]) -> None:
     ]
 
     for task_id in view.task_ids:
-        task = tasks[task_id]
+        try:
+            task = tasks[task_id]
+        except:
+            logger.warning(f"Task ID {task_id!r} not found among fetched tasks")
+            continue
         completed_mark = "x" if task.completed else " "
         view_content_line = (
             f"- [{completed_mark}]"
