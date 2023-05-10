@@ -1,4 +1,5 @@
 import datetime
+from pprint import pprint
 from typing import Any, TypeAlias
 
 from src.model import Task, View
@@ -49,7 +50,7 @@ def view_to_json(view: View) -> JsonDict:
         "created": view.created.isoformat(),
         "updated": view.updated.isoformat(),
         "tags": _set_to_json(view.tags),
-        "content": view.content,
+        "task_ids": view.task_ids,
     }
 
 
@@ -60,5 +61,5 @@ def json_to_view(raw: JsonDict) -> View:
         created=datetime.datetime.fromisoformat(raw["created"]),
         updated=datetime.datetime.fromisoformat(raw["updated"]),
         tags=_json_to_set(raw["tags"]),
-        content=raw["content"],
+        task_ids=raw["task_ids"],
     )

@@ -20,6 +20,11 @@ def _set_to_str(str_set: frozenset[str]) -> str:
     return ",".join(sorted(list(str_set)))
 
 
+def _list_to_str(str_list: list[str]) -> str:
+    # IMPORTANT: must preserve order!
+    return ",".join(str_list)
+
+
 def _bool_to_int(value: bool) -> int:
     match value:
         case True:
@@ -32,14 +37,14 @@ def _bool_to_int(value: bool) -> int:
             )
 
 
-def _view_to_row(task: View) -> SqliteRow:
+def _view_to_row(view: View) -> SqliteRow:
     return {
-        "id": task.id,
-        "title": task.title,
-        "created": task.created.isoformat(),
-        "updated": task.updated.isoformat(),
-        "tags": _set_to_str(task.tags),
-        "content": task.content,
+        "id": view.id,
+        "title": view.title,
+        "created": view.created.isoformat(),
+        "updated": view.updated.isoformat(),
+        "tags": _set_to_str(view.tags),
+        "task_ids": _list_to_str(view.task_ids),
     }
 
 
@@ -73,6 +78,10 @@ def _str_to_set(string: str) -> frozenset[str]:
     return frozenset(item for item in string.split(",") if item)
 
 
+def _str_to_list(string: str) -> list[str]:
+    return string.split(",")
+
+
 def _result_to_task(result: tuple) -> Task:
     match result:
         case (
@@ -103,14 +112,14 @@ def _result_to_task(result: tuple) -> Task:
 
 def _result_to_view(result: tuple) -> View:
     match result:
-        case (id, title, created, updated, tags, content):
+        case (id, title, created, updated, tags, task_ids):
             return View(
                 id=id,
                 title=title,
                 created=datetime.datetime.fromisoformat(created),
                 updated=datetime.datetime.fromisoformat(updated),
                 tags=_str_to_set(tags),
-                content=content,
+                task_ids=_str_to_list(task_ids),
             )
         case other:
             raise ValueError(f"Failed to convert DB result into View: {other}")
@@ -236,7 +245,7 @@ class DbClient:
         with self.connection:
             logger.debug(f"Creating {table_name!r} table")
             self.connection.execute(
-                f"CREATE TABLE {table_name} (id, title, created, updated, tags, content);"
+                f"CREATE TABLE {table_name} (id, title, created, updated, tags, task_ids);"
             )
 
     def insert_task(self, task: Task) -> Task:
@@ -256,14 +265,13 @@ class DbClient:
     def insert_view(self, view: View) -> View:
         insert = (
             f"INSERT INTO {VIEWS_TABLE_NAME} "
-            "(id, title, created, updated, tags, content)"
+            "(id, title, created, updated, tags, task_ids)"
             " "
             "VALUES "
             "(?, ?, ?, ?, ?, ?);"
         )
-        retrieve = f"SELECT * from {VIEWS_TABLE_NAME} WHERE id = ?"
 
-        row = _view_to_row(task=view).values()
+        row = _view_to_row(view=view).values()
         with self.connection:
             self.connection.execute(insert, tuple(row))
             inserted = self.read_view(view_id=view.id)
@@ -308,7 +316,7 @@ class DbClient:
             return updated
 
     def update_view(self, view: View, upsert_if_needed: bool = False) -> View:
-        row = _view_to_row(task=view).values()
+        row = _view_to_row(view=view).values()
 
         view_id, *remainder_fields = tuple(row)
 
@@ -320,7 +328,7 @@ class DbClient:
                 created = ?,
                 updated = ?,
                 tags = ?,
-                content = ?
+                task_ids = ?
             WHERE id = ?
             ;
             """

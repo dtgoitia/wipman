@@ -34,4 +34,4 @@ class View:
     created: datetime.datetime
     updated: datetime.datetime
     tags: frozenset[Tag]
-    content: ViewContent
+    task_ids: list[TaskId]
