@@ -14,7 +14,8 @@ def _build_task_path(wipman_dir: Path, task: Task) -> Path:
 
 
 def _build_view_path(wipman_dir: Path, view: View) -> Path:
-    return wipman_dir / "views" / f"{view.title}.md"
+    filename = f"{view.title}.view".replace(" ", "-")
+    return wipman_dir / "views" / filename
 
 
 def _create_task_file(config: Config, task: Task) -> None:
