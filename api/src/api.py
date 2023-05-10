@@ -9,11 +9,13 @@ from src.model import TaskId
 from src.use_cases.health import service_is_healthy
 from src.use_cases.read_from_db import read_tasks_updated_after, read_view_updated_after
 from src.use_cases.set_up_minimum_db import set_up_minimum_db
-from src.use_cases.update_items import create_task as create_task_in_db
-from src.use_cases.update_items import create_view as create_view_in_db
-from src.use_cases.update_items import delete_task as delete_task_in_db
-from src.use_cases.update_items import update_task as update_task_in_db
-from src.use_cases.update_items import update_view as update_view_in_db
+from src.use_cases.update_items import (
+    create_task,
+    create_view,
+    delete_task,
+    update_task,
+    update_view,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +77,7 @@ def create_task_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     task = json_to_task(request.json["task"])
 
-    created = create_task_in_db(task=task, config=config)
+    created = create_task(task=task, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"created_task": task_to_json(task=created)}
@@ -86,7 +88,7 @@ def create_view_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     view = json_to_view(request.json["view"])
 
-    created = create_view_in_db(view=view, config=config)
+    created = create_view(view=view, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"created_view": view_to_json(view=created)}
@@ -97,7 +99,7 @@ def update_task_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     task = json_to_task(request.json["task"])
 
-    updated = update_task_in_db(task=task, config=config)
+    updated = update_task(task=task, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"updated_task": task_to_json(task=updated)}
@@ -108,7 +110,7 @@ def update_view_route():
     # TODO: use marshmallow to serialize/deserialize/validate
     view = json_to_view(request.json["view"])
 
-    updated = update_view_in_db(view=view, config=config)
+    updated = update_view(view=view, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"updated_view": view_to_json(view=updated)}
@@ -117,7 +119,7 @@ def update_view_route():
 @app.route("/task/<task_id>", methods=["DELETE"])
 def delete_task_route(task_id: TaskId):
     # TODO: use marshmallow to serialize/deserialize/validate
-    deleted_id = delete_task_in_db(task_id=task_id, config=config)
+    deleted_id = delete_task(task_id=task_id, config=config)
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"deleted_task_id": deleted_id}
