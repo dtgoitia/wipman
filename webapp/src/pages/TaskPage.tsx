@@ -1,12 +1,14 @@
 import CenteredPage from "../components/CenteredPage";
+import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
 import { nowIsoString } from "../domain/dates";
 import { Tag, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
+import Paths from "../routes";
 import PageNotFound from "./PageNotFound";
 import { Button, EditableText, Intent } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
 // TODO: load colors from theme
@@ -66,9 +68,16 @@ const Content = styled.section`
 interface TaskDetailProps {
   task: Task;
   onUpdate: (task: Task) => void;
+  onDelete: (id: TaskId) => void;
 }
 
-function TaskDetail({ task, onUpdate }: TaskDetailProps) {
+function TaskDetail({
+  task,
+  onUpdate: updateTask,
+  onDelete: deleteTask,
+}: TaskDetailProps) {
+  const navigateTo = useNavigate();
+
   const [title, setTitle] = useState<TaskTitle>(task.title);
   const [content, setContent] = useState<string>(task.content);
 
@@ -83,12 +92,17 @@ function TaskDetail({ task, onUpdate }: TaskDetailProps) {
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    onUpdate({ ...task, title, content, updated: nowIsoString() });
+    updateTask({ ...task, title, content, updated: nowIsoString() });
   }
 
   function discardContentChanges(): void {
     setContent(task.title);
     setContent(task.content);
+  }
+
+  function handleTaskDeletion(): void {
+    deleteTask(task.id);
+    navigateTo(Paths.tasks);
   }
 
   const changesSaved = task.title === title && task.content === content;
@@ -121,6 +135,11 @@ function TaskDetail({ task, onUpdate }: TaskDetailProps) {
         {[...task.tags.values()].map((tag) => (
           <TaskTag tag={tag} />
         ))}
+        <DeleteConfirmationDialog
+          title={`Do you want to delete task ${task.id}?`}
+          input={task.id}
+          onDelete={handleTaskDeletion}
+        />
       </MetadataSection>
       <Content id="content">
         <EditableText
@@ -206,6 +225,10 @@ function TaskPage({ wipman }: TaskPageProps) {
     wipman.updateTask({ task });
   }
 
+  function handleTaskDeletion(id: TaskId): void {
+    wipman.removeTask(id);
+  }
+
   const maybeTask = wipman.getTask({ id });
 
   if (maybeTask === undefined) {
@@ -215,7 +238,13 @@ function TaskPage({ wipman }: TaskPageProps) {
 
   const task = maybeTask;
 
-  return <TaskDetail task={task} onUpdate={handleTaskUpdate} />;
+  return (
+    <TaskDetail
+      task={task}
+      onUpdate={handleTaskUpdate}
+      onDelete={handleTaskDeletion}
+    />
+  );
 }
 
 export default TaskPage;
