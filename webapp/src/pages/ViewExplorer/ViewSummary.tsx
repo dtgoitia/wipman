@@ -1,7 +1,7 @@
+import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { Tags } from "../../components/ViewTags";
 import { TaskTitle, View, ViewId } from "../../domain/types";
-import { Button, Card, Dialog } from "@blueprintjs/core";
-import { useState } from "react";
+import { Card } from "@blueprintjs/core";
 import styled from "styled-components";
 
 const Title = styled.h3`
@@ -14,73 +14,22 @@ const CustomCard = styled(Card)`
   padding: 2rem;
 `;
 
-interface SingleViewProps {
+const ViewSummaryContainer = styled.div`
+  margin-bottom: 3rem;
+`;
+
+interface ViewSummaryProps {
   view: View;
   onClick: () => void;
   onDelete: (id: ViewId) => void;
 }
-
 export function ViewSummary({
   view,
   onClick: handleClick,
   onDelete: deleteView,
-}: SingleViewProps) {
-  const [showDeletionConfirmation, setShowDeletionConfirmation] =
-    useState<boolean>(false);
-
-  // TODO: improve `unlocked` naming
-  const [isLocked, setLocked] = useState<boolean>(true);
-
-  function handleInputChange(value: string): void {
-    if (value === view.title) {
-      setLocked(false);
-    } else {
-      setLocked(true);
-    }
-  }
-
-  function handleDeleteIntent(): void {
-    setShowDeletionConfirmation(false);
-    deleteView(view.id);
-  }
-
+}: ViewSummaryProps) {
   return (
-    <div>
-      <Dialog
-        title="Select a new date and time"
-        isOpen={showDeletionConfirmation}
-        autoFocus={true}
-        canOutsideClickClose={true}
-        isCloseButtonShown={true}
-        canEscapeKeyClose={true}
-        transitionDuration={0}
-        onClose={() => setShowDeletionConfirmation(false)}
-      >
-        <div className="bp4-dialog-body">
-          <h1>DANGER</h1>
-          <p>
-            Type <code>{view.title}</code> below to delete View:
-          </p>
-          <input
-            className="bp4-input bp4-fill"
-            type="text"
-            placeholder="Text input"
-            dir="auto"
-            onChange={(event) => handleInputChange(event.target.value)}
-          />
-        </div>
-        <div className="bp4-dialog-footer">
-          <Button
-            disabled={isLocked}
-            intent={"danger"}
-            icon={"trash"}
-            large={true}
-            onClick={handleDeleteIntent}
-          >
-            DELETE
-          </Button>
-        </div>
-      </Dialog>
+    <ViewSummaryContainer>
       <CustomCard onClick={handleClick}>
         <Title>{view.title}</Title>
         <Tags tags={view.tags} />
@@ -93,14 +42,12 @@ export function ViewSummary({
           ]}
         />
       </CustomCard>
-      <Button
-        icon={"trash"}
-        large={true}
-        onClick={() => setShowDeletionConfirmation(true)}
-      >
-        DELETE <em>{view.title}</em>
-      </Button>
-    </div>
+      <DeleteConfirmationDialog
+        title={"Confirm that you want to delete this View"}
+        input={view.title}
+        onDelete={() => deleteView(view.id)}
+      />
+    </ViewSummaryContainer>
   );
 }
 
