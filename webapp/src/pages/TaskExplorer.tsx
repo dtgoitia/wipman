@@ -72,6 +72,14 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
           break;
         case WipmanStatus.InitCompleted:
           break;
+        case WipmanStatus.AddViewInStoreStarted:
+          break;
+        case WipmanStatus.AddViewInStoreCompleted:
+          break;
+        case WipmanStatus.RemoveViewFromStoreStarted:
+          break;
+        case WipmanStatus.RemoveViewFromStoreCompleted:
+          break;
         default:
           assertNever(status, `Unsupported WipmanStatus variant: ${status}`);
       }

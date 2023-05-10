@@ -1,6 +1,7 @@
 import { SettingsChange, SettingsManager } from "../../domain/settings";
 import { TaskManager, mergeTasks } from "../../domain/task";
-import { Settings, Task, TaskId, View } from "../../domain/types";
+import { Settings, Task, TaskId, View, ViewId } from "../../domain/types";
+import { ViewManager, mergeViews } from "../../domain/view";
 import { assertNever } from "../../exhaustive-match";
 import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
 import { WipmanApi } from "../api";
@@ -26,6 +27,7 @@ interface StorageArgs {
   browserStorage: BrowserStorage;
   api: WipmanApi;
   taskManager: TaskManager;
+  viewManager: ViewManager;
 }
 
 // TODO: use this class to persist either using browser-git, or whatever DB you want
@@ -37,6 +39,7 @@ export class Storage {
 
   private settings: SettingsManager;
   private taskManager: TaskManager;
+  private viewManager: ViewManager;
   private browserStorage: BrowserStorage;
   private api: WipmanApi;
   private tasks$: Observable<Map<TaskId, Task>> | undefined;
@@ -48,10 +51,12 @@ export class Storage {
   constructor({
     settingsManager,
     taskManager,
+    viewManager,
     browserStorage,
     api,
   }: StorageArgs) {
     this.taskManager = taskManager;
+    this.viewManager = viewManager;
     this.browserStorage = browserStorage;
     this.api = api;
 
@@ -77,9 +82,10 @@ export class Storage {
      * at once.
      */
     const tasksInBrowser: Task[] = this.readTasksFromBrowser();
+    const viewsInBrowser: View[] = this.readViewsFromBrowser();
     const fromBrowser$ = of<{ tasks: Task[]; views: View[] }>({
       tasks: tasksInBrowser,
-      views: [],
+      views: viewsInBrowser,
     }); // emits browser data as soon as is available
     const fromApi$ = from(this.api.getLastChanges()); //     emits api     data as soon as is available -- if offline, emits immediately with nothing
 
@@ -89,21 +95,25 @@ export class Storage {
     ).pipe(
       first(),
       map(([browserItems, apiItems]) => {
-        const { tasks: browserTasks /*, views: browserViews */ } = browserItems;
-        const { tasks: apiTasks /*, views: apiViews */ } = apiItems;
+        const { tasks: browserTasks, views: browserViews } = browserItems;
+        const { tasks: apiTasks, views: apiViews } = apiItems;
 
         const tasks = mergeTasks({ a: browserTasks, b: apiTasks });
+        const views = mergeViews({ a: browserViews, b: apiViews });
 
-        return { tasks, views: [] };
+        return { tasks, views };
       })
     );
 
     merged$.subscribe(({ tasks, views }) => {
       console.debug("Storage.readAll: storing merged tasks in the browser...");
       const serializedTasks = tasks.map(taskToRaw);
+      const serializedViews = views.map(viewToRow);
 
       this.browserStorage.tasks.set(serializedTasks);
       console.debug("Storage.readAll: merged tasks stored in the browser");
+      this.browserStorage.views.set(serializedViews);
+      console.debug("Storage.readAll: merged views stored in the browser");
     });
 
     return merged$;
@@ -182,6 +192,24 @@ export class Storage {
     const tasks = rawTasks.map(rawToTask);
 
     return tasks;
+  }
+
+  private readViewsFromBrowser(): View[] {
+    console.debug(
+      `Storage.readViewsFromBrowser: reading views from browser...`
+    );
+    if (this.browserStorage.views.exists() === false) {
+      return [];
+    }
+
+    const rawViews = this.browserStorage.views.read() as SerializedView[];
+    if (!rawViews) {
+      return [];
+    }
+
+    const views = rawViews.map(rawToView);
+
+    return views;
   }
 
   public readSettings(): Settings {
@@ -323,13 +351,80 @@ export class Storage {
 
       this.api
         .deleteTask({ taskId })
-        .then((task) => {
+        .then(() => {
           observer.next({ kind: "TaskDeletedFromApi", taskId });
         })
         .catch((reason) => {
           observer.next({
             kind: "FailedToDeleteTaskFromBrowserStore",
             taskId,
+            reason,
+          });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
+  public addView({ viewId }: { viewId: ViewId }): Observable<AddViewProgress> {
+    const $ = new Observable<AddViewProgress>((observer) => {
+      const view = this.viewManager.getView(viewId);
+      if (view === undefined) {
+        observer.next({ kind: "FailedToRetrieveViewById", viewId });
+        observer.complete();
+        return;
+      }
+
+      // While you use browser local storage - as opposed to IndexDB -, there is no way to
+      // only update one view. Instead you need to update all the view object in local
+      // storage. This is not true if you use IndexDB.
+      this.saveAllViewsToBrowser();
+      observer.next({ kind: "ViewAddedToBrowserStore", view });
+
+      if (this.api.isOnline() === false) {
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .createView({ view })
+        .then((view) => {
+          observer.next({ kind: "ViewAddedToApi", view });
+        })
+        .catch((reason) => {
+          observer.next({ kind: "FailedToAddViewToApi", view, reason });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
+  public deleteView({
+    viewId,
+  }: {
+    viewId: ViewId;
+  }): Observable<DeleteViewProgress> {
+    const $ = new Observable<DeleteViewProgress>((observer) => {
+      // TODO: temporary hack;
+      this.saveAllViewsToBrowser();
+      observer.next({ kind: "ViewDeletedFromBrowserStore", viewId });
+
+      if (this.api.isOnline() === false) {
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .deleteView({ viewId })
+        .then(() => {
+          observer.next({ kind: "ViewDeletedFromApi", viewId });
+        })
+        .catch((reason) => {
+          observer.next({
+            kind: "FailedToDeleteViewFromApi",
+            viewId,
             reason,
           });
         })
@@ -348,6 +443,12 @@ export class Storage {
     const serializedTasks = [...this.taskManager.tasks.values()].map(taskToRaw);
 
     this.browserStorage.tasks.set(serializedTasks);
+  }
+
+  private saveAllViewsToBrowser(): void {
+    console.debug(`Storage::saveAllViewsToBrowser`);
+    const serializedViews = [...this.viewManager.views.values()].map(viewToRow);
+    this.browserStorage.views.set(serializedViews);
   }
 }
 
@@ -378,8 +479,8 @@ interface SerializedTask {
   completed: boolean;
 }
 
-function rawToTask(raw: SerializedTask) {
-  const task: Task = {
+function rawToTask(raw: SerializedTask): Task {
+  return {
     id: raw.id,
     title: raw.title,
     content: raw.content,
@@ -390,7 +491,38 @@ function rawToTask(raw: SerializedTask) {
     blocks: new Set(raw.blocks),
     completed: raw.completed,
   };
-  return task;
+}
+
+interface SerializedView {
+  id: string;
+  title: string;
+  created: string;
+  updated: string;
+  tags: string[];
+  tasks: string[];
+}
+
+function viewToRow(view: View): SerializedView {
+  const raw: SerializedView = {
+    id: view.id,
+    title: view.title,
+    created: view.created,
+    updated: view.updated,
+    tags: [...view.tags],
+    tasks: view.tasks,
+  };
+  return raw;
+}
+
+function rawToView(raw: SerializedView): View {
+  return {
+    id: raw.id,
+    title: raw.title,
+    created: raw.created,
+    updated: raw.updated,
+    tags: new Set(raw.tags),
+    tasks: raw.tasks,
+  };
 }
 
 interface SerializedSettings {
@@ -421,3 +553,22 @@ type DeleteTaskProgress =
   | { kind: "TaskDeletedFromBrowserStore"; taskId: TaskId }
   | { kind: "TaskDeletedFromApi"; taskId: TaskId }
   | { kind: "FailedToDeleteTaskFromBrowserStore"; taskId: TaskId; reason: any };
+
+type AddViewProgress =
+  | { kind: "FailedToRetrieveViewById"; viewId: ViewId }
+  | { kind: "ViewAddedToBrowserStore"; view: View }
+  | { kind: "FailedToAddViewToBrowserStore"; view: View }
+  | { kind: "ViewAddedToApi"; view: View }
+  | { kind: "FailedToAddViewToApi"; view: View; reason: any };
+
+// type UpdateViewProgress =
+//   | { kind: "ViewUpdatedInBrowserStore"; view: View }
+//   | { kind: "FailedToUpdateViewInBrowserStore"; view: View }
+//   | { kind: "ViewUpdatedToApi"; view: View }
+//   | { kind: "FailedToUpdateViewInApi"; view: View; reason: any };
+
+type DeleteViewProgress =
+  | { kind: "ViewDeletedFromBrowserStore"; viewId: ViewId }
+  | { kind: "FailedToDeleteViewFromBrowserStore"; viewId: ViewId }
+  | { kind: "ViewDeletedFromApi"; viewId: ViewId }
+  | { kind: "FailedToDeleteViewFromApi"; viewId: ViewId; reason: any };

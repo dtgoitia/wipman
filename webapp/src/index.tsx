@@ -1,7 +1,9 @@
 import App from "./App";
 import "./blueprint.css";
+import { OperationsManager } from "./domain/operations";
 import { SettingsManager } from "./domain/settings";
 import { TaskManager } from "./domain/task";
+import { ViewManager } from "./domain/view";
 import { Wipman } from "./domain/wipman";
 import "./index.css";
 import reportWebVitals from "./reportWebVitals";
@@ -18,6 +20,8 @@ import ReactDOM from "react-dom";
 
 // TODO: move this to a function that takes care of initializing all this for you - probably should live in wipman.ts
 const taskManager = new TaskManager({});
+const viewManager = new ViewManager({});
+const operationsManager = new OperationsManager();
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const errors = new ErrorsService();
@@ -27,12 +31,15 @@ const storage = new Storage({
   browserStorage,
   api,
   taskManager,
+  viewManager,
 });
 const wipman = new Wipman({
   settingsManager,
   storage,
   api,
   taskManager,
+  viewManager,
+  operationsManager,
   errors,
 });
 

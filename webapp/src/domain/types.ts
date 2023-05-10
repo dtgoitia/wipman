@@ -25,7 +25,10 @@ export type ViewId = Hash;
 export interface View {
   id: ViewId;
   title: ViewTitle;
+  created: ISODatetimeString;
+  updated: ISODatetimeString;
   tags: Set<Tag>; // contains all tags in set, later you can add the possibility of more complex queries but don't prematurely optimize
+  tasks: TaskId[]; // use a list to preserve order
 }
 
 export interface Settings {

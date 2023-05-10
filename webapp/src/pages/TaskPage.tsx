@@ -162,6 +162,14 @@ function isLoading(status: WipmanStatus): boolean {
       return true;
     case WipmanStatus.DeleteTaskInApiCompleted:
       return false;
+    case WipmanStatus.AddViewInStoreStarted:
+      return false;
+    case WipmanStatus.AddViewInStoreCompleted:
+      return false;
+    case WipmanStatus.RemoveViewFromStoreStarted:
+      return false;
+    case WipmanStatus.RemoveViewFromStoreCompleted:
+      return false;
     default:
       assertNever(status, `Unsupported WipmanStatus variant: ${status}`);
   }

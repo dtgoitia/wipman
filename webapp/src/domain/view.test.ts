@@ -4,7 +4,7 @@ import { ViewManager } from "./view";
 describe("ViewManager", () => {
   it("can be initialized empty", () => {
     const man = new ViewManager({});
-    expect(man.views.length).toEqual(0);
+    expect(man.views.size).toEqual(0);
   });
 
   it("adds a new view", () => {

@@ -15,7 +15,7 @@ export class TaskManager {
   public change$: Observable<TaskChanges>;
 
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
-  public changeSubject$: Subject<TaskChanges>;
+  public changeSubject: Subject<TaskChanges>;
 
   // latest state of tasks - it could be stored in a BehaviourSubject really... think about it
   public tasks: Map<TaskId, Task>;
@@ -30,8 +30,8 @@ export class TaskManager {
     this.tasksSubject = new BehaviorSubject<Map<TaskId, Task>>(this.tasks);
     this.tasks$ = this.tasksSubject.asObservable();
 
-    this.changeSubject$ = new Subject<TaskChanges>();
-    this.change$ = this.changeSubject$.asObservable();
+    this.changeSubject = new Subject<TaskChanges>();
+    this.change$ = this.changeSubject.asObservable();
   }
 
   public addTask({ title }: NewTask): Task {
@@ -51,7 +51,7 @@ export class TaskManager {
 
     // TODO: create task in file system - maybe this needs to subscribe to the stream of tasks, that would make the domain independent of the persistence layer, and it probably would be more testable
 
-    this.changeSubject$.next({ kind: "TaskAdded", id });
+    this.changeSubject.next({ kind: "TaskAdded", id });
     return task;
   }
 
@@ -60,15 +60,16 @@ export class TaskManager {
 
     this.tasks.set(task.id, task);
 
-    this.changeSubject$.next({ kind: "TaskUpdated", id: task.id });
+    this.changeSubject.next({ kind: "TaskUpdated", id: task.id });
     return task;
   }
 
   public removeTask(id: TaskId): void {
     // TODO: you probably want to use Result --> https://github.com/badrap/result
-    this.tasks.delete(id);
+    const deleted = this.tasks.delete(id);
+    if (deleted === false) return;
 
-    this.changeSubject$.next({ kind: "TaskDeleted", id });
+    this.changeSubject.next({ kind: "TaskDeleted", id });
   }
 
   public getTask(id: TaskId): Task | undefined {
@@ -87,7 +88,7 @@ export class TaskManager {
       this.tasks.set(task.id, task);
     });
 
-    this.changeSubject$.next({ kind: "TasksInitialized" });
+    this.changeSubject.next({ kind: "TasksInitialized" });
   }
 
   private taskChanged(updated: Task): boolean {
@@ -266,8 +267,8 @@ export function mergeTasks({ a, b }: MergeTaskArgs): Task[] {
   }
 
   // append remaining items B that were not present in A
-  for (const task_b of bIndex.values()) {
-    result.push(task_b);
+  for (const bTask of bIndex.values()) {
+    result.push(bTask);
   }
 
   return result;

@@ -1,5 +1,5 @@
 import { SettingsManager } from "../domain/settings";
-import { Task, TaskId, View } from "../domain/types";
+import { Task, TaskId, View, ViewId } from "../domain/types";
 import { ErrorsService } from "./errors";
 import { Storage as BrowserStorage } from "./persistence/localStorage";
 import { Client } from "browser-http-client";
@@ -125,6 +125,64 @@ export class WipmanApi {
             description: reason,
           });
           return undefined as unknown as TaskId;
+        },
+      });
+    });
+
+    return result;
+  }
+
+  public async createView({ view }: { view: View }): Promise<View> {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+
+    const url = `${baseUrl}/view`;
+    const payload = { view: viewToJson(view) };
+
+    const result = await Client.post(url, payload).then((result) => {
+      return result.match({
+        Ok: ({ data }) => parseView(data.created_view),
+        Err: (error) => {
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to create View",
+            description: reason,
+          });
+          return {} as View;
+        },
+      });
+    });
+
+    return result;
+  }
+
+  public async deleteView({ viewId }: { viewId: ViewId }): Promise<ViewId> {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/view/${viewId}`;
+
+    const result = await Client.delete(url).then((result) => {
+      return result.match({
+        Ok: ({ data }) => data.deleted_view_id as ViewId,
+        Err: (error) => {
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to delete View",
+            description: reason,
+          });
+          return undefined as unknown as ViewId;
         },
       });
     });

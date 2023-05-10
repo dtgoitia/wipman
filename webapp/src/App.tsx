@@ -85,15 +85,21 @@ function App({ wipman }: { wipman: Wipman }) {
         <NavBar wipman={wipman} />
         <ScrollableSectionBellowNavBar>
           <Routes>
-            <Route path={Paths.root} element={<ViewExplorer />} />
+            <Route
+              path={Paths.root}
+              element={<ViewExplorer wipman={wipman} />}
+            />
             <Route
               path={Paths.tasks}
               element={<TaskExplorer wipman={wipman} />}
             />
             <Route path={Paths.task} element={<TaskPage wipman={wipman} />} />
             {/* https://reactrouter.com/en/v6.3.0/getting-started/overview#configuring-routes */}
-            <Route path={Paths.views} element={<ViewExplorer />} />
-            <Route path={Paths.view} element={<ViewPage />} />
+            <Route
+              path={Paths.views}
+              element={<ViewExplorer wipman={wipman} />}
+            />
+            <Route path={Paths.view} element={<ViewPage wipman={wipman} />} />
             <Route
               path={Paths.settings}
               element={<SettingsPage wipman={wipman} />}

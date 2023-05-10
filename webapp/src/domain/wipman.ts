@@ -1,11 +1,28 @@
+import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
 import { WipmanApi } from "../services/api";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
+import {
+  OperationId,
+  OperationStatusChange,
+  OperationsManager,
+  generateOperationId,
+} from "./operations";
 import { SettingsManager } from "./settings";
 import { TaskChanges, TaskManager } from "./task";
-import { Task, TaskId, TaskTitle } from "./types";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { Task, TaskId, TaskTitle, View, ViewId, ViewTitle } from "./types";
+import { ViewChange, ViewManager } from "./view";
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  filter,
+  first,
+  forkJoin,
+} from "rxjs";
+
+export const INIT_OPERATION_ID = generateOperationId();
 
 export enum WipmanStatus {
   InitStarted = "InitStarted",
@@ -20,6 +37,10 @@ export enum WipmanStatus {
   UpdateTaskInApiCompleted = "UpdateTaskInApiCompleted",
   DeleteTaskInApiStarted = "DeleteTaskInApiStarted",
   DeleteTaskInApiCompleted = "DeleteTaskInApiCompleted",
+  AddViewInStoreStarted = "AddViewInStoreStarted",
+  AddViewInStoreCompleted = "AddViewInStoreCompleted",
+  RemoveViewFromStoreStarted = "RemoveViewFromStoreStarted",
+  RemoveViewFromStoreCompleted = "RemoveViewFromStoreCompleted",
 }
 
 interface ConstructorArgs {
@@ -27,7 +48,8 @@ interface ConstructorArgs {
   storage: Storage;
   api: WipmanApi;
   taskManager: TaskManager;
-  // viewManager: ViewManager;
+  viewManager: ViewManager;
+  operationsManager: OperationsManager;
   errors: ErrorsService;
 }
 
@@ -43,20 +65,25 @@ export class Wipman {
   public settingsManager: SettingsManager;
   public storage: Storage; // TODO: instead of exposing everything here... perhaps make it private and provide a narrower API?
   public tasks$: Observable<Map<TaskId, Task>>;
-  // public viewChanges$: Observable<ViewChanges>;
+  public views$: Observable<Map<ViewId, View>>;
+  public operationChange$: Observable<OperationStatusChange>;
   public errors: ErrorsService;
 
   private statusSubject: Subject<WipmanStatus>;
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
+  private viewsSubject: BehaviorSubject<Map<ViewId, View>>;
   private api: WipmanApi;
   private taskManager: TaskManager;
-  // private viewManager: ViewManager;
+  private viewManager: ViewManager;
+  private operationsManager: OperationsManager;
 
   constructor({
     settingsManager,
     storage,
     api,
     taskManager,
+    viewManager,
+    operationsManager,
     errors,
   }: ConstructorArgs) {
     this.statusSubject = new Subject<WipmanStatus>();
@@ -65,8 +92,12 @@ export class Wipman {
     this.settingsManager = settingsManager;
     this.storage = storage;
     this.taskManager = taskManager;
+    this.viewManager = viewManager;
+    this.operationsManager = operationsManager;
     this.api = api;
     this.errors = errors;
+
+    this.operationChange$ = this.operationsManager.change$;
 
     this.settingsManager.change$.subscribe((change) => {
       console.debug(`Wipman.settingsManager.change$::`, change);
@@ -82,6 +113,7 @@ export class Wipman {
       this.lastStatus = status;
     });
 
+    // Tasks
     this.tasksSubject = new BehaviorSubject<Map<TaskId, Task>>(new Map());
     this.tasks$ = this.tasksSubject.asObservable();
 
@@ -92,6 +124,15 @@ export class Wipman {
 
     this.tasks$.subscribe((tasks) => {
       console.debug(`Wipman::tasks$:`, tasks);
+    });
+
+    // Views
+    this.viewsSubject = new BehaviorSubject<Map<ViewId, View>>(new Map());
+    this.views$ = this.viewsSubject.asObservable();
+
+    this.viewManager.change$.subscribe((change) => {
+      console.log(`wipman.viewManager.change$:`, change);
+      this.viewsSubject.next(this.viewManager.views);
     });
 
     // re-expose task events to UI via Wipman
@@ -116,14 +157,14 @@ export class Wipman {
     this.taskManager.change$.subscribe((change) =>
       this.handleTaskChanges(change)
     );
-    // this.viewManager.change$.subscribe(change => {
-    //   this.browserStorage.store(change.view)
-    //   this.api.push(change.view)
-    // })
+    this.viewManager.change$.subscribe((change) => {
+      this.handleViewChanges(change);
+    });
   }
 
   public async initialize(): Promise<void> {
     this.statusSubject.next(WipmanStatus.InitStarted);
+    const initOp = this.operationsManager.start(INIT_OPERATION_ID);
 
     //
     //   Load settings from browser
@@ -134,12 +175,26 @@ export class Wipman {
     //
     //   Load stored data
     //
-    this.storage.readAll().subscribe(({ tasks /*, views */ }) => {
-      console.log(`Wipman.init::data retrieved from browser and API`);
-      this.taskManager.initialize({ tasks });
-      // this.viewManager.initialize({views});
+    this.storage.readAll().subscribe(({ tasks, views }) => {
+      console.log(`Wipman.initialize::data retrieved from browser and API`);
 
-      this.statusSubject.next(WipmanStatus.InitCompleted);
+      const tasksInitialized$ = this.taskManager.change$.pipe(
+        filter((change) => change.kind === "TasksInitialized"),
+        first()
+      );
+      const viewsInitialized$ = this.viewManager.change$.pipe(
+        filter((change) => change.kind === "ViewsInitialized"),
+        first()
+      );
+      const initCompleted$ = forkJoin([tasksInitialized$, viewsInitialized$]);
+      initCompleted$.subscribe((_) => {
+        console.log(`Wipman.initialize:: initialization completed`);
+        this.operationsManager.end({ operationId: initOp });
+        this.statusSubject.next(WipmanStatus.InitCompleted);
+      });
+
+      this.taskManager.initialize({ tasks });
+      this.viewManager.initialize({ views });
     });
   }
 
@@ -155,17 +210,36 @@ export class Wipman {
     return this.taskManager.getTask(id);
   }
 
-  // public async updateTask(): Promise {}
-
   public removeTask(taskId: TaskId): void {
     this.taskManager.removeTask(taskId);
   }
 
-  // public async addView(): Promise {}
+  public addView({ title }: { title: ViewTitle }): void {
+    this.viewManager.addView({ title });
+  }
 
-  // public async removeView(): Promise {}
+  public updateView({ view }: { view: View }): void {
+    this.viewManager.updateView(view);
+  }
 
-  // public async updateView(): Promise {}
+  public removeView({ id }: { id: ViewId }): void {
+    this.viewManager.removeView(id);
+  }
+
+  public getView({ id }: { id: ViewId }): View | undefined {
+    return this.viewManager.getView(id);
+  }
+
+  public isOperationCompleted({ id }: { id: OperationId }): boolean {
+    const completed = this.operationsManager.operations.get(id);
+    if (completed === undefined) {
+      throw new Error(
+        `BUG: tried to retrieve an operation that does not exist`
+      );
+    }
+
+    return completed === "ended";
+  }
 
   // public readSettings(): Settings {}
 
@@ -182,11 +256,30 @@ export class Wipman {
         this.updateTaskInStore(change.id);
         break;
       case "TaskDeleted":
-        this.deleteTaskfromStore(change.id);
+        this.deleteTaskFromStore(change.id);
         break;
 
       default:
         assertNever(change, `Unsupported TaskChange variant: ${change}`);
+    }
+  }
+
+  private handleViewChanges(change: ViewChange): void {
+    switch (change.kind) {
+      case "ViewsInitialized":
+        break;
+      case "ViewAdded":
+        this.addViewToStore(change.id);
+        break;
+      case "ViewUpdated":
+        this.updateViewInStore(change.id);
+        break;
+      case "ViewDeleted":
+        this.deleteViewFromStore(change.id);
+        break;
+
+      default:
+        assertNever(change, `Unsupported ViewChange variant: ${change}`);
     }
   }
 
@@ -223,7 +316,6 @@ export class Wipman {
         this.statusSubject.next(WipmanStatus.AddTaskInApiCompleted);
       },
     });
-    this.statusSubject.next(WipmanStatus.AddTaskInApiStarted);
   }
 
   private updateTaskInStore(taskId: TaskId): void {
@@ -251,7 +343,7 @@ export class Wipman {
     });
   }
 
-  private deleteTaskfromStore(taskId: TaskId): void {
+  private deleteTaskFromStore(taskId: TaskId): void {
     const progress$ = this.storage.deleteTask({ taskId });
     this.statusSubject.next(WipmanStatus.DeleteTaskInApiStarted);
 
@@ -274,6 +366,60 @@ export class Wipman {
       },
     });
     this.statusSubject.next(WipmanStatus.DeleteTaskInApiCompleted);
+  }
+
+  private addViewToStore(viewId: ViewId): void {
+    this.statusSubject.next(WipmanStatus.AddViewInStoreStarted);
+
+    this.storage.addView({ viewId }).subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) => {
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        });
+        this.statusSubject.next(WipmanStatus.AddViewInStoreCompleted);
+      },
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.AddViewInStoreCompleted);
+      },
+    });
+  }
+
+  private updateViewInStore(viewId: ViewId): void {
+    todo();
+  }
+
+  private deleteViewFromStore(viewId: ViewId): void {
+    this.statusSubject.next(WipmanStatus.RemoveViewFromStoreStarted);
+
+    this.storage.deleteView({ viewId }).subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) => {
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        });
+        this.statusSubject.next(WipmanStatus.RemoveViewFromStoreCompleted);
+      },
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.RemoveViewFromStoreCompleted);
+      },
+    });
   }
 }
 

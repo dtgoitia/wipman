@@ -1,34 +1,47 @@
 import AddView from "../../components/AddView";
 import CenteredPage from "../../components/CenteredPage";
 import { View, ViewId, ViewTitle } from "../../domain/types";
+import { Wipman } from "../../domain/wipman";
 import { getViewPath } from "../../routes";
-import viewManager from "../../services/views";
 import { ViewSummary } from "./ViewSummary";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
-function ViewExplorer() {
+const Toolbar = styled.div`
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  gap: 1rem;
+`;
+
+interface ViewExplorerProps {
+  wipman: Wipman;
+}
+
+function ViewExplorer({ wipman }: ViewExplorerProps) {
   const navigate = useNavigate();
   const [views, setViews] = useState<View[]>([]);
-  // TODO: action: remove view
 
   useEffect(() => {
-    const subscription = viewManager.views$.subscribe((views) => {
-      const unsortedViews: View[] = [...views];
+    const subscription = wipman.views$.subscribe((views) => {
+      const unsortedViews: View[] = [...views.values()];
       setViews(unsortedViews);
     });
     return subscription.unsubscribe;
-  }, []);
+  }, [wipman]);
 
-  function openView(id: ViewId) {
+  function openView(id: ViewId): void {
     navigate(getViewPath(id));
   }
 
   function addView(title: ViewTitle): void {
-    viewManager.addView({ title });
+    wipman.addView({ title });
   }
 
-  if (viewManager.views.length === 0) {
+  if (views.length === 0) {
     return (
       <CenteredPage>
         <div>No views here</div>
@@ -39,12 +52,20 @@ function ViewExplorer() {
 
   return (
     <CenteredPage>
+      <Toolbar>
+        <AddView onAdd={addView} />
+      </Toolbar>
+
       <ul>
         {views.map((view) => (
-          <ViewSummary key={view.id} view={view} onOpenView={openView} />
+          <ViewSummary
+            key={view.id}
+            view={view}
+            onClick={() => openView(view.id)}
+            onDelete={() => wipman.removeView({ id: view.id })}
+          />
         ))}
       </ul>
-      <AddView onAdd={addView} />
     </CenteredPage>
   );
 }
