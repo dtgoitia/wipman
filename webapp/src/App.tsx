@@ -10,7 +10,7 @@ import SettingsPage from "./pages/SettingsPage";
 import TaskExplorer from "./pages/TaskExplorer";
 import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
-import ViewPage from "./pages/ViewPage";
+import ViewPage from "./pages/ViewPage/index";
 import Paths from "./routes";
 import { Spinner } from "@blueprintjs/core";
 import { useEffect, useState } from "react";

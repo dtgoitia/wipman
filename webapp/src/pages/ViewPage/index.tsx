@@ -1,34 +1,16 @@
-import CenteredPage from "../components/CenteredPage";
-import ListedTask from "../components/ListedTask";
-import { OperationStatusChange } from "../domain/operations";
-import { Task, View, ViewId } from "../domain/types";
-import { INIT_OPERATION_ID, Wipman } from "../domain/wipman";
-import { assertNever } from "../exhaustive-match";
-import PageNotFound from "./PageNotFound";
+import CenteredPage from "../../components/CenteredPage";
+import { OperationStatusChange } from "../../domain/operations";
+import { ViewId } from "../../domain/types";
+import { INIT_OPERATION_ID, Wipman } from "../../domain/wipman";
+import { assertNever } from "../../exhaustive-match";
+import PageNotFound from "../PageNotFound";
+import { ViewDetail } from "./ViewDetail";
+import { ViewTasks } from "./ViewTasks";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 
 const ViewTitle = styled.h3``;
-
-interface ViewDetailProps {
-  view: View;
-}
-function ViewDetail({ view }: ViewDetailProps) {
-  const tasks: Task[] = [];
-  return (
-    <ul>
-      {tasks.map((task, i) => (
-        <ListedTask
-          task={task}
-          key={task.id}
-          onOpenTaskView={() => alert("onOpenTaskView: TODO")}
-          onRemoveTask={() => alert("onRemoveTask: TODO")}
-        />
-      ))}
-    </ul>
-  );
-}
 
 enum ShowSpinner {
   yes = "yes",
@@ -54,7 +36,6 @@ interface ViewPageProps {
 function ViewPage({ wipman }: ViewPageProps) {
   const [spinnerIsVisible, setSpinnerIsVisible] = useState<boolean>(true);
 
-  // TODO: action: ?
   const params = useParams();
   const id = params.viewId as ViewId;
 
@@ -93,6 +74,7 @@ function ViewPage({ wipman }: ViewPageProps) {
     <CenteredPage>
       <ViewTitle>{view.title}</ViewTitle>
       <ViewDetail view={view} />
+      <ViewTasks view={view} wipman={wipman} />
     </CenteredPage>
   );
 }
