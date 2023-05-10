@@ -374,8 +374,32 @@ class DbClient:
                 )
             return task_id
 
+    def delete_view(self, view_id: ViewId) -> TaskId:
+        query = dedent(
+            f"""
+            DELETE FROM {VIEWS_TABLE_NAME}
+            WHERE id = ?
+            ;
+            """
+        ).strip()
+        params = (view_id,)
+
+        with self.connection:
+            cursor = self.connection.execute(query, params)
+            success = cursor.rowcount == 1
+            if not success:
+                raise ViewDeletionError(
+                    "Expected to find only 1 row for the provided deletion criteria, but "
+                    f"found {cursor.rowcount} instead. Changes will be rolled back"
+                )
+            return view_id
+
 
 class TaskDeletionError(Exception):
+    ...
+
+
+class ViewDeletionError(Exception):
     ...
 
 
