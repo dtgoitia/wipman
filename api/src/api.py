@@ -10,6 +10,7 @@ from src.use_cases.health import service_is_healthy
 from src.use_cases.read_from_db import read_tasks_updated_after, read_view_updated_after
 from src.use_cases.set_up_minimum_db import set_up_minimum_db
 from src.use_cases.update_items import create_task as create_task_in_db
+from src.use_cases.update_items import create_view as create_view_in_db
 from src.use_cases.update_items import delete_task as delete_task_in_db
 from src.use_cases.update_items import update_task as update_task_in_db
 from src.use_cases.update_items import update_view as update_view_in_db
@@ -78,6 +79,17 @@ def create_task_route():
 
     # TODO: use marshmallow to serialize/deserialize/validate
     return {"created_task": task_to_json(task=created)}
+
+
+@app.route("/view", methods=["POST"])
+def create_view_route():
+    # TODO: use marshmallow to serialize/deserialize/validate
+    view = json_to_view(request.json["view"])
+
+    created = create_view_in_db(view=view, config=config)
+
+    # TODO: use marshmallow to serialize/deserialize/validate
+    return {"created_view": view_to_json(view=created)}
 
 
 @app.route("/task", methods=["PUT"])

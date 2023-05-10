@@ -9,6 +9,12 @@ def create_task(task: Task, config: Config) -> Task:
     return created
 
 
+def create_view(view: View, config: Config) -> View:
+    db = DbClient(config=config)
+    created = db.insert_view(view=view)
+    return created
+
+
 def update_task(task: Task, config: Config) -> Task:
     db = DbClient(config=config)
     updated = db.update_task(task=task, upsert_if_needed=True)
