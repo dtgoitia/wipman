@@ -11,7 +11,7 @@ def read_tasks_updated_after(t: datetime.datetime, config: Config) -> set[Task]:
     return set(tasks)
 
 
-def read_view_updated_after(t: datetime.datetime, config: Config) -> set[View]:
+def read_view_updated_after(t: datetime.datetime, config: Config) -> list[View]:
     db = DbClient(config=config)
     views = db.read_views(updated_after=t)
-    return set(views)
+    return views
