@@ -7,9 +7,6 @@ interface NewTask {
   title: TaskTitle;
 }
 
-interface TaskManagerProps {
-  tasks?: Map<TaskId, Task>;
-}
 export class TaskManager {
   public tasks$: Observable<Map<TaskId, Task>>; // all tasks
   public change$: Observable<TaskChanges>;
@@ -20,8 +17,8 @@ export class TaskManager {
   // latest state of tasks - it could be stored in a BehaviourSubject really... think about it
   public tasks: Map<TaskId, Task>;
 
-  constructor({ tasks }: TaskManagerProps) {
-    this.tasks = tasks || new Map<TaskId, Task>();
+  constructor() {
+    this.tasks = new Map<TaskId, Task>();
     //   TODO this.tasks might not be necessary, maybe you can store it inside the
     //   BehaviourSubject and if you need to retrieve it in a sync mannet, just use
     //   `this.tasksSubject.getValue()`. Although it seems more convenient in this case

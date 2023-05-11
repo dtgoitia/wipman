@@ -5,12 +5,12 @@ import { Task } from "./types";
 
 describe("TaskManager", () => {
   it("can be initialized empty", () => {
-    const man = new TaskManager({});
+    const man = new TaskManager();
     expect(man.tasks.size).toEqual(0);
   });
 
   it("adds a new task", () => {
-    const man = new TaskManager({});
+    const man = new TaskManager();
     const returned = man.addTask({ title: "new task title" });
 
     // Returned task has expected shape and data
@@ -27,7 +27,7 @@ describe("TaskManager", () => {
   });
 
   it("updates an existing task", () => {
-    const man = new TaskManager({});
+    const man = new TaskManager();
     const existing = man.addTask({ title: "existing" });
 
     const updated: Task = { ...existing, content: "some new content" };
@@ -51,7 +51,7 @@ describe("TaskManager", () => {
   });
 
   it("removes a task", () => {
-    const man = new TaskManager({});
+    const man = new TaskManager();
     const existing = man.addTask({ title: "existing" });
 
     expect(man.tasks.size).toEqual(1);
@@ -62,7 +62,7 @@ describe("TaskManager", () => {
   });
 
   it("retrieves a task by ID", () => {
-    const man = new TaskManager({});
+    const man = new TaskManager();
     const existing = man.addTask({ title: "existing" });
 
     const retrieved = man.getTask(existing.id);
