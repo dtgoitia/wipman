@@ -401,6 +401,45 @@ export class Storage {
     return $;
   }
 
+  public updateView({
+    viewId,
+  }: {
+    viewId: ViewId;
+  }): Observable<UpdateViewProgress> {
+    const $ = new Observable<UpdateViewProgress>((observer) => {
+      const view = this.viewManager.getView(viewId);
+      if (view === undefined) {
+        observer.next({ kind: "FailedToRetrieveViewById", viewId });
+        observer.complete();
+        return;
+      }
+
+      // While you use browser local storage - as opposed to IndexDB -, there is no way to
+      // only update one view. Instead you need to update all the view object in local
+      // storage. This is not true if you use IndexDB.
+      this.saveAllViewsToBrowser();
+      observer.next({ kind: "ViewUpdatedInBrowserStore", view });
+
+      if (this.api.isOnline() === false) {
+        console.debug("WipmanApi:offline - won't talk to API");
+        observer.complete();
+        return;
+      }
+
+      this.api
+        .updateView({ view })
+        .then((view) => {
+          observer.next({ kind: "ViewUpdatedInApi", view });
+        })
+        .catch((reason) => {
+          observer.next({ kind: "FailedToUpdateViewInApi", view, reason });
+        })
+        .finally(() => observer.complete());
+    });
+
+    return $;
+  }
+
   public deleteView({
     viewId,
   }: {
@@ -561,11 +600,12 @@ type AddViewProgress =
   | { kind: "ViewAddedToApi"; view: View }
   | { kind: "FailedToAddViewToApi"; view: View; reason: any };
 
-// type UpdateViewProgress =
-//   | { kind: "ViewUpdatedInBrowserStore"; view: View }
-//   | { kind: "FailedToUpdateViewInBrowserStore"; view: View }
-//   | { kind: "ViewUpdatedToApi"; view: View }
-//   | { kind: "FailedToUpdateViewInApi"; view: View; reason: any };
+type UpdateViewProgress =
+  | { kind: "FailedToRetrieveViewById"; viewId: ViewId }
+  | { kind: "ViewUpdatedInBrowserStore"; view: View }
+  | { kind: "FailedToUpdateViewInBrowserStore"; view: View }
+  | { kind: "ViewUpdatedInApi"; view: View }
+  | { kind: "FailedToUpdateViewInApi"; view: View; reason: any };
 
 type DeleteViewProgress =
   | { kind: "ViewDeletedFromBrowserStore"; viewId: ViewId }

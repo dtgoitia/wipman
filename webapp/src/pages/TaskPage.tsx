@@ -185,6 +185,10 @@ function isLoading(status: WipmanStatus): boolean {
       return false;
     case WipmanStatus.AddViewInStoreCompleted:
       return false;
+    case WipmanStatus.UpdateViewInApiStarted:
+      return false;
+    case WipmanStatus.UpdateViewInApiCompleted:
+      return false;
     case WipmanStatus.RemoveViewFromStoreStarted:
       return false;
     case WipmanStatus.RemoveViewFromStoreCompleted:

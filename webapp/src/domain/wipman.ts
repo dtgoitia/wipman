@@ -38,6 +38,8 @@ export enum WipmanStatus {
   DeleteTaskInApiCompleted = "DeleteTaskInApiCompleted",
   AddViewInStoreStarted = "AddViewInStoreStarted",
   AddViewInStoreCompleted = "AddViewInStoreCompleted",
+  UpdateViewInApiStarted = "UpdateViewInApiStarted",
+  UpdateViewInApiCompleted = "UpdateViewInApiCompleted",
   RemoveViewFromStoreStarted = "RemoveViewFromStoreStarted",
   RemoveViewFromStoreCompleted = "RemoveViewFromStoreCompleted",
 }
@@ -389,7 +391,27 @@ export class Wipman {
   }
 
   private updateViewInStore(viewId: ViewId): void {
-    todo();
+    this.statusSubject.next(WipmanStatus.UpdateViewInApiStarted);
+    this.storage.updateView({ viewId }).subscribe({
+      next: (event) => {
+        if (event.kind.startsWith("FailedTo")) {
+          this.errors.add({
+            header: event.kind,
+            description: JSON.stringify(event),
+          });
+        }
+      },
+      error: (error) => {
+        this.errors.add({
+          header: `Unknown error`,
+          description: JSON.stringify(error),
+        });
+        this.statusSubject.next(WipmanStatus.UpdateViewInApiCompleted);
+      },
+      complete: () => {
+        this.statusSubject.next(WipmanStatus.UpdateViewInApiCompleted);
+      },
+    });
   }
 
   private deleteViewFromStore(viewId: ViewId): void {

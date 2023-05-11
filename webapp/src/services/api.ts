@@ -162,6 +162,35 @@ export class WipmanApi {
     return result;
   }
 
+  public async updateView({ view }: { view: View }): Promise<View> {
+    const baseUrl = this.getBaseUrl();
+    if (baseUrl === undefined) {
+      return new Promise(() => {});
+    }
+    const url = `${baseUrl}/view`;
+    const payload = { view: viewToJson(view) };
+
+    const result = await Client.put(url, payload).then((result) => {
+      return result.match({
+        Ok: ({ data }) => parseView(data.updated_view),
+        Err: (error) => {
+          const reason =
+            "response" in error && error.response.status === 0
+              ? "Cannot reach the server"
+              : JSON.stringify(error, null, 2);
+
+          this.errors.add({
+            header: "Failed to update View",
+            description: reason,
+          });
+          return {} as View;
+        },
+      });
+    });
+
+    return result;
+  }
+
   public async deleteView({ viewId }: { viewId: ViewId }): Promise<ViewId> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
