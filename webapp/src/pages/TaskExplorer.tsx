@@ -84,6 +84,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
         clearSearch={handleClearSearch}
         onFocus={() => {}}
       />
+      <AddTask onAdd={addTask} />
       <ul>
         {filteredTasks.map((task) => (
           <ListedTask
@@ -93,7 +94,6 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
           />
         ))}
       </ul>
-      <AddTask onAdd={addTask} />
     </CenteredPage>
   );
 }
