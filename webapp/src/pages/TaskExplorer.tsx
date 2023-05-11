@@ -53,6 +53,8 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
   }
 
   function filterTask(task: Task): boolean {
+    const _query = query.toLowerCase();
+
     const searchables = [task.title];
     if (task.tags.size > 0) {
       task.tags.forEach((tag) => searchables.push(tag));
@@ -62,7 +64,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     }
 
     for (const searchable of searchables) {
-      const found = searchable.includes(query as string);
+      const found = searchable.toLowerCase().includes(_query as string);
       if (found) {
         return true;
       }
