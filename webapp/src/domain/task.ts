@@ -1,7 +1,11 @@
+import { unreachable } from "../devex";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { Hash, Tag, Task, TaskId, TaskTitle } from "./types";
+import { setsAreEqual } from "./set";
+import { Hash, MarkdownString, Tag, Task, TaskId, TaskTitle } from "./types";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
+
+type TasksIndexedByTag = Map<Tag, Set<TaskId>>;
 
 interface NewTask {
   title: TaskTitle;
@@ -11,6 +15,7 @@ export class TaskManager {
   public tasks$: Observable<Map<TaskId, Task>>; // all tasks
   public change$: Observable<TaskChanges>;
 
+  private tasksPerTag: TasksIndexedByTag;
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
   public changeSubject: Subject<TaskChanges>;
 
@@ -24,11 +29,26 @@ export class TaskManager {
     //   `this.tasksSubject.getValue()`. Although it seems more convenient in this case
     //   the current design: having a state separate from the BehaviourSubject makes the
     //   code more readable, and then the BehaviourSubject is used to publish downstream
+
+    this.tasksPerTag = new Map<Tag, Set<TaskId>>();
     this.tasksSubject = new BehaviorSubject<Map<TaskId, Task>>(this.tasks);
     this.tasks$ = this.tasksSubject.asObservable();
 
     this.changeSubject = new Subject<TaskChanges>();
     this.change$ = this.changeSubject.asObservable();
+  }
+
+  /**
+   * Load multiple existing tasks that already contain a task ID. This method overwrites
+   * any existing tasks if the task ID matches.
+   */
+  public initialize({ tasks }: { tasks: Task[] }): void {
+    tasks.forEach((task) => {
+      this.tasks.set(task.id, task);
+      this.addTaskToTagIndexes(task.id, task.tags);
+    });
+
+    this.changeSubject.next({ kind: "TasksInitialized" });
   }
 
   public addTask({ title }: NewTask): Task {
@@ -46,14 +66,44 @@ export class TaskManager {
     };
     this.tasks.set(id, task);
 
-    // TODO: create task in file system - maybe this needs to subscribe to the stream of tasks, that would make the domain independent of the persistence layer, and it probably would be more testable
+    this.addTaskToTagIndexes(task.id, task.tags);
 
     this.changeSubject.next({ kind: "TaskAdded", id });
     return task;
   }
 
   public updateTask(task: Task): Task {
-    if (this.taskChanged(task) === false) return task;
+    console.debug(`TaskManager.updateTask::task:`, task);
+
+    const oldTask = this.getTask(task.id);
+    if (oldTask === undefined) {
+      throw unreachable({
+        message: `BUG - attempted to update a Task ${task.id} that is not in TaskManager`,
+      });
+    }
+
+    const diff = diffTasks({ before: oldTask, after: task });
+    console.debug(`TaskManager.updateTask::diff:`, diff);
+    if (diff.hasChanges === false) {
+      console.info(
+        `TaskManager.updateTask: nothing has changed, no changes will be emitted`
+      );
+      return task;
+    }
+
+    const tagsChanged = diff.updatedTags !== undefined;
+    if (tagsChanged) {
+      const newTags = diff.updatedTags;
+      console.debug(
+        `TaskManager.updateTask: tags changed from `,
+        oldTask.tags,
+        ` to `,
+        newTags
+      );
+
+      this.removeTaskFromTagIndex(oldTask.id, oldTask.tags);
+      this.addTaskToTagIndexes(task.id, newTags);
+    }
 
     this.tasks.set(task.id, task);
 
@@ -63,8 +113,11 @@ export class TaskManager {
 
   public removeTask(id: TaskId): void {
     // TODO: you probably want to use Result --> https://github.com/badrap/result
-    const deleted = this.tasks.delete(id);
-    if (deleted === false) return;
+    const task = this.tasks.get(id);
+    if (task === undefined) return;
+
+    this.removeTaskFromTagIndex(task.id, task.tags);
+    this.tasks.delete(id);
 
     this.changeSubject.next({ kind: "TaskDeleted", id });
   }
@@ -76,34 +129,44 @@ export class TaskManager {
     return this.tasks.get(id);
   }
 
-  /**
-   * Load multiple existing tasks that already contain a task ID. This method overwrites
-   * any existing tasks if the task ID matches.
-   */
-  public initialize({ tasks }: { tasks: Task[] }): void {
-    tasks.forEach((task) => {
-      this.tasks.set(task.id, task);
-    });
+  public getTasksByTag(tag: Tag): Set<Task> {
+    const taskIds = this.tasksPerTag.get(tag) || new Set<TaskId>();
 
-    this.changeSubject.next({ kind: "TasksInitialized" });
+    const tasks = new Set<Task>();
+
+    for (const taskId of taskIds) {
+      const task = this.getTask(taskId);
+      if (task) {
+        tasks.add(task);
+      }
+    }
+
+    return tasks;
   }
 
-  private taskChanged(updated: Task): boolean {
-    const existing = this.getTask(updated.id);
+  private addTaskToTagIndexes(id: TaskId, tags: Set<Tag>): void {
+    for (const tag of tags) {
+      const tasks = this.tasksPerTag.get(tag) || new Set();
+      tasks.add(id);
+      this.tasksPerTag.set(tag, tasks);
+    }
+  }
 
-    if (existing === undefined) return false;
+  private removeTaskFromTagIndex(id: TaskId, tags: Set<Tag>): void {
+    for (const tag of tags) {
+      const tasks = this.tasksPerTag.get(tag);
+      if (tasks === undefined) return;
 
-    const changed =
-      existing.title !== updated.title ||
-      existing.content !== updated.content ||
-      existing.created !== updated.created ||
-      existing.updated !== updated.updated ||
-      existing.blockedBy !== updated.blockedBy ||
-      existing.blocks !== updated.blocks ||
-      existing.completed !== updated.completed;
+      tasks.delete(id);
 
-    console.debug(`TaskManager.taskChanged: ${changed}`);
-    return changed;
+      if (tasks.size === 0) {
+        // Clean up empty set
+        this.tasksPerTag.delete(tag);
+      } else {
+        // TODO: is this needed? or is the reference maintained?
+        this.tasksPerTag.set(tag, tasks);
+      }
+    }
   }
 }
 
@@ -276,3 +339,115 @@ export type TaskChanges =
   | { readonly kind: "TaskAdded"; readonly id: TaskId }
   | { readonly kind: "TaskUpdated"; readonly id: TaskId }
   | { readonly kind: "TaskDeleted"; readonly id: TaskId };
+
+interface TaskDiffArgs {
+  updatedTitle?: TaskTitle;
+  updatedTags?: Set<Tag>;
+  updatedBlockedBy?: Set<TaskId>;
+  updatedBlocks?: Set<TaskId>;
+  updatedCompleted?: boolean;
+  updatedContent?: MarkdownString;
+}
+class TaskDiff {
+  public readonly updatedTitle?: TaskTitle;
+  public readonly updatedTags?: Set<Tag>;
+  public readonly updatedBlockedBy?: Set<TaskId>;
+  public readonly updatedBlocks?: Set<TaskId>;
+  public readonly updatedCompleted?: boolean;
+  public readonly updatedContent?: MarkdownString;
+  public readonly hasChanges: boolean;
+
+  constructor({
+    updatedTitle,
+    updatedTags,
+    updatedBlockedBy,
+    updatedBlocks,
+    updatedCompleted,
+    updatedContent,
+  }: TaskDiffArgs) {
+    this.updatedTitle = updatedTitle;
+    this.updatedTags = updatedTags;
+    this.updatedBlockedBy = updatedBlockedBy;
+    this.updatedBlocks = updatedBlocks;
+    this.updatedCompleted = updatedCompleted;
+    this.updatedContent = updatedContent;
+
+    this.hasChanges =
+      this.updatedTitle !== undefined ||
+      this.updatedTags !== undefined ||
+      this.updatedBlockedBy !== undefined ||
+      this.updatedBlocks !== undefined ||
+      this.updatedCompleted !== undefined ||
+      this.updatedContent !== undefined;
+  }
+}
+
+/**
+ * Returns the Task properties that got updated
+ */
+export function diffTasks({
+  before,
+  after,
+}: {
+  before: Task;
+  after: Task;
+}): TaskDiff {
+  console.debug(`before:`, before);
+  console.debug(`after:`, after);
+
+  if (before.id !== after.id) {
+    throw unreachable({
+      message: `tasks with different IDs cannot be compared: ${before.id} & ${after.id}`,
+    });
+  }
+
+  if (
+    new Date(before.created).getTime() !== new Date(after.created).getTime()
+  ) {
+    throw unreachable({
+      message:
+        `Task ${before.id} creation must never change, but` +
+        ` changed from ${before.created} to ${after.created}`,
+    });
+  }
+
+  let updatedTitle: TaskTitle | undefined = undefined;
+  let updatedTags: Set<Tag> | undefined = undefined;
+  let updatedBlockedBy: Set<TaskId> | undefined = undefined;
+  let updatedBlocks: Set<TaskId> | undefined = undefined;
+  let updatedCompleted: boolean | undefined = undefined;
+  let updatedContent: MarkdownString | undefined = undefined;
+
+  if (before.title !== after.title) {
+    updatedTitle = after.title;
+  }
+
+  if (setsAreEqual(before.tags, after.tags) === false) {
+    updatedTags = after.tags;
+  }
+
+  if (setsAreEqual(before.blockedBy, after.blockedBy) === false) {
+    updatedBlockedBy = after.blockedBy;
+  }
+
+  if (setsAreEqual(before.blocks, after.blocks) === false) {
+    updatedBlocks = after.blocks;
+  }
+
+  if (before.completed !== after.completed) {
+    updatedCompleted = after.completed;
+  }
+
+  if (before.content !== after.content) {
+    updatedContent = after.content;
+  }
+
+  return new TaskDiff({
+    updatedTitle,
+    updatedTags,
+    updatedBlockedBy,
+    updatedBlocks,
+    updatedCompleted,
+    updatedContent,
+  });
+}

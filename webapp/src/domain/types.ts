@@ -4,7 +4,7 @@ export type TaskId = Hash;
 export type TaskTitle = string;
 export type ViewTitle = string;
 export type FilterQuery = string;
-type MarkdownString = string;
+export type MarkdownString = string;
 
 export interface Task {
   id: TaskId;
