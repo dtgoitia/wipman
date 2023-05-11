@@ -1,4 +1,3 @@
-import { todo } from "../devex";
 import { assertNever } from "../exhaustive-match";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
@@ -264,16 +263,17 @@ export class Wipman {
   private handleViewChanges(change: ViewChange): void {
     switch (change.kind) {
       case "ViewsInitialized":
-        break;
+        return;
       case "ViewAdded":
-        this.addViewToStore(change.id);
-        break;
+        return this.addViewToStore(change.id);
       case "ViewUpdated":
-        this.updateViewInStore(change.id);
-        break;
+        return this.updateViewInStore(change.id);
       case "ViewDeleted":
-        this.deleteViewFromStore(change.id);
-        break;
+        return this.deleteViewFromStore(change.id);
+      case "TaskAddedToView":
+        return this.updateViewInStore(change.id);
+      case "TaskRemovedFromView":
+        return this.updateViewInStore(change.id);
 
       default:
         assertNever(change, `Unsupported ViewChange variant: ${change}`);

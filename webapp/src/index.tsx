@@ -20,7 +20,7 @@ import ReactDOM from "react-dom";
 
 // TODO: move this to a function that takes care of initializing all this for you - probably should live in wipman.ts
 const taskManager = new TaskManager();
-const viewManager = new ViewManager({});
+const viewManager = new ViewManager({ taskManager });
 const operationsManager = new OperationsManager();
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
