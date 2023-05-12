@@ -6,15 +6,50 @@ on:
       - master
 
 jobs:
+
+  inspect-changes:
+    name: determine which services should build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: .
+    outputs:
+      should_deploy_webapp: ${{ steps.inspect.outputs.should_deploy_webapp }}
+      should_deploy_api:    ${{ steps.inspect.outputs.should_deploy_api }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # entire git history needed to diff HEAD against origin/master
+
+      - name: Check which directories changed
+        id: inspect
+        run: |
+          should_deploy_webapp="$(./scripts/ci/should_deploy_webapp)"
+          echo "should_deploy_webapp=${should_deploy_webapp}"
+          echo "should_deploy_webapp=${should_deploy_webapp}" >> $GITHUB_OUTPUT
+
+          should_deploy_api="$(./scripts/ci/should_deploy_api)"
+          echo "should_deploy_api=${should_deploy_api}"
+          echo "should_deploy_api=${should_deploy_api}" >> $GITHUB_OUTPUT
+
+        # Setting step output parameters: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#example-of-setting-an-output-parameter
+        # Defining outputs for a job: https://docs.github.com/en/actions/using-jobs/defining-outputs-for-jobs#example-defining-outputs-for-a-job
+
   deploy-webapp:
+    name: deploy webapp
+    needs: inspect-changes
+    if: needs.inspect-changes.outputs.should_deploy_webapp == 'yes'
     runs-on: ubuntu-latest
     defaults:
       run:
         shell: bash
         working-directory: webapp
+
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Use Node.js
         uses: actions/setup-node@v1
@@ -53,3 +88,21 @@ jobs:
         env:
           PUBLIC_GITHUB_ACCOUNT_TOKEN: ${{ secrets.PUBLIC_GITHUB_ACCOUNT_TOKEN }}
           PUBLIC_GITHUB_REPOSITORY: ${{ secrets.PUBLIC_GITHUB_REPOSITORY }}
+
+  deploy-api:
+    name: deploy api
+    needs: inspect-changes
+    if: needs.inspect-changes.outputs.should_deploy_api == 'yes'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: api
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Placeholder to deploy API
+        run: |
+          echo "deploying api!"

@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eu
+
+changed_dirs="$( \
+    python3 ./scripts/get_changed_directories.py \
+        --last-ref origin/master \
+        --current-ref HEAD
+)"
+
+if [[ "${changed_dirs}" == *"api"* ]]; then
+    echo "yes"
+else
+    echo "no"
+fi
+
+exit 0
