@@ -21,6 +21,7 @@ echo -n "Looking for code changes in '${target_path}' directory... "
 
 changed_paths="$( \
     git diff --name-only "${last_ref}" "${current_ref}" \
+    | grep -v "scripts/" \
     | xargs realpath
 )"
 webapp_changes="$(echo -n "${changed_paths}" | grep "${target_path}/" || echo "no_changes_found")"
