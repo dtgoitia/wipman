@@ -4,7 +4,7 @@ import { Wipman } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
 import { findVersionHash } from "../../findVersion";
 import { TextField } from "./TextField";
-import { Card } from "@blueprintjs/core";
+import { Button, Card } from "@blueprintjs/core";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
@@ -70,6 +70,16 @@ function SettingsPage({ wipman }: SettingsPageProps) {
     wipman.settingsManager.setApiToken(apiToken);
   }
 
+  function handleDeleteTasks(): void {
+    wipman.admin.deleteTasks();
+    alert("Reload the app for changes to take effect");
+  }
+
+  function handleDeleteViews(): void {
+    wipman.admin.deleteViews();
+    alert("Reload the app for changes to take effect");
+  }
+
   return (
     <Container>
       <CustomCard>
@@ -85,6 +95,13 @@ function SettingsPage({ wipman }: SettingsPageProps) {
           onChange={handleApiTokenChange}
           onSubmit={handleApiTokenSubmit}
         />
+      </CustomCard>
+      <CustomCard>
+        <h3>Admin</h3>
+        <p>Be carefull, these commands can destroy data</p>
+        <Button onClick={handleDeleteViews}>Delete Views</Button>
+        <p> </p>
+        <Button onClick={handleDeleteTasks}>Delete Tasks</Button>
       </CustomCard>
       <CustomCard>
         <ReloadPageButton />
