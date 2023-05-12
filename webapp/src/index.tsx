@@ -1,5 +1,6 @@
 import App from "./App";
 import "./blueprint.css";
+import { Admin } from "./domain/admin";
 import { OperationsManager } from "./domain/operations";
 import { SettingsManager } from "./domain/settings";
 import { TaskManager } from "./domain/task";
@@ -24,6 +25,7 @@ const viewManager = new ViewManager({ taskManager });
 const operationsManager = new OperationsManager();
 const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
+const admin = new Admin({ local: browserStorage });
 const errors = new ErrorsService();
 const api = new WipmanApi({ local: browserStorage, errors, settingsManager });
 const storage = new Storage({
@@ -35,6 +37,7 @@ const storage = new Storage({
 });
 const wipman = new Wipman({
   settingsManager,
+  admin,
   storage,
   taskManager,
   viewManager,

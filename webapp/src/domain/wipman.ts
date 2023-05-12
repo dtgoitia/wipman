@@ -1,6 +1,7 @@
 import { assertNever } from "../exhaustive-match";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
+import { Admin } from "./admin";
 import {
   OperationId,
   OperationStatusChange,
@@ -45,6 +46,7 @@ export enum WipmanStatus {
 
 interface ConstructorArgs {
   settingsManager: SettingsManager;
+  admin: Admin;
   storage: Storage;
   taskManager: TaskManager;
   viewManager: ViewManager;
@@ -62,6 +64,7 @@ export class Wipman {
   public lastStatus: WipmanStatus | undefined;
   public status$: Observable<WipmanStatus>;
   public settingsManager: SettingsManager;
+  public admin: Admin;
   public storage: Storage; // TODO: instead of exposing everything here... perhaps make it private and provide a narrower API?
   public tasks$: Observable<Map<TaskId, Task>>;
   public views$: Observable<Map<ViewId, View>>;
@@ -77,6 +80,7 @@ export class Wipman {
 
   constructor({
     settingsManager,
+    admin,
     storage,
     taskManager,
     viewManager,
@@ -87,6 +91,7 @@ export class Wipman {
     this.status$ = this.statusSubject.asObservable();
 
     this.settingsManager = settingsManager;
+    this.admin = admin;
     this.storage = storage;
     this.taskManager = taskManager;
     this.viewManager = viewManager;
