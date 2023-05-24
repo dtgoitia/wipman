@@ -128,7 +128,12 @@ def _result_to_view(result: tuple) -> View:
 
 
 def get_sqlite_connection(config: Config) -> sqlite3.Connection:
-    connection = sqlite3.connect(str(config.db_path))
+    db_path = config.db_path
+
+    logger.debug(f"Connecting to {db_path.absolute()}")
+    logger.warning(f"WARNING - DB file does not exist: {db_path.absolute()}")
+
+    connection = sqlite3.connect(str(db_path))
     return connection
 
 
