@@ -70,6 +70,10 @@ function SettingsPage({ wipman }: SettingsPageProps) {
     wipman.settingsManager.setApiToken(apiToken);
   }
 
+  function handlePushAllToRemote(): void {
+    wipman.pushAllToRemote();
+  }
+
   function handleDeleteTasks(): void {
     wipman.admin.deleteTasks();
     alert("Reload the app for changes to take effect");
@@ -95,6 +99,10 @@ function SettingsPage({ wipman }: SettingsPageProps) {
           onChange={handleApiTokenChange}
           onSubmit={handleApiTokenSubmit}
         />
+      </CustomCard>
+      <CustomCard>
+        <h3>Sync</h3>
+        <Button onClick={handlePushAllToRemote}>Push all data to remote</Button>
       </CustomCard>
       <CustomCard>
         <h3>Admin</h3>

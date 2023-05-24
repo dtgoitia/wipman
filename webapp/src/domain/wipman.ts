@@ -242,6 +242,16 @@ export class Wipman {
     return completed === "ended";
   }
 
+  public pushAllToRemote(): void {
+    console.warn(`Wipman.pushAllToRemote::pushing tasks to server`);
+    this.taskManager.tasks.forEach((task) => this.updateTaskInStore(task.id));
+    console.warn(`Wipman.pushAllToRemote::tasks pushed to server`);
+
+    console.warn(`Wipman.pushAllToRemote::pushing views to server`);
+    this.viewManager.views.forEach((view) => this.updateViewInStore(view.id));
+    console.warn(`Wipman.pushAllToRemote::views pushed to server`);
+  }
+
   // public readSettings(): Settings {}
 
   // public updateSettings({ settings }: { settings: Settings }): void {}
