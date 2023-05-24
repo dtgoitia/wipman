@@ -79,7 +79,7 @@ def test_update_view(test_config: Config, tmp_path: Path) -> None:
         created=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         updated=datetime.datetime.fromisoformat("2022-10-01T18:00:00+00:00"),
         tags=frozenset(),
-        content=None,
+        task_ids=[],
     )
 
     assert _count_views_in_db() == 0
@@ -88,7 +88,7 @@ def test_update_view(test_config: Config, tmp_path: Path) -> None:
     assert inserted == view
     assert _count_views_in_db() == 1
 
-    view2 = replace(view, content="Foo")
+    view2 = replace(view, title="best backlog ever")
 
     updated = db.update_view(view=view2)
     assert updated == view2
