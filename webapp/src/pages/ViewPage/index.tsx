@@ -8,9 +8,6 @@ import { ViewDetail } from "./ViewDetail";
 import { ViewTasks } from "./ViewTasks";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import styled from "styled-components";
-
-const ViewTitle = styled.h3``;
 
 enum ShowSpinner {
   yes = "yes",
@@ -72,8 +69,7 @@ function ViewPage({ wipman }: ViewPageProps) {
 
   return (
     <CenteredPage>
-      <ViewTitle>{view.title}</ViewTitle>
-      <ViewDetail view={view} />
+      <ViewDetail view={view} wipman={wipman} />
       <ViewTasks view={view} wipman={wipman} />
     </CenteredPage>
   );
