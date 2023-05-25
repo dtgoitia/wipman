@@ -133,7 +133,7 @@ function TaskDetail({
         <TaskTitleComponent title={title} onUpdate={handleTaskTitleChange} />
         <TaskIdBadge id={task.id} />
         {[...task.tags.values()].map((tag) => (
-          <TaskTag tag={tag} />
+          <TaskTag key={tag} tag={tag} />
         ))}
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}
