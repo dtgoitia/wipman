@@ -80,6 +80,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     <CenteredPage>
       <SearchBox
         query={query as string}
+        placeholder="Filter tasks..."
         onChange={handleFilterChange}
         clearSearch={handleClearSearch}
         onFocus={() => {}}

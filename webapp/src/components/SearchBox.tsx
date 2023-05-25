@@ -6,9 +6,11 @@ interface Props {
   onChange: (query: FilterQuery) => void;
   clearSearch: () => void;
   onFocus: () => void;
+  placeholder: string;
 }
 
 function SearchBox({
+  placeholder,
   query,
   onChange: onFilterQueryChange,
   clearSearch,
@@ -22,7 +24,7 @@ function SearchBox({
         className="bp4-input bp4-large"
         value={query}
         onChange={(event: any) => onFilterQueryChange(event.target.value)}
-        placeholder="Filter inventory..."
+        placeholder={placeholder}
         onFocus={onFocus}
       />
       <button
