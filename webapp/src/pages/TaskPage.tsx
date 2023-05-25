@@ -1,6 +1,8 @@
 import CenteredPage from "../components/CenteredPage";
 import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
+import { TagSelector } from "../components/TagSelector";
 import { nowIsoString } from "../domain/dates";
+import { setsAreEqual } from "../domain/set";
 import { Tag, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
@@ -43,20 +45,9 @@ function TaskIdBadge({ id }: TaskIdProps) {
   return <StyledTaskId>#{id}</StyledTaskId>;
 }
 
-// TODO: load colors from theme
-const StyledTaskTag = styled.code`
-  background-color: #aaa;
-  color: #555;
-  padding: 0.3rem 0.4rem;
-  margin: 0 0.3rem;
-  border-radius: 0.4rem;
+const StyledTaskTags = styled(TagSelector)`
+  padding: 0rem 4rem;
 `;
-interface TaskTagProps {
-  tag: Tag;
-}
-function TaskTag({ tag }: TaskTagProps) {
-  return <StyledTaskTag>{tag}</StyledTaskTag>;
-}
 
 const MetadataSection = styled.section`
   margin: 1rem 0;
@@ -69,17 +60,20 @@ interface TaskDetailProps {
   task: Task;
   onUpdate: (task: Task) => void;
   onDelete: (id: TaskId) => void;
+  wipman: Wipman;
 }
 
 function TaskDetail({
   task,
   onUpdate: updateTask,
   onDelete: deleteTask,
+  wipman,
 }: TaskDetailProps) {
   const navigateTo = useNavigate();
 
   const [title, setTitle] = useState<TaskTitle>(task.title);
   const [content, setContent] = useState<string>(task.content);
+  const [tags, setTags] = useState<Set<Tag>>(task.tags);
 
   function handleContentChange(updatedContent: string): void {
     setContent(updatedContent);
@@ -89,15 +83,20 @@ function TaskDetail({
     setTitle(title);
   }
 
+  function handleTaskTagsChange(tags: Set<Tag>): void {
+    setTags(tags);
+  }
+
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    updateTask({ ...task, title, content, updated: nowIsoString() });
+    updateTask({ ...task, title, content, updated: nowIsoString(), tags });
   }
 
   function discardContentChanges(): void {
     setContent(task.title);
     setContent(task.content);
+    setTags(task.tags);
   }
 
   function handleTaskDeletion(): void {
@@ -105,7 +104,10 @@ function TaskDetail({
     navigateTo(Paths.tasks);
   }
 
-  const changesSaved = task.title === title && task.content === content;
+  const changesSaved =
+    task.title === title &&
+    task.content === content &&
+    setsAreEqual(task.tags, tags);
 
   return (
     <CenteredPage>
@@ -132,9 +134,11 @@ function TaskDetail({
         )}
         <TaskTitleComponent title={title} onUpdate={handleTaskTitleChange} />
         <TaskIdBadge id={task.id} />
-        {[...task.tags.values()].map((tag) => (
-          <TaskTag key={tag} tag={tag} />
-        ))}
+        <StyledTaskTags
+          selected={tags}
+          onUpdate={handleTaskTagsChange}
+          wipman={wipman}
+        />
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}
           input={task.id}
@@ -247,6 +251,7 @@ function TaskPage({ wipman }: TaskPageProps) {
       task={task}
       onUpdate={handleTaskUpdate}
       onDelete={handleTaskDeletion}
+      wipman={wipman}
     />
   );
 }
