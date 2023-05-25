@@ -31,3 +31,15 @@ export function intersect<T>(
 
   return common;
 }
+
+export function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
+  const in_a_not_b = new Set<T>();
+
+  for (const element_a of a) {
+    if (b.has(element_a) === false) {
+      in_a_not_b.add(element_a);
+    }
+  }
+
+  return in_a_not_b;
+}
