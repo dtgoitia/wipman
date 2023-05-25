@@ -94,7 +94,7 @@ function TaskDetail({
   }
 
   function discardContentChanges(): void {
-    setContent(task.title);
+    setTitle(task.title);
     setContent(task.content);
     setTags(task.tags);
   }
