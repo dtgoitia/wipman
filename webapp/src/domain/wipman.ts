@@ -9,8 +9,9 @@ import {
   generateOperationId,
 } from "./operations";
 import { SettingsManager } from "./settings";
+import { TagManager } from "./tag";
 import { TaskChanges, TaskManager } from "./task";
-import { Task, TaskId, TaskTitle, View, ViewId, ViewTitle } from "./types";
+import { Tag, Task, TaskId, TaskTitle, View, ViewId, ViewTitle } from "./types";
 import { ViewChange, ViewManager } from "./view";
 import {
   BehaviorSubject,
@@ -50,6 +51,7 @@ interface ConstructorArgs {
   storage: Storage;
   taskManager: TaskManager;
   viewManager: ViewManager;
+  tagManager: TagManager;
   operationsManager: OperationsManager;
   errors: ErrorsService;
 }
@@ -68,6 +70,7 @@ export class Wipman {
   public storage: Storage; // TODO: instead of exposing everything here... perhaps make it private and provide a narrower API?
   public tasks$: Observable<Map<TaskId, Task>>;
   public views$: Observable<Map<ViewId, View>>;
+  public tagManager: TagManager;
   public operationChange$: Observable<OperationStatusChange>;
   public errors: ErrorsService;
 
@@ -84,6 +87,7 @@ export class Wipman {
     storage,
     taskManager,
     viewManager,
+    tagManager,
     operationsManager,
     errors,
   }: ConstructorArgs) {
@@ -95,6 +99,7 @@ export class Wipman {
     this.storage = storage;
     this.taskManager = taskManager;
     this.viewManager = viewManager;
+    this.tagManager = tagManager;
     this.operationsManager = operationsManager;
     this.errors = errors;
 
@@ -196,6 +201,7 @@ export class Wipman {
 
       this.taskManager.initialize({ tasks });
       this.viewManager.initialize({ views });
+      this.tagManager.initialize({ tasks, views });
     });
   }
 
@@ -250,6 +256,14 @@ export class Wipman {
     console.warn(`Wipman.pushAllToRemote::pushing views to server`);
     this.viewManager.views.forEach((view) => this.updateViewInStore(view.id));
     console.warn(`Wipman.pushAllToRemote::views pushed to server`);
+  }
+
+  public addTag({ tag }: { tag: Tag }): void {
+    this.tagManager.add({ tag });
+  }
+
+  public getAllTags(): Set<Tag> {
+    return this.tagManager.getAll();
   }
 
   // public readSettings(): Settings {}
