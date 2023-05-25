@@ -93,7 +93,7 @@ def write_task_file(path: Path, task: Task) -> None:
     path.write_text("\n".join(lines))
 
 
-_TASK_ID_IN_VIEW_LINE_PATTERN = re.compile(r"^.*\[([a-z]{10})\]")
+_TASK_ID_IN_VIEW_LINE_PATTERN = re.compile(r"^.*\[([a-z0-9]{10})\]")
 
 
 class ReadViewError(Exception):
