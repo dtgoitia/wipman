@@ -113,6 +113,45 @@ export class ViewManager {
     this.changeSubject.next({ kind: "ViewsInitialized" });
   }
 
+  public recompute(): void {
+    const recomputed = new Map<ViewId, View>();
+
+    for (const oldView of this.views.values()) {
+      const tasks = new Set<TaskId>();
+
+      for (const task of this.taskManager.tasks.values()) {
+        if (shouldViewIncludeTask({ view: oldView, taskTags: task.tags })) {
+          tasks.add(task.id);
+        }
+      }
+
+      // In order to preserve the order of the tasks that correctly exist in the old View tasks, compare with the new recomputed and append
+
+      const recomputedTasks: TaskId[] = [];
+      for (const task of oldView.tasks) {
+        const mustRemain = tasks.has(task);
+        if (mustRemain) {
+          recomputedTasks.push(task);
+          tasks.delete(task);
+        } else {
+          // Was in (old) View, but must not be there
+        }
+      }
+
+      // Append remaining tags that are still not in View
+      for (const task of tasks.values()) {
+        recomputedTasks.push(task);
+      }
+
+      const view: View = { ...oldView, tasks: recomputedTasks };
+      recomputed.set(view.id, view);
+    }
+
+    this.views = recomputed;
+
+    this.changeSubject.next({ kind: "ViewsRecomputedFromTasks" });
+  }
+
   private addViewToIndex({ view }: { view: View }): void {
     for (const tag of view.tags) {
       const tasks = this.taskManager.getTasksByTag(tag);
@@ -293,6 +332,7 @@ export function mergeViews({ a, b }: MergeViewsArgs): View[] {
 
 export type ViewChange =
   | { kind: "ViewsInitialized" }
+  | { kind: "ViewsRecomputedFromTasks" }
   | { kind: "ViewAdded"; id: ViewId }
   | { kind: "ViewUpdated"; id: ViewId }
   | { kind: "ViewDeleted"; id: ViewId }
