@@ -205,6 +205,10 @@ export class Wipman {
     });
   }
 
+  public recompute(): void {
+    this.viewManager.recompute();
+  }
+
   public addTask({ title }: { title: TaskTitle }): void {
     this.taskManager.addTask({ title });
   }
@@ -293,6 +297,8 @@ export class Wipman {
     switch (change.kind) {
       case "ViewsInitialized":
         return;
+      case "ViewsRecomputedFromTasks":
+        return this.saveAllViewsToStore();
       case "ViewAdded":
         return this.addViewToStore(change.id);
       case "ViewUpdated":
@@ -392,6 +398,10 @@ export class Wipman {
       },
     });
     this.statusSubject.next(WipmanStatus.DeleteTaskInApiCompleted);
+  }
+
+  private saveAllViewsToStore(): void {
+    this.storage.saveAllViewsToBrowser();
   }
 
   private addViewToStore(viewId: ViewId): void {

@@ -84,6 +84,10 @@ function SettingsPage({ wipman }: SettingsPageProps) {
     alert("Reload the app for changes to take effect");
   }
 
+  function handleRecomputeViews(): void {
+    wipman.recompute();
+  }
+
   return (
     <Container>
       <CustomCard>
@@ -100,17 +104,24 @@ function SettingsPage({ wipman }: SettingsPageProps) {
           onSubmit={handleApiTokenSubmit}
         />
       </CustomCard>
+
       <CustomCard>
         <h3>Sync</h3>
         <Button onClick={handlePushAllToRemote}>Push all data to remote</Button>
       </CustomCard>
+
       <CustomCard>
         <h3>Admin</h3>
         <p>Be carefull, these commands can destroy data</p>
         <Button onClick={handleDeleteViews}>Delete Views</Button>
         <p> </p>
         <Button onClick={handleDeleteTasks}>Delete Tasks</Button>
+        <p> </p>
+        <Button onClick={handleRecomputeViews}>
+          Recompute Tasks for all Views
+        </Button>
       </CustomCard>
+
       <CustomCard>
         <ReloadPageButton />
         <p>version: {findVersionHash()}</p>

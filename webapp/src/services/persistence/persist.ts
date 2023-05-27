@@ -484,8 +484,8 @@ export class Storage {
     this.browserStorage.tasks.set(serializedTasks);
   }
 
-  private saveAllViewsToBrowser(): void {
-    console.debug(`Storage::saveAllViewsToBrowser`);
+  public saveAllViewsToBrowser(): void {
+    console.debug(`Storage.saveAllViewsToBrowser`);
     const serializedViews = [...this.viewManager.views.values()].map(viewToRow);
     this.browserStorage.views.set(serializedViews);
   }
