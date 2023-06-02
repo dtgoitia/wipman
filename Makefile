@@ -40,11 +40,17 @@ uninstall_dev_tools:
 	pre-commit uninstall  # pre-commit is (default)
 	pre-commit uninstall --hook-type pre-push
 
+
+#===============================================================================
+#
+#   webapp
+#
+#===============================================================================
+
 run_webapp:
 	scripts/print_local_ip_via_qr.sh
 	docker compose up $(WEBAPP_NAME)
 
-# Recreate web app docker image
 rebuild_webapp:
 	docker compose down
 	docker image rm $(WEBAPP_NAME) || (echo "No $(WEBAPP_NAME) found, all good."; exit 0)
@@ -63,6 +69,13 @@ deploy_webapp_from_local:
 
 build_webapp:
 	scripts/build_webapp.sh
+
+
+#===============================================================================
+#
+#   API
+#
+#===============================================================================
 
 run_api:
 	docker compose up $(API_NAME)
