@@ -21,8 +21,7 @@ class GetAllResponse:
 
     @classmethod
     def from_json(cls, raw: JsonDict) -> GetAllResponse:
-        data = apischema.deserialize(GetAllResponse, raw)
-        return data
+        return apischema.deserialize(GetAllResponse, raw)
 
 
 def get_all(config: Config) -> GetAllResponse:
@@ -31,3 +30,19 @@ def get_all(config: Config) -> GetAllResponse:
     raw_data = response.json()
     data = GetAllResponse.from_json(raw_data)
     return data
+
+
+def update_task(task: model.Task, config: Config) -> None:
+    response = requests.put(
+        url=f"{config.api_url}/task",
+        json={"task": apischema.serialize(model.Task, task)},
+    )
+    response.raise_for_status()
+
+
+def update_view(view: model.View, config: Config):
+    response = requests.put(
+        url=f"{config.api_url}/view",
+        json={"view": apischema.serialize(model.View, view)},
+    )
+    response.raise_for_status()
