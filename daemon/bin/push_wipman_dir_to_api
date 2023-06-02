@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+
+set -eu
+
+current_dir="$(basename $(pwd))"
+
+if [[ "$current_dir" == "daemon" ]]; then
+    # Move to the root of the monorepo
+    cd ..
+fi
+
+
+# Make sure that the python environment is enabled
+echo -n "Activating the Python environment... "
+source daemon/.venv/bin/activate
+echo "done"
+
+export API_URL='https://api.dtgoitia.dev'
+export PYTHONPATH=./daemon
+
+python -m src.adapters.cli.push_wipman_dir_to_api
