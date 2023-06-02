@@ -116,3 +116,6 @@ compile_daemon_production_dependencies:
 
 install_daemon_development_dependencies:
 	bash daemon/bin/dev/install_dev_deps
+
+daemon_restore_wipman_dir_from_api:
+	bash daemon/bin/restore_wipman_dir_from_api
