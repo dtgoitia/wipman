@@ -8,7 +8,6 @@ import apischema
 import requests
 from src import model
 from src.config import Config
-from src.devex import todo
 
 logger = logging.getLogger(__name__)
 
