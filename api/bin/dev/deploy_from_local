@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -eu
+
+current_dir="$(basename $(pwd))"
+
+if [[ "$current_dir" != "wipman" ]]; then
+    echo "ERROR: you must execute this from the root of the repo" >&2
+    exit 1
+fi
+
+remote_user="${SSH_USER}"
+remote_host="${SSH_HOST}"
+
+db_path_in_remote=wipman.db
+wipman_dir_in_remote="/home/${remote_user}/projects/wipman/dummy-wipman-dir"
+
+envvars="DB_PATH=${db_path_in_remote} WIPMAN_DIR=${wipman_dir_in_remote}"
+service=wipman-api-dev
+
+stop_api_cmd=" ${envvars} docker compose stop ${service}"
+start_api_cmd="${envvars} docker compose up   ${service} --detach"
+
+echo "Executing script in remote via SSH: started"
+ssh "${remote_user}@${remote_host}" << EOF
+cd ~/projects/wipman
+
+echo ""
+echo "Stopping API..."
+${stop_api_cmd}
+
+echo ""
+echo "Pulling latest changes..."
+git pull origin master
+
+echo ""
+echo "Starting API..."
+${start_api_cmd}
+EOF
+
+echo "Executing script in remote via SSH: completed"
