@@ -18,4 +18,4 @@ echo "done"
 export API_URL='https://api.dtgoitia.dev'
 export PYTHONPATH=./daemon
 
-python -m src.adapters.cli.restore_wipman_dir_from_api_cmd
+python -m src.adapters.cli.restore_wipman_dir_from_api
