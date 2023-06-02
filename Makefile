@@ -101,6 +101,9 @@ delete_local_db:
 	find ./api -maxdepth 1 -type f -name $(DB_PATH) -delete
 	touch ./api/$(DB_PATH)
 
+deploy_api:
+	api/bin/dev/deploy_from_local
+
 
 #===============================================================================
 #
