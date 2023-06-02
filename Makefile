@@ -100,3 +100,19 @@ shell_into_api_container:
 delete_local_db:
 	find ./api -maxdepth 1 -type f -name $(DB_PATH) -delete
 	touch ./api/$(DB_PATH)
+
+
+#===============================================================================
+#
+#   daemon
+#
+#===============================================================================
+
+compile_daemon_development_dependencies:
+	bash daemon/bin/dev/compile_dev_deps
+
+compile_daemon_production_dependencies:
+	bash daemon/bin/dev/compile_prod_deps
+
+install_daemon_development_dependencies:
+	bash daemon/bin/dev/install_dev_deps
