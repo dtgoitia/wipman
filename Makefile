@@ -119,3 +119,6 @@ install_daemon_development_dependencies:
 
 daemon_restore_wipman_dir_from_api:
 	bash daemon/bin/restore_wipman_dir_from_api
+
+daemon_push_wipman_dir_to_api:
+	bash daemon/bin/push_wipman_dir_to_api
