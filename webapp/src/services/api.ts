@@ -282,9 +282,9 @@ interface ApiTask {
   content: string;
   created: string;
   updated: string;
-  tags: string;
-  blocked_by: string;
-  blocks: string;
+  tags: string[];
+  blocked_by: string[];
+  blocks: string[];
   completed: boolean;
 }
 
@@ -302,12 +302,12 @@ function parseTask(apiTask: ApiTask): Task {
   };
 }
 
-function parseSet(raw: string): Set<string> {
-  return new Set<string>(raw.split(",").filter((item) => item));
+function parseSet<T>(raw: T[]): Set<T> {
+  return new Set<T>(raw.filter((item) => item !== undefined));
 }
 
-function setToJson(set: Set<string>): string {
-  return [...set.values()].sort().join(",");
+function setToJson<T>(set: Set<T>): T[] {
+  return [...set.values()];
 }
 
 function taskToJson(task: Task): ApiTask {
@@ -329,7 +329,7 @@ interface ApiView {
   title: string;
   created: string;
   updated: string;
-  tags: string;
+  tags: string[];
   task_ids: string[];
 }
 
