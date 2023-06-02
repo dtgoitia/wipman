@@ -23,6 +23,14 @@ set_up_development_environment:
 
 	@echo ""
 	@echo ""
+	@echo Installing Python dependencies outside of the container, so that the IDE can detect them
+	@# this step is necessary because otherwise docker compose creates a node_modules
+	@# folder with root permissions and outside-container build fails
+	cd daemon;~/.pyenv/versions/3.11.2/bin/python -m venv .venv/
+	bash daemon/bin/dev/install_dev_deps
+
+	@echo ""
+	@echo ""
 	@echo Creating development docker images...
 	make rebuild_webapp
 	make rebuild_api
@@ -119,6 +127,9 @@ compile_daemon_production_dependencies:
 
 install_daemon_development_dependencies:
 	bash daemon/bin/dev/install_dev_deps
+
+run_daemon:
+	bash daemon/bin/run_daemon
 
 daemon_restore_wipman_dir_from_api:
 	bash daemon/bin/restore_wipman_dir_from_api
