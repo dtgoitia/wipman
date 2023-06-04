@@ -1,24 +1,20 @@
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { Tags } from "../../components/ViewTags";
 import { TaskTitle, View, ViewId } from "../../domain/types";
-import { Card } from "@blueprintjs/core";
+import { Card } from "primereact/card";
 import styled from "styled-components";
 
 const Title = styled.h3`
   margin-top: 0;
   margin-bottom: 1.5rem;
+  padding: 0;
 `;
 
 const CustomCard = styled(Card)`
   margin: 1rem;
-  padding: 2rem;
 `;
 
-const ViewSummaryContainer = styled.div`
-  margin-bottom: 3rem;
-`;
-
-interface ViewSummaryProps {
+interface Props {
   view: View;
   onClick: () => void;
   onDelete: (id: ViewId) => void;
@@ -27,10 +23,18 @@ export function ViewSummary({
   view,
   onClick: handleClick,
   onDelete: deleteView,
-}: ViewSummaryProps) {
+}: Props) {
   return (
-    <ViewSummaryContainer>
-      <CustomCard onClick={handleClick}>
+    <CustomCard
+      footer={
+        <DeleteConfirmationDialog
+          title={"Confirm that you want to delete this View"}
+          input={view.title}
+          onDelete={() => deleteView(view.id)}
+        />
+      }
+    >
+      <div onClick={handleClick}>
         <Title>{view.title}</Title>
         <Tags tags={view.tags} />
         <TopTasks
@@ -41,13 +45,8 @@ export function ViewSummary({
             `test: api: add test to ensure healthy endpoint breaks when DB file is missing`,
           ]}
         />
-      </CustomCard>
-      <DeleteConfirmationDialog
-        title={"Confirm that you want to delete this View"}
-        input={view.title}
-        onDelete={() => deleteView(view.id)}
-      />
-    </ViewSummaryContainer>
+      </div>
+    </CustomCard>
   );
 }
 
@@ -59,7 +58,7 @@ function TopTasks({ titles }: { titles: TaskTitle[] }) {
   return (
     <TopTasksContainer>
       {titles.map((tag) => (
-        <TopTask>{tag}</TopTask>
+        <TopTask key={`top-task-${tag}`}>{tag}</TopTask>
       ))}
     </TopTasksContainer>
   );

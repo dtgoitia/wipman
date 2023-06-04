@@ -1,103 +1,57 @@
-import { Wipman } from "../domain/wipman";
 import Paths from "../routes";
-import { StorageStatus } from "../services/persistence/persist";
-import {
-  Alignment,
-  Button,
-  Intent,
-  Navbar,
-  Tab,
-  Tabs,
-} from "@blueprintjs/core";
-import { useEffect, useState } from "react";
+import { TabMenu } from "primereact/tabmenu";
 import { useLocation, useNavigate } from "react-router-dom";
-import styled from "styled-components";
 
-const SaveButtonContainer = styled.div`
-  margin-right: 1rem;
-`;
-
-interface SyncStatusProps {
-  wipman: Wipman;
+type TabIndex = number;
+interface Tab {
+  name: string;
+  path: Paths;
+  index: TabIndex;
 }
-function SyncStatus({ wipman }: SyncStatusProps) {
-  const [status, setStatus] = useState<StorageStatus>(StorageStatus.SAVED);
-  console.log(status);
 
-  useEffect(() => {
-    const subscription = wipman.storage.status$.subscribe((status) => {
-      setStatus(status);
-    });
-    return subscription.unsubscribe;
-  }, [wipman]);
+const TABS: Tab[] = [
+  { name: "Views", path: Paths.views },
+  { name: "Tasks", path: Paths.tasks },
+  { name: "Settings", path: Paths.settings },
+].map((item, index) => ({ ...item, index }));
 
-  function handleClick() {
-    if (status === StorageStatus.DRAFT) {
-      wipman.storage.save();
-    }
+function findTabByPath({ path }: { path: string }): Tab | undefined {
+  console.debug(`${findTabByPath.name}::path:`, path);
+
+  const matched = TABS.filter((tab) => tab.path === path);
+
+  switch (matched.length) {
+    case 0:
+      console.debug(`No tabs matched '${path}' path`);
+      return undefined;
+    case 1:
+      return matched[0];
+    default:
+      throw new Error(
+        `${matched.length} tabs matched '${path}' path:` +
+          ` ${JSON.stringify(matched)}`
+      );
   }
-
-  if (status !== StorageStatus.DRAFT) {
-    return (
-      <SaveButtonContainer>
-        <Button
-          className="bp4-minimal"
-          disabled={true}
-          intent={Intent.NONE}
-          onClick={handleClick}
-        >
-          {status}
-        </Button>
-      </SaveButtonContainer>
-    );
-  }
-
-  return (
-    <SaveButtonContainer>
-      <Button
-        icon="floppy-disk"
-        disabled={false}
-        intent={Intent.SUCCESS}
-        onClick={handleClick}
-      >
-        {status}
-      </Button>
-    </SaveButtonContainer>
-  );
 }
 
-interface NavBarProps {
-  wipman: Wipman;
-}
-function NavBar({ wipman }: NavBarProps) {
-  let navigate = useNavigate();
+function NavBar() {
+  const navigate = useNavigate();
   const location = useLocation();
 
-  function handleTabClick(rawPath: string): void {
-    navigate(rawPath);
+  const activeTab = findTabByPath({ path: location.pathname });
+
+  function handleTabChange(i: TabIndex): void {
+    const tab = TABS.filter((tab) => tab.index === i)[0];
+
+    navigate(tab.path);
   }
 
   return (
-    <Navbar>
-      <Navbar.Group>
-        <Navbar.Heading>wipman</Navbar.Heading>
-      </Navbar.Group>
-
-      <Navbar.Group align={Alignment.RIGHT}>
-        {/*  */}
-        <SyncStatus wipman={wipman} />
-        <Tabs
-          id="TabsExample"
-          onChange={handleTabClick}
-          selectedTabId={location.pathname}
-        >
-          <Tab id={`${Paths.root}`} title="Views" />
-          <Tab id={`${Paths.tasks}`} title="Tasks" />
-          <Tab id={`${Paths.settings}`} title="Settings" />
-          <Tabs.Expander />
-        </Tabs>
-      </Navbar.Group>
-    </Navbar>
+    <TabMenu
+      model={TABS.map((tab) => ({ label: tab.name }))}
+      activeIndex={activeTab?.index}
+      onTabChange={(event) => handleTabChange(event.index)}
+    />
   );
 }
 

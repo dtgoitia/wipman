@@ -24,7 +24,7 @@ export function Tags({ tags }: { tags: Set<Tag> }) {
   return (
     <TagsContainer>
       {[...tags.values()].map((tag) => (
-        <StyledTag>{tag}</StyledTag>
+        <StyledTag key={`view-tag-${tag}`}>{tag}</StyledTag>
       ))}
     </TagsContainer>
   );

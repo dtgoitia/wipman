@@ -1,10 +1,9 @@
-import "./App.css";
 import CenteredPage from "./components/CenteredPage";
 import { ErrorPanel } from "./components/ErrorPanel";
+// import ReloadPage from "./components/ReloadPage";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
 import { Wipman, WipmanStatus } from "./domain/wipman";
-// import ReloadPage from "./components/ReloadPage";
 import PageNotFound from "./pages/PageNotFound";
 import SettingsPage from "./pages/SettingsPage";
 import TaskExplorer from "./pages/TaskExplorer";
@@ -12,7 +11,7 @@ import TaskPage from "./pages/TaskPage";
 import ViewExplorer from "./pages/ViewExplorer";
 import ViewPage from "./pages/ViewPage";
 import Paths from "./routes";
-import { Spinner } from "@blueprintjs/core";
+import { ProgressSpinner } from "primereact/progressspinner";
 import { useEffect, useState } from "react";
 import { Route, Routes, BrowserRouter } from "react-router-dom";
 import styled from "styled-components";
@@ -59,9 +58,9 @@ function App({ wipman }: { wipman: Wipman }) {
 
     wipman
       .initialize()
-      .then((x) => console.log("App.useEffect.wipman.init completed"));
+      .then(() => console.log("App.useEffect.wipman.init completed"));
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   if (initializationIsComplete === false) {
@@ -70,7 +69,7 @@ function App({ wipman }: { wipman: Wipman }) {
         <ErrorPanel wipman={wipman} />
         <FullPageVerticallyCentered>
           <CenteredPage>
-            <Spinner />
+            <ProgressSpinner />
             <SpinnerText>Loading data...</SpinnerText>
           </CenteredPage>
         </FullPageVerticallyCentered>
@@ -82,7 +81,7 @@ function App({ wipman }: { wipman: Wipman }) {
     <BrowserRouter basename={BASE_URL}>
       <FullPage>
         <ErrorPanel wipman={wipman} />
-        <NavBar wipman={wipman} />
+        <NavBar />
         <ScrollableSectionBellowNavBar>
           <Routes>
             <Route
@@ -94,7 +93,6 @@ function App({ wipman }: { wipman: Wipman }) {
               element={<TaskExplorer wipman={wipman} />}
             />
             <Route path={Paths.task} element={<TaskPage wipman={wipman} />} />
-            {/* https://reactrouter.com/en/v6.3.0/getting-started/overview#configuring-routes */}
             <Route
               path={Paths.views}
               element={<ViewExplorer wipman={wipman} />}

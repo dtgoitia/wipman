@@ -5,10 +5,13 @@ export enum Theme {
   dark = "dark",
 }
 
+/*
 interface ThemeColours {
   backgroundColor: string;
 }
 
+// TODO: support switching PrimeReact themes
+// how to: https://stackoverflow.com/a/69010401
 function getTheme(theme: Theme): ThemeColours {
   switch (theme) {
     case Theme.light:
@@ -24,17 +27,14 @@ function getTheme(theme: Theme): ThemeColours {
       throw new Error("Requested theme is not supported");
   }
 }
+*/
 
-export const activeTheme = Theme.dark;
+export const activeTheme = Theme.light;
 
 interface Props {
   theme: Theme;
 }
 export const GlobalStyle = createGlobalStyle<Props>`
-  html {
-    background-color: ${({ theme }) => getTheme(theme).backgroundColor};
-  }
-
   ul,
   ol {
     list-style: none;

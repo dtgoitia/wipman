@@ -3,8 +3,8 @@ import { TaskManager, mergeTasks } from "../../domain/task";
 import { Settings, Task, TaskId, View, ViewId } from "../../domain/types";
 import { ViewManager, mergeViews } from "../../domain/view";
 import { assertNever } from "../../exhaustive-match";
-import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
 import { WipmanApi } from "../api";
+import { Storage as BrowserStorage } from "./localStorage";
 import {
   BehaviorSubject,
   Observable,
@@ -110,6 +110,8 @@ export class Storage {
       const serializedTasks = tasks.map(taskToRaw);
       const serializedViews = views.map(viewToRow);
 
+      this.updateLastFetchDate(new Date());
+
       this.browserStorage.tasks.set(serializedTasks);
       console.debug("Storage.readAll: merged tasks stored in the browser");
       this.browserStorage.views.set(serializedViews);
@@ -120,7 +122,7 @@ export class Storage {
   }
 
   // Returns `false` if there are pending changes to save, else `true`.
-  public changesSaved: boolean = true;
+  public changesSaved = true;
 
   public listenTasks(tasks: Observable<Map<TaskId, Task>>): void {
     this.tasks$ = tasks;
@@ -579,6 +581,7 @@ type AddTaskProgress =
   | { kind: "TaskAddedToBrowserStore"; task: Task }
   | { kind: "FailedToAddTaskToBrowserStore"; task: Task }
   | { kind: "TaskAddedToApi"; task: Task }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToAddTaskToApi"; task: Task; reason: any };
 
 type UpdateTaskProgress =
@@ -586,11 +589,13 @@ type UpdateTaskProgress =
   | { kind: "TaskUpdatedInBrowserStore"; task: Task }
   | { kind: "FailedToUpdateTaskInBrowserStore"; task: Task }
   | { kind: "TaskUpdatedInApi"; task: Task }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToUpdateTaskInApi"; task: Task; reason: any };
 
 type DeleteTaskProgress =
   | { kind: "TaskDeletedFromBrowserStore"; taskId: TaskId }
   | { kind: "TaskDeletedFromApi"; taskId: TaskId }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToDeleteTaskFromBrowserStore"; taskId: TaskId; reason: any };
 
 type AddViewProgress =
@@ -598,6 +603,7 @@ type AddViewProgress =
   | { kind: "ViewAddedToBrowserStore"; view: View }
   | { kind: "FailedToAddViewToBrowserStore"; view: View }
   | { kind: "ViewAddedToApi"; view: View }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToAddViewToApi"; view: View; reason: any };
 
 type UpdateViewProgress =
@@ -605,10 +611,12 @@ type UpdateViewProgress =
   | { kind: "ViewUpdatedInBrowserStore"; view: View }
   | { kind: "FailedToUpdateViewInBrowserStore"; view: View }
   | { kind: "ViewUpdatedInApi"; view: View }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToUpdateViewInApi"; view: View; reason: any };
 
 type DeleteViewProgress =
   | { kind: "ViewDeletedFromBrowserStore"; viewId: ViewId }
   | { kind: "FailedToDeleteViewFromBrowserStore"; viewId: ViewId }
   | { kind: "ViewDeletedFromApi"; viewId: ViewId }
+  /* eslint-disable-next-line @typescript-eslint/no-explicit-any */
   | { kind: "FailedToDeleteViewFromApi"; viewId: ViewId; reason: any };

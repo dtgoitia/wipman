@@ -1,11 +1,14 @@
 import { FilterQuery } from "../domain/types";
+import { InputText as PrimeInputText } from "primereact/inputtext";
+import { ChangeEvent } from "react";
+import styled from "styled-components";
 
 export const NO_FILTER_QUERY = "";
+
 interface Props {
-  query: FilterQuery;
-  onChange: (query: FilterQuery) => void;
+  query: FilterQuery | undefined;
+  onChange: (query: FilterQuery | undefined) => void;
   clearSearch: () => void;
-  onFocus: () => void;
   placeholder: string;
 }
 
@@ -14,25 +17,39 @@ function SearchBox({
   query,
   onChange: onFilterQueryChange,
   clearSearch,
-  onFocus,
 }: Props) {
+  const showDeleteIcon = query && query.length > 0;
+
   return (
-    <div className="bp4-input-group bp4-large">
-      <span className="bp4-icon bp4-icon-filter"></span>
-      <input
-        type="text"
-        className="bp4-input bp4-large"
-        value={query}
-        onChange={(event: any) => onFilterQueryChange(event.target.value)}
+    <span
+      className={
+        showDeleteIcon
+          ? "p-input-icon-left p-input-icon-right"
+          : "p-input-icon-left"
+      }
+    >
+      <i className="pi pi-search" />
+
+      <PrimeInputText
+        className="p-inputtext-lg"
         placeholder={placeholder}
-        onFocus={onFocus}
+        value={query}
+        onChange={(event: ChangeEvent<HTMLInputElement>) =>
+          onFilterQueryChange(event.target.value)
+        }
       />
-      <button
-        className="bp4-button bp4-minimal bp4-intent-warning bp4-icon-cross"
-        onClick={() => clearSearch()}
-      ></button>
-    </div>
+
+      {showDeleteIcon && (
+        <ClickableIcon className="pi pi-times" onClick={() => clearSearch()} />
+      )}
+    </span>
   );
 }
 
 export default SearchBox;
+
+const ClickableIcon = styled.i`
+  &:hover {
+    cursor: pointer;
+  }
+`;

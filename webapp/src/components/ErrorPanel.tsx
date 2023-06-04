@@ -1,5 +1,6 @@
 import { Wipman } from "../domain/wipman";
 import { ErrorMessage } from "../services/errors";
+import { Button } from "primereact/button";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
@@ -27,16 +28,17 @@ export function ErrorPanel({ wipman }: ErrorPanelProps) {
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
   useEffect(() => {
     const subscription = wipman.errors.errorsFeed$.subscribe(setErrors);
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   if (!errors || errors.length === 0) return null;
 
   return (
     <ErrorsContainer>
-      <button onClick={() => wipman.errors.deleteAll()}>
-        Clear all error messages
-      </button>
+      <Button
+        onClick={() => wipman.errors.deleteAll()}
+        label="Clear all error messages"
+      />
       {errors.map((error, i) => (
         <Error key={`error-${i}`} error={error} />
       ))}

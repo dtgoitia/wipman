@@ -15,6 +15,7 @@ export class ErrorsService {
 
   public add(error: ErrorMessage): void {
     let previousErrors: ErrorMessage[] = [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const subscription = this.errorsFeed$.subscribe((errors: any) => {
       previousErrors = errors;
     });

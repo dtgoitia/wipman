@@ -1,5 +1,7 @@
 import CenteredPage from "../components/CenteredPage";
 import { DeleteConfirmationDialog } from "../components/DeleteConfirmationDialog";
+import InputText from "../components/InputText";
+import InputTextarea from "../components/InputTextArea";
 import { TagSelector } from "../components/TagSelector";
 import { nowIsoString } from "../domain/dates";
 import { setsAreEqual } from "../domain/set";
@@ -8,27 +10,74 @@ import { Wipman, WipmanStatus } from "../domain/wipman";
 import { assertNever } from "../exhaustive-match";
 import Paths from "../routes";
 import PageNotFound from "./PageNotFound";
-import { Button, EditableText, Intent } from "@blueprintjs/core";
+import { Button } from "primereact/button";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import styled from "styled-components";
 
-// TODO: load colors from theme
 const StyledTaskTitle = styled.div`
-  font-size: 2rem;
   margin: 1rem 0;
+  display: flex;
+  flex-flow: row nowrap;
+  gap: 0.3rem;
 `;
+
+const TaskTitleText = styled.h2`
+  display: inline;
+  margin: 0;
+  padding: 0;
+  font-size: 2rem;
+`;
+
 interface TaskTitleProps {
   title: TaskTitle;
   onUpdate: (title: TaskTitle) => void;
 }
-function TaskTitleComponent({ title, onUpdate }: TaskTitleProps) {
+function TaskTitleComponent({
+  title: originalTitle,
+  onUpdate: updateTitle,
+}: TaskTitleProps) {
+  const [title, setTitleLocally] = useState<TaskTitle>(originalTitle);
+  const [isEditing, setIsEditing] = useState<boolean>(false);
+  const isUnsaved: boolean = originalTitle !== title;
+
+  if (isEditing === false) {
+    return (
+      <StyledTaskTitle>
+        <TaskTitleText>{title}</TaskTitleText>
+        <Button
+          icon="pi pi-pencil"
+          className="p-button-rounded p-button-text p-button-sm"
+          onClick={() => setIsEditing(true)}
+        />
+      </StyledTaskTitle>
+    );
+  }
+
+  const untitled: TaskTitle = "untitled";
+
+  function handleChange(value: string | undefined): void {
+    setTitleLocally(value === undefined ? untitled : value);
+  }
+
+  function handleSave(): void {
+    setIsEditing(false);
+    updateTitle(title === undefined ? untitled : title);
+  }
+
   return (
     <StyledTaskTitle>
-      <EditableText
-        value={title}
-        onChange={onUpdate}
-        selectAllOnFocus={false}
+      <InputText
+        id="task-title"
+        fill
+        placeholder="Task title"
+        value={title === untitled ? undefined : title}
+        onChange={handleChange}
+      />
+      <Button
+        icon={isUnsaved ? "pi pi-save" : "pi pi-times"}
+        className="p-button-rounded p-button-text p-button-sm"
+        onClick={handleSave}
       />
     </StyledTaskTitle>
   );
@@ -75,8 +124,8 @@ function TaskDetail({
   const [content, setContent] = useState<string>(task.content);
   const [tags, setTags] = useState<Set<Tag>>(task.tags);
 
-  function handleContentChange(updatedContent: string): void {
-    setContent(updatedContent);
+  function handleContentChange(updatedContent: string | undefined): void {
+    setContent(updatedContent === undefined ? "" : updatedContent);
   }
 
   function handleTaskTitleChange(title: TaskTitle): void {
@@ -116,16 +165,16 @@ function TaskDetail({
           <div>
             <Button
               icon="floppy-disk"
-              large={true}
-              intent={Intent.PRIMARY}
+              size="large"
+              // intent={Intent.PRIMARY}
               onClick={handleTaskSubmit}
             >
               Save
             </Button>
             <Button
               className="bp4-minimal"
-              large={true}
-              intent={Intent.NONE}
+              size="large"
+              // intent={Intent.NONE}
               onClick={() => discardContentChanges()}
             >
               Discard
@@ -146,13 +195,13 @@ function TaskDetail({
         />
       </MetadataSection>
       <Content id="content">
-        <EditableText
-          multiline={true}
+        <InputTextarea
+          id="task-content"
+          fill
           placeholder={`Add task details here...`}
           value={content}
           onChange={handleContentChange}
-          onCancel={() => discardContentChanges()}
-          selectAllOnFocus={false}
+          style={{ height: "70vh" }}
         />
       </Content>
     </CenteredPage>
@@ -222,7 +271,7 @@ function TaskPage({ wipman }: TaskPageProps) {
       setLoading(isLoading(status));
     }
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   if (loading === true) {

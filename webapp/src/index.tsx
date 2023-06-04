@@ -1,5 +1,5 @@
 import App from "./App";
-import "./blueprint.css";
+// import "./blueprint.css";
 import { Admin } from "./domain/admin";
 import { OperationsManager } from "./domain/operations";
 import { SettingsManager } from "./domain/settings";
@@ -8,7 +8,6 @@ import { TaskManager } from "./domain/task";
 import { ViewManager } from "./domain/view";
 import { Wipman } from "./domain/wipman";
 import "./index.css";
-import reportWebVitals from "./reportWebVitals";
 import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { WipmanApi } from "./services/api";
 import { ErrorsService } from "./services/errors";
@@ -16,11 +15,10 @@ import { Storage as BrowserStorage } from "./services/persistence/localStorage";
 import { Storage } from "./services/persistence/persist";
 import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
-import BlueprintThemeProvider from "./style/theme";
+import "./style/primereact";
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 
-// TODO: move this to a function that takes care of initializing all this for you - probably should live in wipman.ts
 const taskManager = new TaskManager();
 const viewManager = new ViewManager({ taskManager });
 const tagManager = new TagManager();
@@ -29,7 +27,7 @@ const browserStorage = new BrowserStorage();
 const settingsManager = new SettingsManager();
 const admin = new Admin({ local: browserStorage });
 const errors = new ErrorsService();
-const api = new WipmanApi({ local: browserStorage, errors, settingsManager });
+const api = new WipmanApi({ errors, settingsManager });
 const storage = new Storage({
   settingsManager,
   browserStorage,
@@ -48,22 +46,14 @@ const wipman = new Wipman({
   errors,
 });
 
-ReactDOM.render(
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <GlobalStyle theme={activeTheme} />
-    <BlueprintThemeProvider>
-      <App wipman={wipman} />
-    </BlueprintThemeProvider>
-  </React.StrictMode>,
-  document.getElementById("root")
+    <App wipman={wipman} />
+  </React.StrictMode>
 );
 
 // If you want your app to work offline and load faster, you can change
 // unregister() to register() below. Note this comes with some pitfalls.
 // Learn more about service workers: https://cra.link/PWA
 serviceWorkerRegistration.register();
-
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
-reportWebVitals();

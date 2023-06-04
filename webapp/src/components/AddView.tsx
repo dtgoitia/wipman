@@ -1,5 +1,6 @@
 import { ViewTitle } from "../domain/types";
-import { EditableText } from "@blueprintjs/core";
+import InpuText from "./InputText";
+import { Button } from "primereact/button";
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -9,7 +10,7 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const AlignLeft = styled.div`
+const AlignRight = styled.div`
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-end;
@@ -21,7 +22,7 @@ interface AddViewProps {
 }
 function AddView({ onAdd }: AddViewProps) {
   const [viewTitleInputIsOpen, openViewTitleInput] = useState<boolean>(false);
-  const [title, setTitle] = useState<string>("");
+  const [title, setTitle] = useState<string | undefined>();
 
   function handleSubmit() {
     if (title) {
@@ -29,43 +30,49 @@ function AddView({ onAdd }: AddViewProps) {
     } else {
       console.debug("View title not provided, aborting view creation");
     }
-    setTitle("");
+    setTitle(undefined);
     openViewTitleInput(false);
   }
+
+  const canSubmit = title !== undefined && title !== "";
 
   if (viewTitleInputIsOpen) {
     return (
       <Container>
-        <EditableText
-          multiline={true}
-          placeholder={`Add view title here...`}
+        <InpuText
+          id="add-view-input"
           value={title}
+          placeholder="Add view title here..."
+          fill
           onChange={setTitle}
-          onConfirm={handleSubmit}
-          onCancel={() => openViewTitleInput(false)}
-          selectAllOnFocus={true}
         />
-        <AlignLeft>
-          <button
-            className="bp4-button bp4-large bp4-icon-add"
+        <AlignRight>
+          <Button
+            icon="pi pi-plus"
+            label="Add task"
             onClick={handleSubmit}
-          >
-            Add view
-          </button>
-        </AlignLeft>
+            disabled={!canSubmit}
+          />
+          <Button
+            label={canSubmit ? "Discard and close" : "Close"}
+            icon="pi pi-times"
+            className="p-button-secondary"
+            onClick={() => openViewTitleInput(false)}
+          />
+        </AlignRight>
       </Container>
     );
   }
 
   return (
-    <AlignLeft>
-      <button
-        className="bp4-button bp4-large bp4-icon-add"
+    <AlignRight>
+      <Button
+        label="Add view"
+        icon="pi pi-plus"
+        className="p-button-secondary"
         onClick={() => openViewTitleInput(true)}
-      >
-        Add view
-      </button>
-    </AlignLeft>
+      />
+    </AlignRight>
   );
 }
 

@@ -1,4 +1,5 @@
-import { Button, Dialog } from "@blueprintjs/core";
+import { Button } from "primereact/button";
+import { Dialog } from "primereact/dialog";
 import { useState } from "react";
 
 interface Props {
@@ -26,17 +27,21 @@ export function DeleteConfirmationDialog({ title, input, onDelete }: Props) {
   return (
     <div>
       <Dialog
-        title={title}
-        isOpen={dialogShown}
-        autoFocus={true}
-        canOutsideClickClose={true}
-        isCloseButtonShown={true}
-        canEscapeKeyClose={true}
-        transitionDuration={0}
-        onClose={() => showDialog(false)}
+        header={title}
+        visible={dialogShown}
+        dismissableMask
+        footer={
+          <Button
+            className="p-button-danger"
+            icon={"pi pi-trash"}
+            onClick={handleDeleteIntent}
+            disabled={isLocked}
+            label="DELETE"
+          />
+        }
+        onHide={() => showDialog(false)}
       >
         <div className="bp4-dialog-body">
-          <h1>DANGER</h1>
           <p>
             Type <code>{input}</code> below to delete View:
           </p>
@@ -48,21 +53,13 @@ export function DeleteConfirmationDialog({ title, input, onDelete }: Props) {
             onChange={(event) => handleInputChange(event.target.value)}
           />
         </div>
-        <div className="bp4-dialog-footer">
-          <Button
-            disabled={isLocked}
-            intent={"danger"}
-            icon={"trash"}
-            large={true}
-            onClick={handleDeleteIntent}
-          >
-            DELETE
-          </Button>
-        </div>
       </Dialog>
-      <Button icon={"trash"} large={true} onClick={() => showDialog(true)}>
-        DELETE
-      </Button>
+
+      <Button
+        icon={"pi pi-trash"}
+        label="DELETE"
+        onClick={() => showDialog(true)}
+      />
     </div>
   );
 }

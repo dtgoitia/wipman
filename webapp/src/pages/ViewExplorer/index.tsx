@@ -30,7 +30,7 @@ function ViewExplorer({ wipman }: ViewExplorerProps) {
       const unsortedViews: View[] = [...views.values()];
       setViews(unsortedViews);
     });
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   function openView(id: ViewId): void {

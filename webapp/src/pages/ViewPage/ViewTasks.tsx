@@ -27,7 +27,7 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
 
   return (
     <ul>
-      {tasks.map((task, i) => (
+      {tasks.map((task) => (
         <ListedTask
           key={task.id}
           task={task}

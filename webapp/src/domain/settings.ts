@@ -1,6 +1,6 @@
+import { Observable, Subject } from "rxjs";
 import { unreachable } from "../devex";
 import { Settings } from "./types";
-import { Observable, Subject } from "rxjs";
 
 export type SettingsChange =
   | { readonly kind: "SettingsInitialized" }
@@ -12,12 +12,15 @@ export class SettingsManager {
   public change$: Observable<SettingsChange>;
 
   private changeSubject: Subject<SettingsChange>;
-  private initialized: boolean = false;
+  private initialized = false;
 
   constructor() {
     this.settings = {};
     this.changeSubject = new Subject<SettingsChange>();
     this.change$ = this.changeSubject.asObservable();
+    this.change$.subscribe((change) =>
+      console.debug(`${SettingsManager.name}.change$:`, change)
+    );
   }
 
   public init(settings: Settings): void {

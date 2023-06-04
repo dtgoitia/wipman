@@ -24,7 +24,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
       setTasks(unsortedTasks);
     });
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   function openTask(id: TaskId): void {
@@ -35,8 +35,8 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     wipman.addTask({ title });
   }
 
-  function handleFilterChange(query: FilterQuery): void {
-    setQuery(query);
+  function handleFilterChange(query: FilterQuery | undefined): void {
+    setQuery(query === undefined ? NO_FILTER_QUERY : query);
   }
 
   function handleClearSearch(): void {
@@ -59,7 +59,7 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     if (task.tags.size > 0) {
       task.tags.forEach((tag) => searchables.push(tag));
     }
-    if (!!task.content) {
+    if (task.content) {
       searchables.push(task.content);
     }
 
@@ -83,7 +83,6 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
         placeholder="Filter tasks..."
         onChange={handleFilterChange}
         clearSearch={handleClearSearch}
-        onFocus={() => {}}
       />
       <AddTask onAdd={addTask} />
       <ul>

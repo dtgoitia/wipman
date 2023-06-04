@@ -2,8 +2,11 @@ import { difference } from "../domain/set";
 import { sortTags } from "../domain/tag";
 import { Tag } from "../domain/types";
 import { Wipman } from "../domain/wipman";
+// import "./MultiSelectDemo.css";
 import SearchBox from "./SearchBox";
-import { Tag as BlueprintTag, Button, Intent } from "@blueprintjs/core";
+import { Button } from "primereact/button";
+import { Chip } from "primereact/chip";
+// import { MultiSelect } from "primereact/multiselect";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
@@ -14,26 +17,25 @@ interface Props {
 }
 
 export function TagSelector({ selected, onUpdate, wipman }: Props) {
-  console.log(`TagSelector.selected:`, selected);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [all, setAll] = useState<Set<Tag>>(new Set());
-  const [typed, setTyped] = useState<string>("");
+  const [typed, setTyped] = useState<string | undefined>();
 
   const unselected = difference(all, selected);
 
   const filtered = filterTags({ tags: unselected, criteria: typed });
 
   useEffect(() => {
-    const subscription = wipman.tagManager.change$.subscribe((_) => {
+    const subscription = wipman.tagManager.change$.subscribe(() => {
       setAll(wipman.getAllTags());
     });
 
     setAll(wipman.getAllTags());
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
-  function handleClick(): void {
+  function handleClickOnOpenCloseButton(): void {
     setIsEditing(!isEditing);
   }
 
@@ -53,7 +55,7 @@ export function TagSelector({ selected, onUpdate, wipman }: Props) {
   }
 
   function handleAddNewTag(): void {
-    if (typed === "") {
+    if (typed === undefined || typed === "") {
       throw new Error(`Cannot add new tag because there is no user input`);
     }
 
@@ -62,16 +64,14 @@ export function TagSelector({ selected, onUpdate, wipman }: Props) {
 
   if (isEditing === false) {
     return (
-      <div>
-        <SelectedTags tags={sortTags(selected)} />
+      <div style={{ display: "flex", flexFlow: "row nowrap", gap: "0.5rem" }}>
         <Button
-          icon="edit"
+          icon="pi pi-pencil"
           disabled={false}
-          intent={Intent.NONE}
-          onClick={handleClick}
-        >
-          edit tags
-        </Button>
+          className="p-button-secondary p-button-rounded p-button-sm"
+          onClick={handleClickOnOpenCloseButton}
+        />
+        <SelectedTags tags={sortTags(selected)} />
       </div>
     );
   }
@@ -80,6 +80,13 @@ export function TagSelector({ selected, onUpdate, wipman }: Props) {
 
   return (
     <div>
+      <Button
+        icon={"pi pi-times"}
+        disabled={false}
+        className="p-button-rounded p-button-sm"
+        onClick={handleClickOnOpenCloseButton}
+      />
+
       <UnselectableTags
         tags={sortTags(selected)}
         onUnselect={handleTagUnselected}
@@ -88,25 +95,16 @@ export function TagSelector({ selected, onUpdate, wipman }: Props) {
       <SearchBox
         query={typed}
         placeholder="Type to filter tags..."
-        onChange={(value: string) => setTyped(value)}
+        onChange={(value) => setTyped(value)}
         clearSearch={() => setTyped("")}
-        onFocus={() => {}}
       />
 
       <SelectableTags tags={sortTags(filtered)} onSelect={handleTagSelected} />
-      <Button
-        icon="collapse-all"
-        disabled={false}
-        intent={Intent.NONE}
-        onClick={handleClick}
-      >
-        Close tag editor
-      </Button>
       {tagNotFound && (
         <Button
           icon="add"
           disabled={false}
-          intent={Intent.PRIMARY}
+          className="p-button-secondary"
           onClick={handleAddNewTag}
         >
           Add tag
@@ -133,9 +131,7 @@ function SelectedTags({ tags }: SelectedTagsProps) {
   return (
     <TagsContainer>
       {tags.map((tag) => (
-        <BlueprintTag key={tag} large round>
-          <code>{tag}</code>
-        </BlueprintTag>
+        <Chip key={`selected-tag-${tag}`} label={tag} className="mr-2 mb-2" />
       ))}
     </TagsContainer>
   );
@@ -156,9 +152,13 @@ function UnselectableTags({
   return (
     <TagsContainer>
       {tags.map((tag) => (
-        <BlueprintTag key={tag} large round onRemove={() => unselectTag(tag)}>
-          <code>{tag}</code>
-        </BlueprintTag>
+        <Chip
+          key={tag}
+          label={tag}
+          className="mr-2 mb-2"
+          removable
+          onRemove={() => unselectTag(tag)}
+        />
       ))}
     </TagsContainer>
   );
@@ -176,9 +176,12 @@ function SelectableTags({ tags, onSelect: select }: SelectableTagsProps) {
   return (
     <TagsContainer>
       {tags.map((tag) => (
-        <BlueprintTag key={tag} round large onClick={() => select(tag)}>
-          <code>{tag}</code>
-        </BlueprintTag>
+        <Chip
+          key={tag}
+          label={tag}
+          className="mr-2 mb-2"
+          onClick={() => select(tag)}
+        />
       ))}
     </TagsContainer>
   );
@@ -189,8 +192,12 @@ function filterTags({
   criteria,
 }: {
   tags: Set<Tag>;
-  criteria: string;
+  criteria: string | undefined;
 }): Set<Tag> {
+  if (criteria === undefined) {
+    return tags;
+  }
+
   const result = new Set<Tag>();
 
   for (const tag of tags) {

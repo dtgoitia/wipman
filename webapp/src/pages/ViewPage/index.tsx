@@ -52,7 +52,7 @@ function ViewPage({ wipman }: ViewPageProps) {
       setSpinnerIsVisible(false);
     }
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   if (spinnerIsVisible === true) {

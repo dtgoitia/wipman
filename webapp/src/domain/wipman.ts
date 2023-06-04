@@ -1,3 +1,11 @@
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  filter,
+  first,
+  forkJoin,
+} from "rxjs";
 import { assertNever } from "../exhaustive-match";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
@@ -13,14 +21,6 @@ import { TagManager } from "./tag";
 import { TaskChanges, TaskManager } from "./task";
 import { Tag, Task, TaskId, TaskTitle, View, ViewId, ViewTitle } from "./types";
 import { ViewChange, ViewManager } from "./view";
-import {
-  BehaviorSubject,
-  Observable,
-  Subject,
-  filter,
-  first,
-  forkJoin,
-} from "rxjs";
 
 export const INIT_OPERATION_ID = generateOperationId();
 
@@ -170,6 +170,13 @@ export class Wipman {
 
   public async initialize(): Promise<void> {
     this.statusSubject.next(WipmanStatus.InitStarted);
+
+    // Make sure wipman is only initialized once
+    if (this.operationsManager.operations.get(INIT_OPERATION_ID)) {
+      console.debug("wipman was already initializing...");
+      return Promise.resolve();
+    }
+
     const initOp = this.operationsManager.start(INIT_OPERATION_ID);
 
     //
@@ -193,7 +200,7 @@ export class Wipman {
         first()
       );
       const initCompleted$ = forkJoin([tasksInitialized$, viewsInitialized$]);
-      initCompleted$.subscribe((_) => {
+      initCompleted$.subscribe(() => {
         console.log(`Wipman.initialize:: initialization completed`);
         this.operationsManager.end({ operationId: initOp });
         this.statusSubject.next(WipmanStatus.InitCompleted);

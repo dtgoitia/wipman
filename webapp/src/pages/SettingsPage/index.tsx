@@ -1,10 +1,11 @@
+import InputText from "../../components/InputText";
 import ReloadPageButton from "../../components/ReloadPageButton";
 import { Settings } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
 import { findVersionHash } from "../../findVersion";
-import { TextField } from "./TextField";
-import { Button, Card } from "@blueprintjs/core";
+import { Button } from "primereact/button";
+import { Panel } from "primereact/panel";
 import { useEffect, useState } from "react";
 import styled from "styled-components";
 
@@ -12,7 +13,7 @@ const Container = styled.div`
   padding: 0.5rem 0;
 `;
 
-const CustomCard = styled(Card)`
+const CustomCard = styled(Panel)`
   margin: 1rem;
 `;
 
@@ -42,32 +43,33 @@ function SettingsPage({ wipman }: SettingsPageProps) {
 
     setAllSettings(wipman.settingsManager.settings);
 
-    return subscription.unsubscribe;
+    return () => subscription.unsubscribe();
   }, [wipman]);
 
   function setAllSettings(settings: Settings): void {
     const { apiUrl, apiToken } = settings;
-    console.log("foo");
     setApiUrl(apiUrl);
     setApiToken(apiToken);
   }
 
   function handleApiUrlChange(newUrl?: string): void {
     setApiUrl(newUrl);
+    handleApiUrlSubmit(newUrl);
   }
 
-  function handleApiUrlSubmit(): void {
-    if (apiUrl === undefined) return;
-    wipman.settingsManager.setApiUrl(apiUrl);
+  function handleApiUrlSubmit(newUrl?: string): void {
+    if (newUrl === undefined) return;
+    wipman.settingsManager.setApiUrl(newUrl);
   }
 
   function handleApiTokenChange(newToken?: string): void {
     setApiToken(newToken);
+    handleApiTokenSubmit(newToken as string);
   }
 
-  function handleApiTokenSubmit(): void {
-    if (apiToken === undefined) return;
-    wipman.settingsManager.setApiToken(apiToken);
+  function handleApiTokenSubmit(newToken?: string): void {
+    if (newToken === undefined) return;
+    wipman.settingsManager.setApiToken(newToken);
   }
 
   function handlePushAllToRemote(): void {
@@ -91,17 +93,19 @@ function SettingsPage({ wipman }: SettingsPageProps) {
   return (
     <Container>
       <CustomCard>
-        <TextField
-          label="API URL"
+        <InputText
+          id="api-url"
+          // label="API URL"
           value={apiUrl}
+          placeholder="API URL"
           onChange={handleApiUrlChange}
-          onSubmit={handleApiUrlSubmit}
         />
-        <TextField
-          label="API token"
+        <InputText
+          id="api-token"
+          // label="API token"
           value={apiToken}
+          placeholder="API token"
           onChange={handleApiTokenChange}
-          onSubmit={handleApiTokenSubmit}
         />
       </CustomCard>
 

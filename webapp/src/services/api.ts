@@ -1,11 +1,9 @@
+import { Client } from "browser-http-client";
 import { SettingsManager } from "../domain/settings";
 import { Task, TaskId, View, ViewId } from "../domain/types";
 import { ErrorsService } from "./errors";
-import { Storage as BrowserStorage } from "./persistence/localStorage";
-import { Client } from "browser-http-client";
 
 interface ConstructorArgs {
-  local: BrowserStorage;
   errors: ErrorsService;
   settingsManager: SettingsManager;
 }
@@ -15,12 +13,10 @@ interface GetUpdatedAfterArgs {
 }
 
 export class WipmanApi {
-  private local: BrowserStorage;
   private settingsManager: SettingsManager;
   private errors: ErrorsService;
 
-  constructor({ local, errors, settingsManager }: ConstructorArgs) {
-    this.local = local;
+  constructor({ errors, settingsManager }: ConstructorArgs) {
     this.errors = errors;
     this.settingsManager = settingsManager;
   }
@@ -49,7 +45,7 @@ export class WipmanApi {
   public async createTask({ task }: { task: Task }): Promise<Task> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
@@ -78,7 +74,7 @@ export class WipmanApi {
   public async updateTask({ task }: { task: Task }): Promise<Task> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
@@ -107,7 +103,7 @@ export class WipmanApi {
   public async deleteTask({ taskId }: { taskId: TaskId }): Promise<TaskId> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/task/${taskId}`;
 
@@ -135,7 +131,7 @@ export class WipmanApi {
   public async createView({ view }: { view: View }): Promise<View> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
 
     const url = `${baseUrl}/view`;
@@ -165,7 +161,7 @@ export class WipmanApi {
   public async updateView({ view }: { view: View }): Promise<View> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/view`;
     const payload = { view: viewToJson(view) };
@@ -194,7 +190,7 @@ export class WipmanApi {
   public async deleteView({ viewId }: { viewId: ViewId }): Promise<ViewId> {
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/view/${viewId}`;
 
@@ -235,9 +231,12 @@ export class WipmanApi {
   private async getUpdatedAfter({
     date,
   }: GetUpdatedAfterArgs): Promise<{ tasks: Task[]; views: View[] }> {
+    console.warn(
+      `${WipmanApi.name}.${this.getUpdatedAfter.name}::you are not using date (${date})`
+    );
     const baseUrl = this.getBaseUrl();
     if (baseUrl === undefined) {
-      return new Promise(() => {});
+      return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/get-all`;
     const result = await Client.get(url).then((result) => {

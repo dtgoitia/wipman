@@ -1,5 +1,6 @@
 import { TaskTitle } from "../domain/types";
-import { EditableText } from "@blueprintjs/core";
+import InpuText from "./InputText";
+import { Button } from "primereact/button";
 import { useState } from "react";
 import styled from "styled-components";
 
@@ -9,7 +10,7 @@ const Container = styled.div`
   width: 100%;
 `;
 
-const AlignLeft = styled.div`
+const AlignRight = styled.div`
   display: flex;
   flex-flow: row nowrap;
   justify-content: flex-end;
@@ -21,7 +22,7 @@ interface AddTaskProps {
 }
 function AddTask({ onAdd }: AddTaskProps) {
   const [taskTitleInputIsOpen, openTaskTitleInput] = useState<boolean>(false);
-  const [title, setTitle] = useState<string>("");
+  const [title, setTitle] = useState<string | undefined>();
 
   function handleSubmit() {
     if (title) {
@@ -29,43 +30,49 @@ function AddTask({ onAdd }: AddTaskProps) {
     } else {
       console.debug("Task title not provided, aborting task creation");
     }
-    setTitle("");
+    setTitle(undefined);
     openTaskTitleInput(false);
   }
+
+  const canSubmit = title !== undefined && title !== "";
 
   if (taskTitleInputIsOpen) {
     return (
       <Container>
-        <EditableText
-          multiline={true}
-          placeholder={`Add task title here...`}
+        <InpuText
+          id="add-task-input"
           value={title}
+          placeholder="Add task title here..."
+          fill
           onChange={setTitle}
-          onConfirm={handleSubmit}
-          onCancel={() => openTaskTitleInput(false)}
-          selectAllOnFocus={true}
         />
-        <AlignLeft>
-          <button
-            className="bp4-button bp4-large bp4-icon-add"
+        <AlignRight>
+          <Button
+            icon="pi pi-plus"
+            label="Add task"
             onClick={handleSubmit}
-          >
-            Add task
-          </button>
-        </AlignLeft>
+            disabled={!canSubmit}
+          />
+          <Button
+            label={canSubmit ? "Discard and close" : "Close"}
+            icon="pi pi-times"
+            className="p-button-secondary"
+            onClick={() => openTaskTitleInput(false)}
+          />
+        </AlignRight>
       </Container>
     );
   }
 
   return (
-    <AlignLeft>
-      <button
-        className="bp4-button bp4-large bp4-icon-add"
+    <AlignRight>
+      <Button
+        label="Add task"
+        icon="pi pi-plus"
+        className="p-button-secondary"
         onClick={() => openTaskTitleInput(true)}
-      >
-        Add task
-      </button>
-    </AlignLeft>
+      />
+    </AlignRight>
   );
 }
 
