@@ -32,6 +32,6 @@ export interface View {
 }
 
 export interface Settings {
-  readonly apiUrl?: string;
-  readonly apiToken?: string;
+  apiUrl?: string;
+  apiToken?: string;
 }

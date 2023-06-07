@@ -1,11 +1,13 @@
-import { Observable, Subject } from "rxjs";
 import { unreachable } from "../devex";
 import { Settings } from "./types";
+import { Observable, Subject } from "rxjs";
 
 export type SettingsChange =
   | { readonly kind: "SettingsInitialized" }
   | { readonly kind: "ApiUrlUpdated"; readonly value: string }
-  | { readonly kind: "ApiTokenUpdated"; readonly value: string };
+  | { readonly kind: "ApiUrlDeleted" }
+  | { readonly kind: "ApiTokenUpdated"; readonly value: string }
+  | { readonly kind: "ApiTokenDeleted" };
 
 export class SettingsManager {
   public settings: Settings;
@@ -34,13 +36,27 @@ export class SettingsManager {
     this.changeSubject.next({ kind: "SettingsInitialized" });
   }
 
-  public setApiUrl(value: string): void {
-    this.settings = { ...this.settings, apiUrl: value };
-    this.changeSubject.next({ kind: "ApiUrlUpdated", value });
+  public setApiUrl(value: string | undefined): void {
+    if (value === undefined) {
+      const settings: Settings = { ...this.settings };
+      delete settings["apiUrl"];
+      this.settings = settings;
+      this.changeSubject.next({ kind: "ApiUrlDeleted" });
+    } else {
+      this.settings = { ...this.settings };
+      this.changeSubject.next({ kind: "ApiUrlUpdated", value });
+    }
   }
 
-  public setApiToken(value: string): void {
-    this.settings = { ...this.settings, apiToken: value };
-    this.changeSubject.next({ kind: "ApiTokenUpdated", value });
+  public setApiToken(value: string | undefined): void {
+    if (value === undefined) {
+      const settings: Settings = { ...this.settings };
+      delete settings["apiToken"];
+      this.settings = settings;
+      this.changeSubject.next({ kind: "ApiTokenDeleted" });
+    } else {
+      this.settings = { ...this.settings, apiToken: value };
+      this.changeSubject.next({ kind: "ApiTokenUpdated", value });
+    }
   }
 }

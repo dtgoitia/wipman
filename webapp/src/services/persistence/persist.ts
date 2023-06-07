@@ -237,11 +237,13 @@ export class Storage {
       case "SettingsInitialized":
         break; // do nothing
       case "ApiUrlUpdated":
-        this.browserStorage.settings.set(this.settings.settings);
-        break;
+        return this.browserStorage.settings.set(this.settings.settings);
+      case "ApiUrlDeleted":
+        return this.browserStorage.settings.set(this.settings.settings);
       case "ApiTokenUpdated":
-        this.browserStorage.settings.set(this.settings.settings);
-        break;
+        return this.browserStorage.settings.set(this.settings.settings);
+      case "ApiTokenDeleted":
+        return this.browserStorage.settings.set(this.settings.settings);
       default:
         assertNever(change, `Unsupported SettingsChange variant: ${change}`);
     }

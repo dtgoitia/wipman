@@ -28,14 +28,15 @@ function SettingsPage({ wipman }: SettingsPageProps) {
     const subscription = wipman.settingsManager.change$.subscribe((change) => {
       switch (change.kind) {
         case "SettingsInitialized":
-          setAllSettings(wipman.settingsManager.settings);
-          break;
+          return setAllSettings(wipman.settingsManager.settings);
         case "ApiUrlUpdated":
-          setApiUrl(change.value);
-          break;
+          return setApiUrl(change.value);
+        case "ApiUrlDeleted":
+          return setApiUrl(undefined);
         case "ApiTokenUpdated":
-          setApiToken(change.value);
-          break;
+          return setApiToken(change.value);
+        case "ApiTokenDeleted":
+          return setApiToken(undefined);
         default:
           assertNever(change, `Unsupported SettingsChange variant: ${change}`);
       }
@@ -54,21 +55,11 @@ function SettingsPage({ wipman }: SettingsPageProps) {
 
   function handleApiUrlChange(newUrl?: string): void {
     setApiUrl(newUrl);
-    handleApiUrlSubmit(newUrl);
-  }
-
-  function handleApiUrlSubmit(newUrl?: string): void {
-    if (newUrl === undefined) return;
     wipman.settingsManager.setApiUrl(newUrl);
   }
 
   function handleApiTokenChange(newToken?: string): void {
     setApiToken(newToken);
-    handleApiTokenSubmit(newToken as string);
-  }
-
-  function handleApiTokenSubmit(newToken?: string): void {
-    if (newToken === undefined) return;
     wipman.settingsManager.setApiToken(newToken);
   }
 
