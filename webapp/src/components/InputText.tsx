@@ -1,7 +1,6 @@
+import { toDomainValue, toInputValue } from "../textInputHelpers";
 import { InputText as PrimeInputText } from "primereact/inputtext";
 import { CSSProperties, ChangeEvent } from "react";
-
-const EMPTY_STRING = "";
 
 interface Props {
   id: string;
@@ -16,7 +15,7 @@ interface Props {
 
 export default function InputText({
   id,
-  value,
+  value: domainValue,
   label,
   placeholder,
   large,
@@ -25,25 +24,14 @@ export default function InputText({
   onChange: change,
 }: Props) {
   function handleChange(event: ChangeEvent<HTMLInputElement>): void {
-    const value: string | undefined | null = event.target.value;
-
-    switch (value) {
-      case EMPTY_STRING:
-        return change(undefined);
-      case null:
-        return change(undefined);
-      default:
-        return change(value);
-    }
+    const inputValue = event.target.value;
+    change(toDomainValue(inputValue));
   }
 
   const style: CSSProperties = {};
   if (fill) {
     style["width"] = "100%";
   }
-
-  const cleanValue =
-    value === undefined || value === null ? EMPTY_STRING : value;
 
   return (
     <div style={style}>
@@ -57,7 +45,7 @@ export default function InputText({
         style={style}
         className={large ? "p-inputtext-lg" : ""}
         placeholder={placeholder}
-        value={cleanValue}
+        value={toInputValue(domainValue)}
         onChange={handleChange}
         disabled={disabled === true}
       />

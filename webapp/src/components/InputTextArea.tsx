@@ -1,7 +1,6 @@
+import { toDomainValue, toInputValue } from "../textInputHelpers";
 import { InputTextarea as PrimeInputTextarea } from "primereact/inputtextarea";
 import { CSSProperties, ChangeEvent } from "react";
-
-const EMPTY_STRING = "";
 
 interface Props {
   id: string;
@@ -17,7 +16,7 @@ interface Props {
 
 export default function InputTextarea({
   id,
-  value,
+  value: domainValue,
   label,
   placeholder,
   large,
@@ -27,16 +26,8 @@ export default function InputTextarea({
   style: customStyle,
 }: Props) {
   function handleChange(event: ChangeEvent<HTMLTextAreaElement>): void {
-    const value: string | undefined | null = event.target.value;
-
-    switch (value) {
-      case EMPTY_STRING:
-        return change(undefined);
-      case null:
-        return change(undefined);
-      default:
-        return change(value);
-    }
+    const inputValue = event.target.value;
+    change(toDomainValue(inputValue));
   }
 
   let style: CSSProperties = {};
@@ -46,9 +37,6 @@ export default function InputTextarea({
   if (customStyle) {
     style = { ...style, ...customStyle };
   }
-
-  const cleanValue =
-    value === undefined || value === null ? EMPTY_STRING : value;
 
   return (
     <div style={style}>
@@ -62,7 +50,7 @@ export default function InputTextarea({
         style={style}
         className={large ? "p-inputtext-lg" : ""}
         placeholder={placeholder}
-        value={cleanValue}
+        value={toInputValue(domainValue)}
         onChange={handleChange}
         disabled={disabled === true}
       />
