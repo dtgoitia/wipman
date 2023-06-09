@@ -6,6 +6,8 @@ import { FilterQuery, Task, TaskId, TaskTitle } from "../domain/types";
 import { Wipman } from "../domain/wipman";
 import { getTaskPath } from "../routes";
 import { useEffect, useState } from "react";
+import { DndProvider } from "react-dnd";
+import { TouchBackend } from "react-dnd-touch-backend";
 import { useNavigate } from "react-router-dom";
 
 interface TaskExplorerProps {
@@ -85,15 +87,17 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
         clearSearch={handleClearSearch}
       />
       <AddTask onAdd={addTask} />
-      <ul>
-        {filteredTasks.map((task) => (
-          <ListedTask
-            key={task.id}
-            task={task}
-            onOpenTaskView={() => openTask(task.id)}
-          />
-        ))}
-      </ul>
+      <DndProvider backend={TouchBackend}>
+        <ul>
+          {filteredTasks.map((task) => (
+            <ListedTask
+              key={task.id}
+              task={task}
+              onOpenTaskView={() => openTask(task.id)}
+            />
+          ))}
+        </ul>
+      </DndProvider>
     </CenteredPage>
   );
 }

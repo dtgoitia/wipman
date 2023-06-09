@@ -1,5 +1,12 @@
-import { Task } from "../domain/types";
+import { Task, TaskId } from "../domain/types";
+import { useDrag, useDrop } from "react-dnd";
 import styled from "styled-components";
+
+const DRAGABLE_TASK = "draggable_task";
+
+interface DraggedItemReference {
+  draggedTaskId: TaskId;
+}
 
 const Container = styled.div`
   margin: 0.2rem 0;
@@ -10,6 +17,7 @@ const Container = styled.div`
   flex-flow: row nowrap;
   justify-content: space-between;
   align-items: stretch;
+  gap: 0.7rem;
 
   border-radius: 0.4rem;
 
@@ -18,8 +26,17 @@ const Container = styled.div`
   }
 `;
 
-const Left = styled.div`
+const Handle = styled.div`
   order: 0;
+  flex-basis: 1rem;
+  flex-grow: 0;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0;
+`;
+
+const Title = styled.div`
+  order: 1;
   flex-basis: auto;
   flex-grow: 1;
   flex-shrink: 0;
@@ -27,14 +44,58 @@ const Left = styled.div`
   padding: 0.37rem 0;
 `;
 
-interface ListedTaskProp {
+interface Props {
   task: Task;
   onOpenTaskView: () => void;
+  onInsertBefore?: (args: { toInsert: TaskId; before: TaskId }) => void;
 }
-export default function ListedTask({ task, onOpenTaskView }: ListedTaskProp) {
+
+export default function ListedTask({
+  task,
+  onOpenTaskView,
+  onInsertBefore: insertBefore,
+}: Props) {
+  const { id } = task;
+
+  const [{ isDragging }, drag] = useDrag(() => ({
+    type: DRAGABLE_TASK,
+    item: { draggedTaskId: id },
+    collect: (monitor) => ({
+      isDragging: !!monitor.isDragging(),
+    }),
+  }));
+
+  const [{ isOver }, drop] = useDrop(
+    () => ({
+      accept: DRAGABLE_TASK,
+      drop: (draggetItem) => {
+        if (insertBefore === undefined) return;
+        const { draggedTaskId } = draggetItem as DraggedItemReference;
+        insertBefore({ toInsert: draggedTaskId, before: task.id });
+      },
+      collect: (monitor) => ({ isOver: !!monitor.isOver() }),
+    }),
+    [id]
+  );
+
+  const allowDrag = insertBefore !== undefined;
+  const containerRef = allowDrag ? drop : undefined;
+  const draggableRef = allowDrag ? drag : undefined;
+
   return (
-    <Container>
-      <Left onClick={onOpenTaskView}>{task.title}</Left>
+    <Container
+      ref={containerRef}
+      style={{
+        border: isOver
+          ? "1px yellow solid"
+          : isDragging
+          ? "1px blue solid"
+          : undefined,
+      }}
+    >
+      <Handle ref={draggableRef}> {isDragging ? "<---" : ":::"} </Handle>
+
+      <Title onClick={onOpenTaskView}>{task.title}</Title>
     </Container>
   );
 }
