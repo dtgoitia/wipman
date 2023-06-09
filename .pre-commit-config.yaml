@@ -30,7 +30,7 @@ repos:
       - id: build-webapp
         name: "webapp: build before pushing to master"
         entry: scripts/build_webapp_only_in_master.sh
-        verbose: true
+        verbose: false
         language: system
         stages: [push]
         pass_filenames: false
