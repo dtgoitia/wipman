@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+set -eu
+
+current_dir="$(basename $(pwd))"
+
+if [[ "$current_dir" == "webapp" ]]; then
+    # Move to the root of the monorepo
+    cd ..
+fi
+
+echo "Type-checking..."
+webapp/node_modules/.bin/tsc \
+    --project ./webapp \
+    --noEmit
