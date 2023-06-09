@@ -28,9 +28,18 @@ repos:
   - repo: local
     hooks:
       - id: build-webapp
-        name: Build webapp before pushing to master
+        name: "webapp: build before pushing to master"
         entry: scripts/build_webapp_only_in_master.sh
         verbose: true
         language: system
         stages: [push]
         pass_filenames: false
+
+      - id: webapp-type-check
+        name: "webapp: run type-checks"
+        entry: webapp/bin/type-check
+        verbose: false
+        language: system
+        stages: [commit]
+        pass_filenames: false
+        files: webapp/.*\.(ts|tsx)$
