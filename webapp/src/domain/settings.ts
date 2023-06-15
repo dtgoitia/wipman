@@ -43,7 +43,7 @@ export class SettingsManager {
       this.settings = settings;
       this.changeSubject.next({ kind: "ApiUrlDeleted" });
     } else {
-      this.settings = { ...this.settings };
+      this.settings = { ...this.settings, apiUrl: value };
       this.changeSubject.next({ kind: "ApiUrlUpdated", value });
     }
   }
