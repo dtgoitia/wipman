@@ -1,11 +1,11 @@
 import AddTask from "../../components/AddTask";
 import CenteredPage from "../../components/CenteredPage";
 import ListedTask from "../../components/ListedTask";
-import SearchBox, { NO_FILTER_QUERY } from "../../components/SearchBox";
+import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { FilterQuery, Task, TaskId, TaskTitle } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { getTaskPath } from "../../routes";
-import { InputSwitch } from "primereact/inputswitch";
+import { FilterSpec, TaskFilter } from "./TaskFilter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -39,12 +39,14 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     wipman.addTask({ title });
   }
 
-  function handleFilterChange(query: FilterQuery | undefined): void {
-    setQuery(query === undefined ? NO_FILTER_QUERY : query);
-  }
+  function handleTaskFilterChange(updated: FilterSpec): void {
+    if (updated.query !== query) {
+      setQuery(updated.query);
+    }
 
-  function handleClearSearch(): void {
-    setQuery(NO_FILTER_QUERY);
+    if (updated.showCompleted !== showCompleted) {
+      setShowCompleted(updated.showCompleted);
+    }
   }
 
   if (tasks.length === 0) {
@@ -85,23 +87,10 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
 
   return (
     <CenteredPage>
-      <SearchBox
-        query={query as string}
-        placeholder="Filter tasks..."
-        onChange={handleFilterChange}
-        clearSearch={handleClearSearch}
+      <TaskFilter
+        spec={{ query, showCompleted }}
+        onUpdate={handleTaskFilterChange}
       />
-
-      <div>
-        <label htmlFor="show-completed-tasks">
-          {showCompleted ? "showing completed tasks" : "hiding completed tasks"}
-        </label>
-        <InputSwitch
-          inputId="show-completed-tasks"
-          checked={showCompleted}
-          onChange={() => setShowCompleted(!showCompleted)}
-        />
-      </div>
 
       <AddTask onAdd={addTask} />
       <DndProvider backend={TouchBackend}>
