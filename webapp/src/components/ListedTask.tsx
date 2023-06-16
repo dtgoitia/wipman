@@ -91,6 +91,7 @@ export default function ListedTask({
           : isDragging
           ? "1px blue solid"
           : undefined,
+        opacity: task.completed ? 0.3 : undefined,
       }}
     >
       <Handle ref={draggableRef}> {isDragging ? "<---" : ":::"} </Handle>
