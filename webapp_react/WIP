@@ -1,3 +1,0 @@
-- [ ] install in a separate folder with CRA, and then copy package.json to reinstall until it all works
-  @blueprintjs/datetime is not compatible with react 18... xD fuck
-  https://github.com/palantir/blueprint/issues/5699#issuecomment-1292549687
