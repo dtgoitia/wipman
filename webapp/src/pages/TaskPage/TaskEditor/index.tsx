@@ -10,6 +10,7 @@ import Paths from "../../../routes";
 import { TaskIdBadge } from "./TaskIdBadge";
 import { Title } from "./Title";
 import { Button } from "primereact/button";
+import { InputSwitch } from "primereact/inputswitch";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -43,13 +44,14 @@ export function TaskEditor({
   const [title, setTitle] = useState<TaskTitle>(task.title);
   const [content, setContent] = useState<string>(task.content);
   const [tags, setTags] = useState<Set<Tag>>(task.tags);
-
-  function handleContentChange(updatedContent: string | undefined): void {
-    setContent(updatedContent === undefined ? "" : updatedContent);
-  }
+  const [completed, setCompleted] = useState<boolean>(task.completed);
 
   function handleTaskTitleChange(title: TaskTitle): void {
     setTitle(title);
+  }
+
+  function handleContentChange(updatedContent: string | undefined): void {
+    setContent(updatedContent === undefined ? "" : updatedContent);
   }
 
   function handleTaskTagsChange(tags: Set<Tag>): void {
@@ -59,13 +61,21 @@ export function TaskEditor({
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
-    updateTask({ ...task, title, content, updated: nowIsoString(), tags });
+    updateTask({
+      ...task,
+      title,
+      content,
+      updated: nowIsoString(),
+      tags,
+      completed,
+    });
   }
 
   function discardContentChanges(): void {
     setTitle(task.title);
     setContent(task.content);
     setTags(task.tags);
+    setCompleted(task.completed);
   }
 
   function handleTaskDeletion(): void {
@@ -76,7 +86,8 @@ export function TaskEditor({
   const changesSaved =
     task.title === title &&
     task.content === content &&
-    setsAreEqual(task.tags, tags);
+    setsAreEqual(task.tags, tags) &&
+    task.completed === completed;
 
   return (
     <CenteredPage>
@@ -108,6 +119,19 @@ export function TaskEditor({
           onUpdate={handleTaskTagsChange}
           wipman={wipman}
         />
+
+        <div>
+          <label htmlFor="completed">
+            {completed ? "task is completed" : "task is incomplete"}
+          </label>
+          <InputSwitch
+            inputId="completed"
+            checked={completed}
+            onChange={() => setCompleted(!completed)}
+          />
+        </div>
+
+        <div></div>
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}
           input={task.id}
