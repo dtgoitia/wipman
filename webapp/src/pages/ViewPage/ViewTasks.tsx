@@ -1,8 +1,11 @@
 import ListedTask from "../../components/ListedTask";
+import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
-import { Task, TaskId, View } from "../../domain/types";
+import { FilterQuery, Task, TaskId, View } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { getTaskPath } from "../../routes";
+import { FilterSpec, TaskFilter } from "../TaskExplorer/TaskFilter";
+import { shouldShowTask } from "../TaskExplorer/filter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -15,6 +18,8 @@ interface ViewTasksProps {
 export function ViewTasks({ view, wipman }: ViewTasksProps) {
   const navigate = useNavigate();
   const [taskIds, setTaskIds] = useState<TaskId[]>([]);
+  const [showCompleted, setShowCompleted] = useState<boolean>(false);
+  const [query, setQuery] = useState<FilterQuery>(NO_FILTER_QUERY);
 
   useEffect(() => {
     const subscription = wipman.views$.subscribe(() => {
@@ -31,6 +36,16 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
       subscription.unsubscribe();
     };
   }, [view, wipman]);
+
+  function handleTaskFilterChange(updated: FilterSpec): void {
+    if (updated.query !== query) {
+      setQuery(updated.query);
+    }
+
+    if (updated.showCompleted !== showCompleted) {
+      setShowCompleted(updated.showCompleted);
+    }
+  }
 
   function handleInsertBefore({
     toInsert,
@@ -63,12 +78,37 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
     navigate(getTaskPath(id));
   }
 
+  const tasks: Task[] = [];
+  for (const taskId of taskIds) {
+    const task: Task = wipman.getTask({ id: taskId }) as Task;
+
+    // If task is not completed, always show it
+    // If task is completed, only show it if `showCompleted` is true
+    const showByCompleted = task.completed === false || showCompleted === true;
+
+    // optimization to avoid text search if not needed
+    if (showByCompleted === false) continue;
+
+    // Text search
+    const showByFilter =
+      query === NO_FILTER_QUERY || // show if user didn't use search
+      shouldShowTask(task, query);
+
+    const showTask = showByCompleted && showByFilter;
+    if (showTask) {
+      tasks.push(task);
+    }
+  }
+
   return (
-    <DndProvider backend={TouchBackend}>
-      <ul>
-        {taskIds
-          .map((id: TaskId) => wipman.getTask({ id }) as Task)
-          .map((task) => (
+    <>
+      <TaskFilter
+        spec={{ query, showCompleted }}
+        onUpdate={handleTaskFilterChange}
+      />
+      <DndProvider backend={TouchBackend}>
+        <ul>
+          {tasks.map((task) => (
             <ListedTask
               key={task.id}
               task={task}
@@ -76,8 +116,9 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
               onInsertBefore={handleInsertBefore}
             />
           ))}
-      </ul>
-    </DndProvider>
+        </ul>
+      </DndProvider>
+    </>
   );
 }
 
