@@ -6,6 +6,7 @@ import { FilterQuery, Task, TaskId, TaskTitle } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { getTaskPath } from "../../routes";
 import { FilterSpec, TaskFilter } from "./TaskFilter";
+import { shouldShowTask } from "./filter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -58,32 +59,13 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     );
   }
 
-  function filterTask(task: Task): boolean {
-    const _query = query.toLowerCase();
-
-    const searchables = [task.title];
-    if (task.tags.size > 0) {
-      task.tags.forEach((tag) => searchables.push(tag));
-    }
-    if (task.content) {
-      searchables.push(task.content);
-    }
-
-    for (const searchable of searchables) {
-      const found = searchable.toLowerCase().includes(_query as string);
-      if (found) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
   const tasksToDisplay = tasks.filter((task) =>
     showCompleted ? true : task.completed === false
   );
   const filteredTasks =
-    query && query !== "" ? tasksToDisplay.filter(filterTask) : tasksToDisplay;
+    query && query !== NO_FILTER_QUERY
+      ? tasksToDisplay.filter((task) => shouldShowTask(task, query))
+      : tasksToDisplay;
 
   return (
     <CenteredPage>
