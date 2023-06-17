@@ -60,6 +60,7 @@ function ViewExplorer({ wipman }: ViewExplorerProps) {
         {views.map((view) => (
           <ViewSummary
             key={view.id}
+            wipman={wipman}
             view={view}
             onClick={() => openView(view.id)}
             onDelete={() => wipman.removeView({ id: view.id })}

@@ -1,8 +1,11 @@
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { Tags } from "../../components/ViewTags";
-import { TaskTitle, View, ViewId } from "../../domain/types";
+import { Task, TaskTitle, View, ViewId } from "../../domain/types";
+import { Wipman } from "../../domain/wipman";
 import { Card } from "primereact/card";
 import styled from "styled-components";
+
+const TASK_AMOUNT = 5; // Amount of tasks shown in the View summary
 
 const Title = styled.h3`
   margin-top: 0;
@@ -18,12 +21,19 @@ interface Props {
   view: View;
   onClick: () => void;
   onDelete: (id: ViewId) => void;
+  wipman: Wipman;
 }
 export function ViewSummary({
   view,
   onClick: handleClick,
   onDelete: deleteView,
+  wipman,
 }: Props) {
+  const titles: TaskTitle[] = view.tasks
+    .slice(0, TASK_AMOUNT)
+    .map((taskId) => wipman.getTask({ id: taskId }) as Task)
+    .map((task) => task.title);
+
   return (
     <CustomCard
       footer={
@@ -37,14 +47,7 @@ export function ViewSummary({
       <div onClick={handleClick}>
         <Title>{view.title}</Title>
         <Tags tags={view.tags} />
-        <TopTasks
-          titles={[
-            "feat(ui): add a thingy to the top of the stuff",
-            "I'm baby wolf prism vinyl roof party. Cronut venmo viral poutine, subway tile taiyaki vape. Thundercats shoreditch cold-pressed, tilde health goth knausgaard hella. Vape street art neutra pabst.",
-            `feat: ui: update NavBar to show the "Save" button on TaskManager.changes$=TaskAdded/TaskUpdated/TaskDeleted so that user can press 'Save' button and changes are propagated to browser LocalStorage and API`,
-            `test: api: add test to ensure healthy endpoint breaks when DB file is missing`,
-          ]}
-        />
+        <TopTasks titles={titles} />
       </div>
     </CustomCard>
   );
