@@ -1,3 +1,4 @@
+import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import InputText from "../../components/InputText";
 import { TagSelector } from "../../components/TagSelector";
 import { nowIsoString } from "../../domain/dates";
@@ -39,6 +40,11 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
   return (
     <div>
       <ViewTitleComponent title={title} onUpdate={handleTaskTitleChange} />
+      <DeleteConfirmationDialog
+        title={"Confirm that you want to delete this View"}
+        input={view.title}
+        onDelete={() => wipman.removeView({ id: view.id })}
+      />
       <TagSelector
         selected={tags}
         onUpdate={handleViewTagsChange}

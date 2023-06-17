@@ -63,7 +63,6 @@ function ViewExplorer({ wipman }: ViewExplorerProps) {
             wipman={wipman}
             view={view}
             onClick={() => openView(view.id)}
-            onDelete={() => wipman.removeView({ id: view.id })}
           />
         ))}
       </ul>
