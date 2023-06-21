@@ -1,11 +1,3 @@
-import {
-  BehaviorSubject,
-  Observable,
-  Subject,
-  filter,
-  first,
-  forkJoin,
-} from "rxjs";
 import { assertNever } from "../exhaustive-match";
 import { ErrorsService } from "../services/errors";
 import { Storage } from "../services/persistence/persist";
@@ -21,6 +13,14 @@ import { TagManager } from "./tag";
 import { TaskChanges, TaskManager } from "./task";
 import { Tag, Task, TaskId, TaskTitle, View, ViewId, ViewTitle } from "./types";
 import { ViewChange, ViewManager } from "./view";
+import {
+  BehaviorSubject,
+  Observable,
+  Subject,
+  filter,
+  first,
+  forkJoin,
+} from "rxjs";
 
 export const INIT_OPERATION_ID = generateOperationId();
 
@@ -216,8 +216,8 @@ export class Wipman {
     this.viewManager.recompute();
   }
 
-  public addTask({ title }: { title: TaskTitle }): void {
-    this.taskManager.addTask({ title });
+  public addTask({ title, tags }: { title: TaskTitle; tags?: Set<Tag> }): void {
+    this.taskManager.addTask({ title, tags });
   }
 
   public updateTask({ task }: { task: Task }): void {

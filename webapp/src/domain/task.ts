@@ -1,14 +1,15 @@
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { unreachable } from "../devex";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
 import { setsAreEqual } from "./set";
 import { Hash, MarkdownString, Tag, Task, TaskId, TaskTitle } from "./types";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 type TasksIndexedByTag = Map<Tag, Set<TaskId>>;
 
 interface NewTask {
   title: TaskTitle;
+  tags?: Set<Tag>;
 }
 
 export class TaskManager {
@@ -51,7 +52,7 @@ export class TaskManager {
     this.changeSubject.next({ kind: "TasksInitialized" });
   }
 
-  public addTask({ title }: NewTask): Task {
+  public addTask({ title, tags }: NewTask): Task {
     const id: Hash = generateHash();
     const task: Task = {
       id,
@@ -59,7 +60,7 @@ export class TaskManager {
       content: "",
       created: nowIsoString(),
       updated: nowIsoString(),
-      tags: new Set<Tag>(),
+      tags: tags === undefined ? new Set<Tag>() : tags,
       blockedBy: new Set<TaskId>(),
       blocks: new Set<TaskId>(),
       completed: false,
