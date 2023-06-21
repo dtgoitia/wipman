@@ -1,12 +1,21 @@
+import AddTask from "../../components/AddTask";
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { TagSelector } from "../../components/TagSelector";
 import { nowIsoString } from "../../domain/dates";
 import { setsAreEqual } from "../../domain/set";
-import { Tag, View, ViewTitle } from "../../domain/types";
+import { Tag, TaskTitle, View, ViewTitle } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { ViewTitleComponent } from "./ViewTitle";
 import { Button } from "primereact/button";
 import { useState } from "react";
+import styled from "styled-components";
+
+const AlignRight = styled.div`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-end;
+  align-items: stretch;
+`;
 
 interface ViewDetailProps {
   view: View;
@@ -36,6 +45,10 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
 
   const changesSaved = view.title === title && setsAreEqual(view.tags, tags);
 
+  function handleAddTask(title: TaskTitle) {
+    wipman.addTask({ title, tags });
+  }
+
   return (
     <div>
       <ViewTitleComponent title={title} onUpdate={handleTaskTitleChange} />
@@ -49,6 +62,13 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
         onUpdate={handleViewTagsChange}
         wipman={wipman}
       />
+      {changesSaved ? (
+        <AddTask onAdd={handleAddTask} />
+      ) : (
+        <AlignRight>
+          <Button icon="pi pi-plus" label="Add task" disabled={true} />
+        </AlignRight>
+      )}
       {changesSaved === false && (
         <div>
           <Button
