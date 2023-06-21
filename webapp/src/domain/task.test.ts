@@ -2,6 +2,7 @@ import { todo } from "../devex";
 import { createTask } from "../testHelpers";
 import { TaskManager, mergeTasks } from "./task";
 import { Task } from "./types";
+import { describe, expect, it } from "vitest";
 
 describe("TaskManager", () => {
   it("can be initialized empty", () => {
@@ -101,7 +102,7 @@ describe("mergeTasks", () => {
   it(`handles both being empty`, () => {
     expect(mergeTasks({ a: [], b: [] })).toEqual([]);
   });
-  xit(`handles entries with different timezones`, () => {
+  it.skip(`handles entries with different timezones`, () => {
     todo();
   });
 });

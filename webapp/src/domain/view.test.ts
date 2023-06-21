@@ -1,6 +1,7 @@
 import { TaskManager } from "./task";
 import { Tag } from "./types";
 import { ViewManager } from "./view";
+import { describe, expect, it } from "vitest";
 
 describe("ViewManager", () => {
   const taskManager = new TaskManager();
