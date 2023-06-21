@@ -56,8 +56,8 @@ rebuild_webapp:
 	docker image rm $(WEBAPP_NAME) || (echo "No $(WEBAPP_NAME) found, all good."; exit 0)
 	docker compose build --no-cache $(WEBAPP_NAME)
 
-test_dev_webapp:
-	docker compose run --rm $(WEBAPP_NAME) npm test
+test_webapp:
+	docker compose run --rm $(WEBAPP_NAME) npm run test:unit
 
 shell_webapp:
 	docker compose run --rm $(WEBAPP_NAME) bash
