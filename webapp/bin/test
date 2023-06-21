@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+set -eu
+
+current_dir="$(basename $(pwd))"
+
+if [[ "$current_dir" == "webapp" ]]; then
+    # Move to the root of the monorepo
+    cd ..
+fi
+
+echo "Type-checking..."
+cd webapp; npm run test:unit:ci
