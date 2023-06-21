@@ -43,3 +43,12 @@ repos:
         stages: [commit]
         pass_filenames: false
         files: webapp/.*\.(ts|tsx)$
+
+      - id: webapp-tests
+        name: "webapp: run tests"
+        entry: webapp/bin/test
+        verbose: false
+        language: system
+        stages: [commit]
+        pass_filenames: false
+        files: webapp/.*\.(ts|tsx)$
