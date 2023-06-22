@@ -1,5 +1,6 @@
 import AddTask from "../../components/AddTask";
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
+import { LastUpdated } from "../../components/LastUpdated";
 import { TagSelector } from "../../components/TagSelector";
 import { nowIsoString } from "../../domain/dates";
 import { setsAreEqual } from "../../domain/set";
@@ -57,8 +58,7 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
         input={view.title}
         onDelete={() => wipman.removeView({ id: view.id })}
       />
-      <p>created at: {view.created}</p>
-      <p>updated at: {view.updated}</p>
+      <LastUpdated date={view.updated} />
       <TagSelector
         selected={tags}
         onUpdate={handleViewTagsChange}
