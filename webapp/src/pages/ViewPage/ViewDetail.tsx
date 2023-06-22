@@ -57,6 +57,8 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
         input={view.title}
         onDelete={() => wipman.removeView({ id: view.id })}
       />
+      <p>created at: {view.created}</p>
+      <p>updated at: {view.updated}</p>
       <TagSelector
         selected={tags}
         onUpdate={handleViewTagsChange}
