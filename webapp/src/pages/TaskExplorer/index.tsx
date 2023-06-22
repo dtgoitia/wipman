@@ -10,6 +10,7 @@ import {
   TaskTitle,
 } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
+import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "./TaskFilter";
 import { shouldShowTask } from "./filter";
@@ -23,9 +24,14 @@ interface TaskExplorerProps {
 }
 function TaskExplorer({ wipman }: TaskExplorerProps) {
   const navigateTo = useNavigate();
+  const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
 
-  const [showCompleted, setShowCompleted] = useState<boolean>(false);
-  const [query, setQuery] = useState<FilterQuery>(NO_FILTER_QUERY);
+  const [showCompleted, setShowCompleted] = useState<boolean>(
+    filterSpecInUrl.showCompleted || false
+  );
+  const [query, setQuery] = useState<FilterQuery>(
+    filterSpecInUrl.query || NO_FILTER_QUERY
+  );
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
@@ -54,6 +60,8 @@ function TaskExplorer({ wipman }: TaskExplorerProps) {
     if (updated.showCompleted !== showCompleted) {
       setShowCompleted(updated.showCompleted);
     }
+
+    setFilterSpecInUrl(updated);
   }
 
   if (tasks.length === 0) {
