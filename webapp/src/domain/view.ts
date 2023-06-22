@@ -164,6 +164,7 @@ export class ViewManager {
       }
     }
   }
+
   private removeViewFromIndex({ id }: { id: ViewId }): void {
     for (const [taskId, viewIds] of this.viewsByTask.entries()) {
       if (viewIds.has(id) === false) continue;
@@ -328,7 +329,11 @@ export class ViewManager {
   }): void {
     this.updateIndexToAddTaskToView({ viewId: view.id, taskId });
 
-    const updated: View = { ...view, tasks: [...view.tasks, taskId] };
+    const updated: View = {
+      ...view,
+      updated: nowIsoString(),
+      tasks: [...view.tasks, taskId],
+    };
     this.views.set(view.id, updated);
 
     this.changeSubject.next({
@@ -354,6 +359,7 @@ export class ViewManager {
 
     const updated: View = {
       ...view,
+      updated: nowIsoString(),
       tasks: view.tasks.filter((existingTaskId) => existingTaskId !== taskId),
     };
     this.views.set(view.id, updated);
