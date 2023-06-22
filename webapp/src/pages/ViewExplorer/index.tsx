@@ -17,11 +17,11 @@ const Toolbar = styled.div`
   gap: 1rem;
 `;
 
-interface ViewExplorerProps {
+interface Props {
   wipman: Wipman;
 }
 
-function ViewExplorer({ wipman }: ViewExplorerProps) {
+function ViewExplorer({ wipman }: Props) {
   const navigate = useNavigate();
   const [views, setViews] = useState<View[]>([]);
 

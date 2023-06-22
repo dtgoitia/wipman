@@ -11,11 +11,11 @@ import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { useNavigate } from "react-router-dom";
 
-interface ViewTasksProps {
+interface Props {
   view: View;
   wipman: Wipman;
 }
-export function ViewTasks({ view, wipman }: ViewTasksProps) {
+export function ViewTasks({ view, wipman }: Props) {
   const navigate = useNavigate();
   const [taskIds, setTaskIds] = useState<TaskId[]>([]);
   const [showCompleted, setShowCompleted] = useState<boolean>(false);

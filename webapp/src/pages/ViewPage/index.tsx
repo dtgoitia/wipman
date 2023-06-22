@@ -27,10 +27,10 @@ function shouldShowSpinner(change: OperationStatusChange): ShowSpinner {
   }
 }
 
-interface ViewPageProps {
+interface Props {
   wipman: Wipman;
 }
-function ViewPage({ wipman }: ViewPageProps) {
+function ViewPage({ wipman }: Props) {
   const [spinnerIsVisible, setSpinnerIsVisible] = useState<boolean>(true);
   const [view, setView] = useState<View | undefined>();
 
