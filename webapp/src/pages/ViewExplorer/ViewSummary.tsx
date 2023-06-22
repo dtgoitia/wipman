@@ -14,10 +14,11 @@ interface Props {
   onClick: () => void;
   wipman: Wipman;
 }
+
 export function ViewSummary({ view, onClick: handleClick, wipman }: Props) {
   const titles: TaskTitle[] = view.tasks
     .map((taskId) => wipman.getTask({ id: taskId }) as Task)
-    .filter((task) => task.completed === false)
+    .filter((task) => task !== undefined && task.completed === false)
     .slice(0, TASK_AMOUNT)
     .map((task) => task.title);
 

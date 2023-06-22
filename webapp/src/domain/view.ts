@@ -193,6 +193,7 @@ export class ViewManager {
       case "TaskAdded":
         return this.handleTaskAdded({ id: change.id });
       case "TaskUpdated":
+        return this.handleTaskUpdated({ id: change.id });
         // I think is safe to ignore this event because Views only know the Task ID
         return;
       case "TaskDeleted":
@@ -203,7 +204,11 @@ export class ViewManager {
   }
 
   private handleTaskAdded({ id: taskId }: { id: TaskId }): void {
-    console.debug(`ViewManager.handleTaskAdded::taskId`, taskId);
+    console.debug(
+      `${ViewManager.name}.${this.handleTaskAdded.name}::taskId`,
+      taskId
+    );
+
     const task = this.taskManager.getTask(taskId);
     if (task === undefined) {
       throw unreachable({
@@ -211,34 +216,96 @@ export class ViewManager {
       });
     }
 
-    // If the task has no tags, it has been added inline in the backlog, or via command
+    for (const [viewId, view] of this.views) {
+      const viewShouldIncludeTask = shouldViewIncludeTask({
+        view,
+        taskTags: task.tags,
+      });
+
+      if (viewShouldIncludeTask) {
+        console.debug(
+          `${ViewManager.name}.${this.handleTaskAdded.name}: Task` +
+            ` '${taskId}' must appear in '${viewId}' View and it` +
+            ` doesn't. Adding it now...`
+        );
+
+        this.addTaskToView({ view, taskId });
+      } else {
+        console.debug(
+          `${ViewManager.name}.${this.handleTaskAdded.name}: Task` +
+            ` '${taskId}' must not appear in '${viewId}' View and it` +
+            ` doesn't. Nothing to do`
+        );
+      }
+    }
+  }
+
+  private handleTaskUpdated({ id: taskId }: { id: TaskId }): void {
+    console.debug(
+      `${ViewManager.name}.${this.handleTaskUpdated.name}::taskId`,
+      taskId
+    );
+
+    const task = this.taskManager.getTask(taskId);
+    if (task === undefined) {
+      throw unreachable({
+        message: `expected to find Task ${taskId} in TaskManager but didn't`,
+      });
+    }
 
     for (const [viewId, view] of this.views) {
       const viewShouldIncludeTask = shouldViewIncludeTask({
         view,
         taskTags: task.tags,
       });
-      if (viewShouldIncludeTask) {
-        console.debug(
-          `ViewManager.handleTaskAdded: Task '${taskId}' must appear in '${viewId}' View`
-        );
-        this.updateIndexToAddTaskToView({ viewId, taskId });
 
-        const updated: View = { ...view, tasks: [...view.tasks, taskId] };
-        this.views.set(view.id, updated);
-        console.debug(
-          `ViewManager.handleTaskAdded: Task '${taskId}' appended to View '${viewId}'`
-        );
+      const viewIncludesTask = view.tasks.includes(taskId);
 
-        this.changeSubject.next({
-          kind: "TaskAddedToView",
-          id: viewId,
-          taskId,
-        });
-      } else {
-        console.debug(
-          `ViewManager.handleTaskAdded: Task '${taskId}' must not appear in '${viewId}' View`
-        );
+      switch (true) {
+        case viewShouldIncludeTask && viewIncludesTask: {
+          console.debug(
+            `${ViewManager.name}.${this.handleTaskUpdated.name}: Task` +
+              ` '${taskId}' must appear in '${viewId}' View and it` +
+              ` does. Nothing to do`
+          );
+          break;
+        }
+
+        case viewShouldIncludeTask && viewIncludesTask === false: {
+          // add task to indexes and emit
+          console.debug(
+            `${ViewManager.name}.${this.handleTaskUpdated.name}: Task` +
+              ` '${taskId}' must appear in '${viewId}' View and it` +
+              ` doesn't. Adding it now...`
+          );
+
+          this.addTaskToView({ view, taskId });
+          break;
+        }
+
+        case viewShouldIncludeTask === false && viewIncludesTask: {
+          console.debug(
+            `${ViewManager.name}.${this.handleTaskUpdated.name}: Task` +
+              ` '${taskId}' must not appear in '${viewId}' View and it` +
+              ` does. Removing it now...`
+          );
+          this.deleteTaskFromView({ view, taskId });
+          break;
+        }
+
+        case viewShouldIncludeTask === false && viewIncludesTask == false: {
+          console.debug(
+            `${ViewManager.name}.${this.handleTaskUpdated.name}: Task` +
+              ` '${taskId}' must not appear in '${viewId}' View and it` +
+              ` doesn't. Nothing to do`
+          );
+          break;
+        }
+
+        default:
+          throw unreachable({
+            message: "BUG: you shouldn't reached here",
+          });
       }
     }
   }
@@ -248,26 +315,59 @@ export class ViewManager {
 
     this.getViewsByTask(taskId) // views that had the task before the deletion
       .forEach((view: View) => {
-        this.updateIndexToRemoveTaskFromView({ viewId: view.id, taskId });
-
-        // Remove task from View.taskIds
-        const updated: View = {
-          ...view,
-          tasks: view.tasks.filter(
-            (existingTaskId) => existingTaskId !== taskId
-          ),
-        };
-        this.views.set(view.id, updated);
-
-        // One of these views will not need to change - because the user has already
-        // deleted the Task from the View - but the rest of the views will need to be
-        // updated, hence it's necessary to propagate this event:
-        this.changeSubject.next({
-          kind: "TaskRemovedFromView",
-          id: view.id,
-          taskId,
-        });
+        this.deleteTaskFromView({ view, taskId });
       });
+  }
+
+  private addTaskToView({
+    view,
+    taskId,
+  }: {
+    view: View;
+    taskId: TaskId;
+  }): void {
+    this.updateIndexToAddTaskToView({ viewId: view.id, taskId });
+
+    const updated: View = { ...view, tasks: [...view.tasks, taskId] };
+    this.views.set(view.id, updated);
+
+    this.changeSubject.next({
+      kind: "TaskAddedToView",
+      id: view.id,
+      taskId,
+    });
+
+    console.debug(
+      `${ViewManager.name}.${this.addTaskToView.name}: Task` +
+        ` '${taskId}' appended to View '${view.id}'`
+    );
+  }
+
+  private deleteTaskFromView({
+    view,
+    taskId,
+  }: {
+    view: View;
+    taskId: TaskId;
+  }): void {
+    this.updateIndexToRemoveTaskFromView({ viewId: view.id, taskId });
+
+    const updated: View = {
+      ...view,
+      tasks: view.tasks.filter((existingTaskId) => existingTaskId !== taskId),
+    };
+    this.views.set(view.id, updated);
+
+    this.changeSubject.next({
+      kind: "TaskRemovedFromView",
+      id: view.id,
+      taskId,
+    });
+
+    console.debug(
+      `${ViewManager.name}.${this.deleteTaskFromView.name}: Task` +
+        ` '${taskId}' removed from View '${view.id}'`
+    );
   }
 
   private getViewsByTask(id: TaskId): View[] {

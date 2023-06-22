@@ -80,7 +80,10 @@ export function ViewTasks({ view, wipman }: ViewTasksProps) {
 
   const tasks: Task[] = [];
   for (const taskId of taskIds) {
-    const task: Task = wipman.getTask({ id: taskId }) as Task;
+    const task = wipman.getTask({ id: taskId });
+    if (task === undefined) {
+      continue;
+    }
 
     // If task is not completed, always show it
     // If task is completed, only show it if `showCompleted` is true
