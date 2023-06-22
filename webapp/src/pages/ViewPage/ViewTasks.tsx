@@ -3,6 +3,7 @@ import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
 import { FilterQuery, Task, TaskId, View } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
+import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { FilterSpec, TaskFilter } from "../TaskExplorer/TaskFilter";
 import { shouldShowTask } from "../TaskExplorer/filter";
@@ -17,9 +18,13 @@ interface Props {
 }
 export function ViewTasks({ view, wipman }: Props) {
   const navigate = useNavigate();
+  const [queryInUrl, setQueryInUrl] = useUrlSearchParams();
+
   const [taskIds, setTaskIds] = useState<TaskId[]>([]);
   const [showCompleted, setShowCompleted] = useState<boolean>(false);
-  const [query, setQuery] = useState<FilterQuery>(NO_FILTER_QUERY);
+  const [query, setQuery] = useState<FilterQuery>(
+    queryInUrl || NO_FILTER_QUERY
+  );
 
   useEffect(() => {
     const subscription = wipman.views$.subscribe(() => {
@@ -40,6 +45,7 @@ export function ViewTasks({ view, wipman }: Props) {
   function handleTaskFilterChange(updated: FilterSpec): void {
     if (updated.query !== query) {
       setQuery(updated.query);
+      setQueryInUrl(updated.query);
     }
 
     if (updated.showCompleted !== showCompleted) {
