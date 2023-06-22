@@ -67,4 +67,26 @@ describe("ViewManager", () => {
       });
     });
   });
+
+  describe.skip(`when a Task is updated`, () => {
+    const viewATags = new Set<Tag>(["tag1", "tag2"]);
+    const viewBTags = new Set<Tag>(["tag3"]);
+
+    const taskManager = new TaskManager();
+    const viewManager = new ViewManager({ taskManager });
+
+    const viewA = viewManager.addView({ title: "A" });
+    viewManager.updateView({ ...viewA, tags: viewATags });
+
+    const viewB = viewManager.addView({ title: "B" });
+    viewManager.updateView({ ...viewB, tags: viewBTags });
+
+    it.skip(`it remains in Views whose tags match`, () => {
+      // TODO
+    });
+
+    it.skip(`it is removed from Views whose tags don't match`, () => {
+      // TODO
+    });
+  });
 });
