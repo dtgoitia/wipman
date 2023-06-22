@@ -1,6 +1,6 @@
 import CenteredPage from "../../components/CenteredPage";
 import { OperationStatusChange } from "../../domain/operations";
-import { ViewId } from "../../domain/types";
+import { View, ViewId } from "../../domain/types";
 import { INIT_OPERATION_ID, Wipman } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
 import PageNotFound from "../PageNotFound";
@@ -32,6 +32,7 @@ interface ViewPageProps {
 }
 function ViewPage({ wipman }: ViewPageProps) {
   const [spinnerIsVisible, setSpinnerIsVisible] = useState<boolean>(true);
+  const [view, setView] = useState<View | undefined>();
 
   const params = useParams();
   const id = params.viewId as ViewId;
@@ -48,24 +49,28 @@ function ViewPage({ wipman }: ViewPageProps) {
       }
     });
 
+    const viewSubscription = wipman.views$.subscribe(() => {
+      setView(wipman.getView({ id }));
+    });
+
     if (wipman.isOperationCompleted({ id: INIT_OPERATION_ID })) {
       setSpinnerIsVisible(false);
     }
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      viewSubscription.unsubscribe();
+    };
   }, [wipman]);
 
   if (spinnerIsVisible === true) {
     return <div>LOADING VIEW</div>;
   }
 
-  const maybeView = wipman.getView({ id });
-  if (maybeView === undefined) {
+  if (view === undefined) {
     console.warn(`No view found with ID: ${id}`);
     return <PageNotFound />;
   }
-
-  const view = maybeView;
 
   return (
     <CenteredPage>
