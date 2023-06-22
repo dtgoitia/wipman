@@ -1,24 +1,8 @@
 import { generateHash } from "../../domain/hash";
-import {
-  ISODatetimeString,
-  MarkdownString,
-  Tag,
-  Task,
-  TaskId,
-  TaskTitle,
-} from "../../domain/types";
+import { Task } from "../../domain/types";
 
-interface buildTaskArgs {
-  id?: TaskId;
-  title?: TaskTitle;
-  content?: MarkdownString;
-  created?: ISODatetimeString;
-  updated?: ISODatetimeString;
-  tags?: Set<Tag>;
-  blockedBy?: Set<TaskId>;
-  blocks?: Set<TaskId>;
-  completed?: boolean;
-}
+type buildTaskArgs = Partial<Task>;
+
 export function buildTask({
   id,
   title,

@@ -1,23 +1,9 @@
 import { generateHash } from "../../domain/hash";
-import {
-  ISODatetimeString,
-  Tag,
-  TaskId,
-  View,
-  ViewId,
-  ViewTitle,
-} from "../../domain/types";
+import { Tag, View } from "../../domain/types";
 
-interface buildViewArgs {
-  id?: ViewId;
-  title?: ViewTitle;
-  created?: ISODatetimeString;
-  updated?: ISODatetimeString;
-  tags: Set<Tag>;
-  tasks?: TaskId[];
-}
+type buildViewArgs = Partial<View>;
 
-export default function createView({
+export default function buildView({
   id,
   title,
   created,
