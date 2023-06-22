@@ -1,9 +1,9 @@
-import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { unreachable } from "../devex";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
 import { setsAreEqual } from "./set";
 import { Hash, MarkdownString, Tag, Task, TaskId, TaskTitle } from "./types";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 
 type TasksIndexedByTag = Map<Tag, Set<TaskId>>;
 
@@ -37,6 +37,9 @@ export class TaskManager {
 
     this.changeSubject = new Subject<TaskChanges>();
     this.change$ = this.changeSubject.asObservable();
+    this.change$.subscribe((change) =>
+      console.debug(`${TaskManager.name}.changes$:`, change)
+    );
   }
 
   /**
@@ -53,6 +56,7 @@ export class TaskManager {
   }
 
   public addTask({ title, tags }: NewTask): Task {
+    console.debug(`${TaskManager.name}.${this.addTask.name}::started`);
     const id: Hash = generateHash();
     const task: Task = {
       id,
@@ -70,6 +74,7 @@ export class TaskManager {
     this.addTaskToTagIndexes(task.id, task.tags);
 
     this.changeSubject.next({ kind: "TaskAdded", id });
+    console.debug(`${TaskManager.name}.${this.addTask.name}::ended`);
     return task;
   }
 

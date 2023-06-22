@@ -33,6 +33,10 @@ export class ViewManager {
     this.taskManager.change$.subscribe((change) =>
       this.handleTaskChange(change)
     );
+
+    this.change$.subscribe((change) =>
+      console.debug(`${ViewManager.name}.change$:`, change)
+    );
   }
 
   public addView({ title }: NewView): View {
@@ -179,6 +183,10 @@ export class ViewManager {
   }
 
   private handleTaskChange(change: TaskChanges): void {
+    console.debug(
+      `${ViewManager.name}.${this.handleTaskAdded.name}::change:`,
+      change
+    );
     switch (change.kind) {
       case "TasksInitialized":
         return;
