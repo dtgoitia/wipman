@@ -1,6 +1,7 @@
 import { TaskManager } from "./task";
-import { Tag } from "./types";
+import { Tag, View } from "./types";
 import { ViewManager } from "./view";
+import { first } from "rxjs";
 import { describe, expect, it } from "vitest";
 
 describe("ViewManager", () => {
@@ -30,4 +31,40 @@ describe("ViewManager", () => {
   });
 
   // TODO: more tests are needed
+
+  describe(`when a Task is added`, () => {
+    const viewATags = new Set<Tag>(["tag1", "tag2"]);
+    const viewBTags = new Set<Tag>(["tag3"]);
+
+    const taskManager = new TaskManager();
+    const viewManager = new ViewManager({ taskManager });
+
+    const viewA = viewManager.addView({ title: "A" });
+    viewManager.updateView({ ...viewA, tags: viewATags });
+
+    const viewB = viewManager.addView({ title: "B" });
+    viewManager.updateView({ ...viewB, tags: viewBTags });
+
+    it(`only adds a Task to the Views whose tags match`, () => {
+      expect(viewA.tasks.length).toBe(0);
+      expect(viewB.tasks.length).toBe(0);
+
+      viewManager.change$.pipe(first()).subscribe((change) => {
+        if (change.kind !== "TaskAddedToView") {
+          throw new Error();
+        }
+
+        const updatedA = viewManager.getView(viewA.id) as View;
+        expect(updatedA.tasks).toStrictEqual([change.taskId]);
+
+        const updatedB = viewManager.getView(viewB.id) as View;
+        expect(updatedB.tasks).toStrictEqual([]);
+      });
+
+      taskManager.addTask({
+        title: "test task",
+        tags: viewATags,
+      });
+    });
+  });
 });
