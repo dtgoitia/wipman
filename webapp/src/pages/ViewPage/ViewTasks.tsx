@@ -24,12 +24,14 @@ interface Props {
 }
 export function ViewTasks({ view, wipman }: Props) {
   const navigate = useNavigate();
-  const [queryInUrl, setQueryInUrl] = useUrlSearchParams();
+  const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
 
   const [taskIds, setTaskIds] = useState<TaskId[]>([]);
-  const [showCompleted, setShowCompleted] = useState<boolean>(false);
+  const [showCompleted, setShowCompleted] = useState<boolean>(
+    filterSpecInUrl.showCompleted || false
+  );
   const [query, setQuery] = useState<FilterQuery>(
-    queryInUrl || NO_FILTER_QUERY
+    filterSpecInUrl.query || NO_FILTER_QUERY
   );
 
   useEffect(() => {
@@ -51,12 +53,13 @@ export function ViewTasks({ view, wipman }: Props) {
   function handleTaskFilterChange(updated: FilterSpec): void {
     if (updated.query !== query) {
       setQuery(updated.query);
-      setQueryInUrl(updated.query);
     }
 
     if (updated.showCompleted !== showCompleted) {
       setShowCompleted(updated.showCompleted);
     }
+
+    setFilterSpecInUrl(updated);
   }
 
   function handleInsertBefore({
