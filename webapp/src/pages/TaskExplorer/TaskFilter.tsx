@@ -1,11 +1,6 @@
 import SearchBox, { NO_FILTER_QUERY } from "../../components/SearchBox";
-import { FilterQuery } from "../../domain/types";
+import { FilterQuery, FilterSpec } from "../../domain/types";
 import { InputSwitch } from "primereact/inputswitch";
-
-export interface FilterSpec {
-  query: FilterQuery;
-  showCompleted: boolean;
-}
 
 interface Props {
   spec: FilterSpec;

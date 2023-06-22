@@ -1,11 +1,17 @@
 import ListedTask from "../../components/ListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
-import { FilterQuery, Task, TaskId, View } from "../../domain/types";
+import {
+  FilterQuery,
+  FilterSpec,
+  Task,
+  TaskId,
+  View,
+} from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
-import { FilterSpec, TaskFilter } from "../TaskExplorer/TaskFilter";
+import { TaskFilter } from "../TaskExplorer/TaskFilter";
 import { shouldShowTask } from "../TaskExplorer/filter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";

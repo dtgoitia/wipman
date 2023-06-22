@@ -35,3 +35,8 @@ export interface Settings {
   apiUrl?: string;
   apiToken?: string;
 }
+
+export interface FilterSpec {
+  query: FilterQuery;
+  showCompleted: boolean;
+}

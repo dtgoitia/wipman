@@ -2,10 +2,16 @@ import AddTask from "../../components/AddTask";
 import CenteredPage from "../../components/CenteredPage";
 import ListedTask from "../../components/ListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
-import { FilterQuery, Task, TaskId, TaskTitle } from "../../domain/types";
+import {
+  FilterQuery,
+  FilterSpec,
+  Task,
+  TaskId,
+  TaskTitle,
+} from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { getTaskPath } from "../../routes";
-import { FilterSpec, TaskFilter } from "./TaskFilter";
+import { TaskFilter } from "./TaskFilter";
 import { shouldShowTask } from "./filter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
