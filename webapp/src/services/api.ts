@@ -1,7 +1,7 @@
-import { Client } from "browser-http-client";
 import { SettingsManager } from "../domain/settings";
 import { Task, TaskId, View, ViewId } from "../domain/types";
 import { ErrorsService } from "./errors";
+import { Client } from "browser-http-client";
 
 interface ConstructorArgs {
   errors: ErrorsService;
@@ -28,6 +28,10 @@ export class WipmanApi {
     return navigator.onLine;
   }
 
+  private isApiUrlInSettings(): boolean {
+    return this.settingsManager.settings.apiUrl !== undefined;
+  }
+
   private apiIsInLocalhost(): boolean {
     const apiUrl = this.settingsManager.settings.apiUrl;
     if (apiUrl === undefined) return false;
@@ -39,6 +43,21 @@ export class WipmanApi {
   }
 
   public getLastChanges(): Promise<{ tasks: Task[]; views: View[] }> {
+    const earlyReturn = Promise.resolve({ tasks: [], views: [] });
+    if (this.isApiUrlInSettings() === false) {
+      console.debug(
+        `${WipmanApi.name}.${this.getLastChanges.name}::no API URL found in Settings`
+      );
+      return earlyReturn;
+    }
+
+    if (this.isOnline() === false) {
+      console.debug(
+        `${WipmanApi.name}.${this.getLastChanges.name}::we are offline`
+      );
+      return earlyReturn;
+    }
+
     return this.getUpdatedAfter({ date: this.getLastFetchDate() });
   }
 

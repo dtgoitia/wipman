@@ -83,11 +83,15 @@ export class Storage {
      */
     const tasksInBrowser: Task[] = this.readTasksFromBrowser();
     const viewsInBrowser: View[] = this.readViewsFromBrowser();
+
+    // emits browser data as soon as is available
     const fromBrowser$ = of<{ tasks: Task[]; views: View[] }>({
       tasks: tasksInBrowser,
       views: viewsInBrowser,
-    }); // emits browser data as soon as is available
-    const fromApi$ = from(this.api.getLastChanges()); //     emits api     data as soon as is available -- if offline, emits immediately with nothing
+    });
+
+    // emits API data as soon as is available -- if offline, emits immediately with nothing
+    const fromApi$ = from(this.api.getLastChanges());
 
     const merged$ = zip(
       fromBrowser$.pipe(first()),
