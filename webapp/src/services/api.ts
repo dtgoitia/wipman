@@ -48,6 +48,11 @@ export class WipmanApi {
       console.debug(
         `${WipmanApi.name}.${this.getLastChanges.name}::no API URL found in Settings`
       );
+      this.errors.add({
+        header: "Incomplete settings",
+        description:
+          "API URL must be specified in Settings to fetch data from server",
+      });
       return earlyReturn;
     }
 
