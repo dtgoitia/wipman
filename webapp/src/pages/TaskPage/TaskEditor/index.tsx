@@ -1,6 +1,7 @@
 import CenteredPage from "../../../components/CenteredPage";
 import { DeleteConfirmationDialog } from "../../../components/DeleteConfirmationDialog";
 import InputTextarea from "../../../components/InputTextArea";
+import { LastUpdated } from "../../../components/LastUpdated";
 import { TagSelector } from "../../../components/TagSelector";
 import { nowIsoString } from "../../../domain/dates";
 import { setsAreEqual } from "../../../domain/set";
@@ -114,6 +115,7 @@ export function TaskEditor({
         )}
         <Title title={title} onUpdate={handleTaskTitleChange} />
         <TaskIdBadge id={task.id} />
+        <LastUpdated date={task.updated} />
         <StyledTaskTags
           selected={tags}
           onUpdate={handleTaskTagsChange}
