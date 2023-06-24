@@ -74,7 +74,7 @@ function ViewPage({ wipman }: Props) {
 
   return (
     <CenteredPage>
-      <ViewDetail view={view} wipman={wipman} />
+      <ViewDetail viewId={view.id} wipman={wipman} />
       <ViewTasks view={view} wipman={wipman} />
     </CenteredPage>
   );

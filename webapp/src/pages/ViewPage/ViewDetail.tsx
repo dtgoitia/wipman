@@ -4,11 +4,11 @@ import { LastUpdated } from "../../components/LastUpdated";
 import { TagSelector } from "../../components/TagSelector";
 import { nowIsoString } from "../../domain/dates";
 import { setsAreEqual } from "../../domain/set";
-import { Tag, TaskTitle, View, ViewTitle } from "../../domain/types";
+import { Tag, TaskTitle, View, ViewId, ViewTitle } from "../../domain/types";
 import { Wipman } from "../../domain/wipman";
 import { ViewTitleComponent } from "./ViewTitle";
 import { Button } from "primereact/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const AlignRight = styled.div`
@@ -19,12 +19,38 @@ const AlignRight = styled.div`
 `;
 
 interface ViewDetailProps {
-  view: View;
+  viewId: ViewId;
   wipman: Wipman;
 }
-export function ViewDetail({ view, wipman }: ViewDetailProps) {
-  const [title, setTitle] = useState<ViewTitle>(view.title);
-  const [tags, setTags] = useState<Set<Tag>>(view.tags);
+
+export function ViewDetail({ viewId: id, wipman }: ViewDetailProps) {
+  const [view, setView] = useState<View | undefined>();
+  const [title, setTitle] = useState<ViewTitle | undefined>();
+  const [tags, setTags] = useState<Set<Tag>>(new Set());
+
+  useEffect(() => {
+    function getView(): void {
+      const view = wipman.getView({ id });
+      setView(view);
+      setTitle(view?.title);
+      setTags(view?.tags || new Set<Tag>());
+    }
+    const subscription = wipman.views$.subscribe(() => getView());
+
+    getView();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [wipman]);
+
+  if (view === undefined) {
+    return (
+      <div>
+        View <code>{id}</code> not found
+      </div>
+    );
+  }
 
   function handleTaskTitleChange(title: ViewTitle): void {
     setTitle(title);
@@ -35,11 +61,19 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
   }
 
   function discardContentChanges(): void {
+    if (view === undefined) {
+      return;
+    }
+
     setTitle(view.title);
     setTags(view.tags);
   }
 
   function handleViewSubmit(): void {
+    if (view === undefined || title === undefined) {
+      return;
+    }
+
     const updated: View = { ...view, title, updated: nowIsoString(), tags };
     wipman.updateView({ view: updated });
   }
@@ -52,7 +86,10 @@ export function ViewDetail({ view, wipman }: ViewDetailProps) {
 
   return (
     <div>
-      <ViewTitleComponent title={title} onUpdate={handleTaskTitleChange} />
+      <ViewTitleComponent
+        title={title || ""}
+        onUpdate={handleTaskTitleChange}
+      />
       <DeleteConfirmationDialog
         title={"Confirm that you want to delete this View"}
         input={view.title}

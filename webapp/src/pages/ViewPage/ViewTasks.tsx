@@ -1,6 +1,7 @@
 import ListedTask from "../../components/ListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
+import { nowIsoString } from "../../domain/dates";
 import {
   FilterQuery,
   FilterSpec,
@@ -82,7 +83,11 @@ export function ViewTasks({ view, wipman }: Props) {
       before,
     });
 
-    const updated: View = { ...view, tasks: reorderedTasks };
+    const updated: View = {
+      ...view,
+      tasks: reorderedTasks,
+      updated: nowIsoString(),
+    };
     wipman.updateView({ view: updated });
 
     // Needed to pick up the view.tasks change and re-render
