@@ -33,6 +33,10 @@ const Handle = styled.div`
   flex-shrink: 0;
   align-self: center;
   padding: 0;
+
+  &:hover {
+    cursor: grab;
+  }
 `;
 
 const Title = styled.div`
