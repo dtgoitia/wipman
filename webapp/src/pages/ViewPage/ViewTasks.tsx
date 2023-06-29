@@ -1,4 +1,4 @@
-import ListedTask from "../../components/ListedTask";
+import { DraggableListedTask } from "../../components/DraggableListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
 import { nowIsoString } from "../../domain/dates";
@@ -132,7 +132,7 @@ export function ViewTasks({ view, wipman }: Props) {
       <DndProvider backend={TouchBackend}>
         <ul>
           {tasks.map((task) => (
-            <ListedTask
+            <DraggableListedTask
               key={task.id}
               task={task}
               onOpenTaskView={() => openTask(task.id)}
