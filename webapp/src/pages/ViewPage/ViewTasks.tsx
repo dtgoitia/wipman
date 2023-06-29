@@ -1,6 +1,7 @@
 import { DraggableListedTask } from "../../components/DraggableListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { unreachable } from "../../devex";
+import { isMobile } from "../../device";
 import { nowIsoString } from "../../domain/dates";
 import {
   FilterQuery,
@@ -16,6 +17,7 @@ import { TaskFilter } from "../TaskExplorer/TaskFilter";
 import { shouldShowTask } from "../TaskExplorer/filter";
 import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
+import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
@@ -135,7 +137,7 @@ export function ViewTasks({ view, wipman }: Props) {
         spec={{ query, showCompleted }}
         onUpdate={handleTaskFilterChange}
       />
-      <DndProvider backend={TouchBackend}>
+      <DndProvider backend={isMobile() ? TouchBackend : HTML5Backend}>
         <ul>
           {tasks.map((task) => (
             <DraggableListedTask
