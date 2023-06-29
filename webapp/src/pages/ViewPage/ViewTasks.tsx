@@ -18,11 +18,17 @@ import { useEffect, useState } from "react";
 import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+
+const Container = styled.div`
+  margin-bottom: 3rem;
+`;
 
 interface Props {
   view: View;
   wipman: Wipman;
 }
+
 export function ViewTasks({ view, wipman }: Props) {
   const navigate = useNavigate();
   const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
@@ -124,7 +130,7 @@ export function ViewTasks({ view, wipman }: Props) {
   }
 
   return (
-    <>
+    <Container>
       <TaskFilter
         spec={{ query, showCompleted }}
         onUpdate={handleTaskFilterChange}
@@ -141,7 +147,7 @@ export function ViewTasks({ view, wipman }: Props) {
           ))}
         </ul>
       </DndProvider>
-    </>
+    </Container>
   );
 }
 
