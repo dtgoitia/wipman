@@ -18,10 +18,8 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
-// add this to prompt for a refresh
 const updateSW = registerSW({
   onNeedRefresh: function () {
-    // TODO: move this logic
     if (
       confirm("There is an newer version of this app. Do you want to update?")
     ) {
