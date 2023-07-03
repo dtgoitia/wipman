@@ -1,5 +1,4 @@
 import App from "./App";
-// import "./blueprint.css";
 import { Admin } from "./domain/admin";
 import { OperationsManager } from "./domain/operations";
 import { SettingsManager } from "./domain/settings";
