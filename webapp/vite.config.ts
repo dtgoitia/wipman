@@ -1,6 +1,7 @@
 import react from "@vitejs/plugin-react-swc";
 import { defineConfig } from "vite";
 import checker from "vite-plugin-checker";
+import { VitePWA } from "vite-plugin-pwa";
 
 const port = 3000;
 
@@ -11,6 +12,19 @@ export default defineConfig({
     checker({
       // e.g. use TypeScript check
       typescript: true,
+    }),
+    VitePWA({
+      devOptions: { enabled: true },
+
+      registerType: "prompt", // default
+
+      workbox: {
+        globPatterns: [
+          "**/*.{js,css,html}", // default
+          "**/logo*.png",
+          "**/vite.svg",
+        ],
+      },
     }),
   ],
   server: {
