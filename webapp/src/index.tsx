@@ -7,7 +7,6 @@ import { TaskManager } from "./domain/task";
 import { ViewManager } from "./domain/view";
 import { Wipman } from "./domain/wipman";
 import "./index.css";
-import * as serviceWorkerRegistration from "./serviceWorkerRegistration";
 import { WipmanApi } from "./services/api";
 import { ErrorsService } from "./services/errors";
 import { Storage as BrowserStorage } from "./services/persistence/localStorage";
@@ -51,8 +50,3 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
     <App wipman={wipman} />
   </React.StrictMode>
 );
-
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://cra.link/PWA
-serviceWorkerRegistration.register();
