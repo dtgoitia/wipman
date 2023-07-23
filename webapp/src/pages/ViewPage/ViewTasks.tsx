@@ -85,6 +85,11 @@ export function ViewTasks({ view, wipman }: Props) {
       return;
     }
 
+    // If the user drops the dragged item in the same place where it was
+    if (toInsert === before) {
+      return;
+    }
+
     const reorderedTasks: TaskId[] = insertBefore({
       list: taskIds,
       toInsert,
