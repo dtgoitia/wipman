@@ -8,6 +8,7 @@ import { setsAreEqual } from "../../../domain/set";
 import { Tag, Task, TaskId, TaskTitle } from "../../../domain/types";
 import { Wipman } from "../../../domain/wipman";
 import Paths from "../../../routes";
+import { TaskDependencies } from "./TaskDependencies";
 import { TaskIdBadge } from "./TaskIdBadge";
 import { Title } from "./Title";
 import { Button } from "primereact/button";
@@ -133,7 +134,8 @@ export function TaskEditor({
           />
         </div>
 
-        <div></div>
+        <TaskDependencies task={task} wipman={wipman} />
+
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}
           input={task.id}
