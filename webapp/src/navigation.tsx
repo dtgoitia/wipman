@@ -1,5 +1,5 @@
 import { NO_FILTER_QUERY } from "./components/SearchBox";
-import { FilterQuery, FilterSpec } from "./domain/types";
+import { FilterQuery, FilterSpec } from "./lib/domain/types";
 import { useSearchParams } from "react-router-dom";
 
 enum Key {

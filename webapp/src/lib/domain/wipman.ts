@@ -1,6 +1,6 @@
-import { assertNever } from "../exhaustive-match";
-import { ErrorsService } from "../services/errors";
-import { Storage } from "../services/persistence/persist";
+import { assertNever } from "../../exhaustive-match";
+import { ErrorsService } from "../../services/errors";
+import { Storage } from "../../services/persistence/persist";
 import { Admin } from "./admin";
 import {
   OperationId,
@@ -275,6 +275,42 @@ export class Wipman {
 
   public getAllTags(): Set<Tag> {
     return this.tagManager.getAll();
+  }
+
+  public getBlockedTasks({ task }: { task: Task }): Task[] {
+    const blockedTasks: Task[] = [];
+
+    for (const blockedId of task.blocks) {
+      const blocked = this.taskManager.getTask(blockedId);
+      if (blocked === undefined) {
+        console.warn(
+          `${Wipman.name}.${this.getBlockedTasks.name}: Task ${blockedId} not found when trying to retrieve` +
+            ` its data to build list of blocked Tasks`
+        );
+        continue;
+      }
+      blockedTasks.push(blocked);
+    }
+
+    return blockedTasks;
+  }
+
+  public getBlockingTasks({ task }: { task: Task }): Task[] {
+    const blockedByTasks: Task[] = [];
+
+    for (const blockedId of task.blockedBy) {
+      const blockedBy = this.taskManager.getTask(blockedId);
+      if (blockedBy === undefined) {
+        console.warn(
+          `${Wipman.name}.${this.getBlockingTasks.name}: Task ${blockedId} not found when trying to retrieve` +
+            ` its data to build list of blocked Tasks`
+        );
+        continue;
+      }
+      blockedByTasks.push(blockedBy);
+    }
+
+    return blockedByTasks;
   }
 
   // public readSettings(): Settings {}

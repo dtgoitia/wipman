@@ -1,5 +1,5 @@
-import { generateHash } from "../../domain/hash";
-import { Task } from "../../domain/types";
+import { generateHash } from "../../lib/domain/hash";
+import { Task } from "../../lib/domain/types";
 
 type buildTaskArgs = Partial<Task>;
 

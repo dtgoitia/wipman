@@ -1,4 +1,4 @@
-import { Tag } from "../domain/types";
+import { Tag } from "../lib/domain/types";
 import styled from "styled-components";
 
 const TagsContainer = styled.div`

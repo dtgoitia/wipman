@@ -8,8 +8,8 @@ import {
   Task,
   TaskId,
   TaskTitle,
-} from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
+} from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
 import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "./TaskFilter";

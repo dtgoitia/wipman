@@ -1,6 +1,12 @@
 import SearchBox, { NO_FILTER_QUERY } from "../../../components/SearchBox";
-import { Task, TaskId } from "../../../domain/types";
-import { Wipman } from "../../../domain/wipman";
+import {
+  addBlockedTask,
+  addBlockingTask,
+  removeBlockedTask,
+  removeBlockingTask,
+} from "../../../lib/domain/task";
+import { Task, TaskId } from "../../../lib/domain/types";
+import { Wipman } from "../../../lib/domain/wipman";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { useEffect, useState } from "react";
@@ -12,62 +18,26 @@ interface Props {
 }
 
 export function TaskDependencies({ task, wipman }: Props) {
-  const blockedTasks: Task[] = [];
-  const blockedByTasks: Task[] = [];
+  const blockedTasks: Task[] = wipman.getBlockedTasks({ task });
+  const blockedByTasks: Task[] = wipman.getBlockingTasks({ task });
 
-  for (const blockedId of task.blocks) {
-    const blocked = wipman.getTask({ id: blockedId });
-    if (blocked === undefined) {
-      console.warn(
-        `${TaskDependencies.name}: Task ${blockedId} not found when trying to retrieve` +
-          ` its data to build list of blocked Tasks`
-      );
-      continue;
-    }
-    blockedTasks.push(blocked);
-  }
-
-  for (const blockedId of task.blockedBy) {
-    const blockedBy = wipman.getTask({ id: blockedId });
-    if (blockedBy === undefined) {
-      console.warn(
-        `${TaskDependencies.name}: Task ${blockedId} not found when trying to retrieve` +
-          ` its data to build list of blocked Tasks`
-      );
-      continue;
-    }
-    blockedByTasks.push(blockedBy);
-  }
-
-  function addBlockedTask(related: TaskId): void {
-    const blockedTasks = new Set<TaskId>([...task.blocks.values()]);
-    blockedTasks.add(related);
-
-    const updated: Task = { ...task, blocks: blockedTasks };
+  function handleBlockedTaskAddition(blocked: TaskId): void {
+    const updated = addBlockedTask({ task, blocked });
     wipman.updateTask({ task: updated });
   }
 
-  function addBlockingTask(related: TaskId): void {
-    const blockedByTasks = new Set<TaskId>([...task.blockedBy.values()]);
-    blockedByTasks.add(related);
-
-    const updated: Task = { ...task, blockedBy: blockedByTasks };
+  function handleBlockingTaskAddition(blocking: TaskId): void {
+    const updated = addBlockingTask({ task, blocking });
     wipman.updateTask({ task: updated });
   }
 
-  function removeBlockedTask(related: TaskId): void {
-    const blockedTasks = new Set<TaskId>([...task.blocks.values()]);
-    blockedTasks.delete(related);
-
-    const updated: Task = { ...task, blocks: blockedTasks };
+  function handleBlockedTaskRemoval(blocked: TaskId): void {
+    const updated = removeBlockedTask({ task, blocked });
     wipman.updateTask({ task: updated });
   }
 
-  function removeBlockingTask(related: TaskId): void {
-    const blockedByTasks = new Set<TaskId>([...task.blockedBy.values()]);
-    blockedByTasks.delete(related);
-
-    const updated: Task = { ...task, blockedBy: blockedByTasks };
+  function handleBlockingTaskRemoval(blocking: TaskId): void {
+    const updated = removeBlockingTask({ task, blocking });
     wipman.updateTask({ task: updated });
   }
 
@@ -78,20 +48,20 @@ export function TaskDependencies({ task, wipman }: Props) {
         <Relationship
           key={task.id}
           related={task}
-          onRemove={() => removeBlockingTask(task.id)}
+          onRemove={() => handleBlockingTaskRemoval(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={addBlockingTask} />
+      <AddRelation wipman={wipman} onAdd={handleBlockingTaskAddition} />
 
       <h4>Blocks</h4>
       {blockedTasks.map((task) => (
         <Relationship
           key={task.id}
           related={task}
-          onRemove={() => removeBlockedTask(task.id)}
+          onRemove={() => handleBlockedTaskRemoval(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={addBlockedTask} />
+      <AddRelation wipman={wipman} onAdd={handleBlockedTaskAddition} />
     </Container>
   );
 }

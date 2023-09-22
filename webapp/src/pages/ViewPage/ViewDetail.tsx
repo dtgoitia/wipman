@@ -2,10 +2,16 @@ import AddTask from "../../components/AddTask";
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { LastUpdated } from "../../components/LastUpdated";
 import { TagSelector } from "../../components/TagSelector";
-import { nowIsoString } from "../../domain/dates";
-import { setsAreEqual } from "../../domain/set";
-import { Tag, TaskTitle, View, ViewId, ViewTitle } from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
+import { nowIsoString } from "../../lib/domain/dates";
+import {
+  Tag,
+  TaskTitle,
+  View,
+  ViewId,
+  ViewTitle,
+} from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
+import { setsAreEqual } from "../../lib/set";
 import { ViewTitleComponent } from "./ViewTitle";
 import { Button } from "primereact/button";
 import { useEffect, useState } from "react";

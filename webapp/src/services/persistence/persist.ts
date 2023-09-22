@@ -1,8 +1,8 @@
-import { SettingsChange, SettingsManager } from "../../domain/settings";
-import { TaskManager, mergeTasks } from "../../domain/task";
-import { Settings, Task, TaskId, View, ViewId } from "../../domain/types";
-import { ViewManager, mergeViews } from "../../domain/view";
 import { assertNever } from "../../exhaustive-match";
+import { SettingsChange, SettingsManager } from "../../lib/domain/settings";
+import { TaskManager, mergeTasks } from "../../lib/domain/task";
+import { Settings, Task, TaskId, View, ViewId } from "../../lib/domain/types";
+import { ViewManager, mergeViews } from "../../lib/domain/view";
 import { WipmanApi } from "../api";
 import { Storage as BrowserStorage } from "./localStorage";
 import {

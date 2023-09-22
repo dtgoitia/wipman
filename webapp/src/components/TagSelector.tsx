@@ -1,7 +1,7 @@
-import { difference } from "../domain/set";
-import { sortTags } from "../domain/tag";
-import { Tag } from "../domain/types";
-import { Wipman } from "../domain/wipman";
+import { sortTags } from "../lib/domain/tag";
+import { Tag } from "../lib/domain/types";
+import { Wipman } from "../lib/domain/wipman";
+import { difference } from "../lib/set";
 // import "./MultiSelectDemo.css";
 import SearchBox from "./SearchBox";
 import { Button } from "primereact/button";

@@ -1,8 +1,8 @@
 import CenteredPage from "../../components/CenteredPage";
-import { OperationStatusChange } from "../../domain/operations";
-import { View, ViewId } from "../../domain/types";
-import { INIT_OPERATION_ID, Wipman } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
+import { OperationStatusChange } from "../../lib/domain/operations";
+import { View, ViewId } from "../../lib/domain/types";
+import { INIT_OPERATION_ID, Wipman } from "../../lib/domain/wipman";
 import PageNotFound from "../PageNotFound";
 import { ViewDetail } from "./ViewDetail";
 import { ViewTasks } from "./ViewTasks";

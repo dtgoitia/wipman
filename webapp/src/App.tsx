@@ -3,7 +3,7 @@ import { ErrorPanel } from "./components/ErrorPanel";
 // import ReloadPage from "./components/ReloadPage";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
-import { Wipman, WipmanStatus } from "./domain/wipman";
+import { Wipman, WipmanStatus } from "./lib/domain/wipman";
 import PageNotFound from "./pages/PageNotFound";
 import SettingsPage from "./pages/SettingsPage";
 import TaskExplorer from "./pages/TaskExplorer";

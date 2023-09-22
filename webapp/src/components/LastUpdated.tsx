@@ -1,12 +1,12 @@
+import { assertNever } from "../exhaustive-match";
 import {
   Precision,
   Timedelta,
   dateToLocale,
   now,
   parseDate,
-} from "../domain/dates";
-import { ISODatetimeString } from "../domain/types";
-import { assertNever } from "../exhaustive-match";
+} from "../lib/domain/dates";
+import { ISODatetimeString } from "../lib/domain/types";
 import { useEffect, useState } from "react";
 
 const REFRESH_RATE_IN_MS = 500;

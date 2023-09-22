@@ -1,5 +1,5 @@
-import { Task, TaskTitle, View } from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
+import { Task, TaskTitle, View } from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
 import { Card } from "primereact/card";
 import styled from "styled-components";
 

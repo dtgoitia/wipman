@@ -1,5 +1,5 @@
+import { buildTask } from "../../tests/factories/task";
 import { todo } from "../devex";
-import { buildTask } from "../tests/factories/task";
 import { TaskManager, mergeTasks } from "./task";
 import { Task } from "./types";
 import { describe, expect, it } from "vitest";

@@ -1,4 +1,4 @@
-import { TaskId, ViewId } from "./domain/types";
+import { TaskId, ViewId } from "./lib/domain/types";
 
 enum Paths {
   root = "/",

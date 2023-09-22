@@ -1,8 +1,8 @@
+import { assertNever } from "../../exhaustive-match";
 import { unreachable } from "../devex";
-import { assertNever } from "../exhaustive-match";
+import { setsAreEqual } from "../set";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { setsAreEqual } from "./set";
 import { TaskChanges, TaskManager } from "./task";
 import { Hash, Tag, TaskId, View, ViewId, ViewTitle } from "./types";
 import { Observable, Subject } from "rxjs";

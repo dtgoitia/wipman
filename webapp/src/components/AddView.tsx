@@ -1,4 +1,4 @@
-import { ViewTitle } from "../domain/types";
+import { ViewTitle } from "../lib/domain/types";
 import InpuText from "./InputText";
 import { Button } from "primereact/button";
 import { useState } from "react";

@@ -1,4 +1,4 @@
-import { Precision, Timedelta } from "../domain/dates";
+import { Precision, Timedelta } from "../lib/domain/dates";
 import { describe, expect, it } from "vitest";
 
 const MILLISECOND = 1;

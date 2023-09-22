@@ -1,4 +1,4 @@
-import { FilterQuery } from "../domain/types";
+import { FilterQuery } from "../lib/domain/types";
 import { InputText as PrimeInputText } from "primereact/inputtext";
 import { ChangeEvent } from "react";
 import styled from "styled-components";

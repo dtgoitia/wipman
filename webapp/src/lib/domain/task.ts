@@ -1,7 +1,7 @@
 import { unreachable } from "../devex";
+import { setsAreEqual } from "../set";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
-import { setsAreEqual } from "./set";
 import { Hash, MarkdownString, Tag, Task, TaskId, TaskTitle } from "./types";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 
@@ -456,4 +456,62 @@ export function diffTasks({
     updatedCompleted,
     updatedContent,
   });
+}
+
+export function addBlockedTask({
+  task,
+  blocked,
+}: {
+  task: Task;
+  blocked: TaskId;
+}): Task {
+  const updated: Task = {
+    ...task,
+    blocks: new Set<TaskId>([...task.blocks.values(), blocked]),
+  };
+
+  return updated;
+}
+
+export function addBlockingTask({
+  task,
+  blocking,
+}: {
+  task: Task;
+  blocking: TaskId;
+}): Task {
+  const updated: Task = {
+    ...task,
+    blockedBy: new Set<TaskId>([...task.blockedBy.values(), blocking]),
+  };
+
+  return updated;
+}
+
+export function removeBlockedTask({
+  task,
+  blocked,
+}: {
+  task: Task;
+  blocked: TaskId;
+}): Task {
+  const blockedTasks = new Set<TaskId>([...task.blocks.values()]);
+  blockedTasks.delete(blocked);
+
+  const updated: Task = { ...task, blocks: blockedTasks };
+  return updated;
+}
+
+export function removeBlockingTask({
+  task,
+  blocking,
+}: {
+  task: Task;
+  blocking: TaskId;
+}): Task {
+  const blockedByTasks = new Set<TaskId>([...task.blockedBy.values()]);
+  blockedByTasks.delete(blocking);
+
+  const updated: Task = { ...task, blockedBy: blockedByTasks };
+  return updated;
 }

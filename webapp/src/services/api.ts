@@ -1,5 +1,5 @@
-import { SettingsManager } from "../domain/settings";
-import { Task, TaskId, View, ViewId } from "../domain/types";
+import { SettingsManager } from "../lib/domain/settings";
+import { Task, TaskId, View, ViewId } from "../lib/domain/types";
 import { ErrorsService } from "./errors";
 import { Client } from "browser-http-client";
 

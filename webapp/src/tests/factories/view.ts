@@ -1,5 +1,5 @@
-import { generateHash } from "../../domain/hash";
-import { Tag, View } from "../../domain/types";
+import { generateHash } from "../../lib/domain/hash";
+import { Tag, View } from "../../lib/domain/types";
 
 type buildViewArgs = Partial<View>;
 

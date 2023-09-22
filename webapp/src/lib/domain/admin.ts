@@ -1,4 +1,4 @@
-import { Storage as BrowserStorage } from "../services/persistence/localStorage";
+import { Storage as BrowserStorage } from "../../services/persistence/localStorage";
 
 interface AdminArgs {
   local: BrowserStorage;

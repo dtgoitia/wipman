@@ -1,4 +1,4 @@
-import { Wipman } from "../domain/wipman";
+import { Wipman } from "../lib/domain/wipman";
 import { ErrorMessage } from "../services/errors";
 import { Button } from "primereact/button";
 import { useEffect, useState } from "react";

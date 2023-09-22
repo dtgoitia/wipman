@@ -1,5 +1,5 @@
 import InputText from "../../../components/InputText";
-import { TaskTitle } from "../../../domain/types";
+import { TaskTitle } from "../../../lib/domain/types";
 import { Button } from "primereact/button";
 import { useState } from "react";
 import styled from "styled-components";

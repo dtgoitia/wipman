@@ -1,4 +1,4 @@
-import { TaskId } from "../../../domain/types";
+import { TaskId } from "../../../lib/domain/types";
 import styled from "styled-components";
 
 // TODO: load colors from theme

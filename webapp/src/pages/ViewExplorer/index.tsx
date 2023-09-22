@@ -1,7 +1,7 @@
 import AddView from "../../components/AddView";
 import CenteredPage from "../../components/CenteredPage";
-import { View, ViewId, ViewTitle } from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
+import { View, ViewId, ViewTitle } from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
 import { getViewPath } from "../../routes";
 import { ViewSummary } from "./ViewSummary";
 import { useEffect, useState } from "react";

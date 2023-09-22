@@ -3,10 +3,10 @@ import { DeleteConfirmationDialog } from "../../../components/DeleteConfirmation
 import InputTextarea from "../../../components/InputTextArea";
 import { LastUpdated } from "../../../components/LastUpdated";
 import { TagSelector } from "../../../components/TagSelector";
-import { nowIsoString } from "../../../domain/dates";
-import { setsAreEqual } from "../../../domain/set";
-import { Tag, Task, TaskId, TaskTitle } from "../../../domain/types";
-import { Wipman } from "../../../domain/wipman";
+import { nowIsoString } from "../../../lib/domain/dates";
+import { Tag, Task, TaskId, TaskTitle } from "../../../lib/domain/types";
+import { Wipman } from "../../../lib/domain/wipman";
+import { setsAreEqual } from "../../../lib/set";
 import Paths from "../../../routes";
 import { TaskDependencies } from "./TaskDependencies";
 import { TaskIdBadge } from "./TaskIdBadge";

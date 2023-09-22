@@ -1,5 +1,5 @@
 import SearchBox, { NO_FILTER_QUERY } from "../../components/SearchBox";
-import { FilterQuery, FilterSpec } from "../../domain/types";
+import { FilterQuery, FilterSpec } from "../../lib/domain/types";
 import { InputSwitch } from "primereact/inputswitch";
 
 interface Props {

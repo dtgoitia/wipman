@@ -1,9 +1,9 @@
 import InputText from "../../components/InputText";
 import ReloadPageButton from "../../components/ReloadPageButton";
-import { Settings } from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
 import { findVersionHash } from "../../findVersion";
+import { Settings } from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
 import { Button } from "primereact/button";
 import { Panel } from "primereact/panel";
 import { useEffect, useState } from "react";

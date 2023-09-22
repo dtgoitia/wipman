@@ -1,6 +1,6 @@
-import { Task, TaskId } from "../../domain/types";
-import { Wipman, WipmanStatus } from "../../domain/wipman";
 import { assertNever } from "../../exhaustive-match";
+import { Task, TaskId } from "../../lib/domain/types";
+import { Wipman, WipmanStatus } from "../../lib/domain/wipman";
 import PageNotFound from "../PageNotFound";
 import { TaskEditor } from "./TaskEditor";
 import { useEffect, useState } from "react";

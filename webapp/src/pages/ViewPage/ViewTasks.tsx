@@ -1,16 +1,16 @@
 import { DraggableListedTask } from "../../components/DraggableListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
-import { unreachable } from "../../devex";
 import { isMobile } from "../../device";
-import { nowIsoString } from "../../domain/dates";
+import { unreachable } from "../../lib/devex";
+import { nowIsoString } from "../../lib/domain/dates";
 import {
   FilterQuery,
   FilterSpec,
   Task,
   TaskId,
   View,
-} from "../../domain/types";
-import { Wipman } from "../../domain/wipman";
+} from "../../lib/domain/types";
+import { Wipman } from "../../lib/domain/wipman";
 import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "../TaskExplorer/TaskFilter";

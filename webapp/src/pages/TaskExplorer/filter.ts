@@ -1,5 +1,5 @@
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
-import { FilterQuery, Task } from "../../domain/types";
+import { FilterQuery, Task } from "../../lib/domain/types";
 
 export function shouldShowTask(task: Task, query: FilterQuery): boolean {
   // show if user didn't use search

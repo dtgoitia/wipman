@@ -1,4 +1,4 @@
-import { Task, TaskId } from "../domain/types";
+import { Task, TaskId } from "../lib/domain/types";
 import { useDrag, useDrop } from "react-dnd";
 import styled from "styled-components";
 

@@ -1,5 +1,5 @@
 import InputText from "../../components/InputText";
-import { ViewTitle } from "../../domain/types";
+import { ViewTitle } from "../../lib/domain/types";
 import { Button } from "primereact/button";
 import { useState } from "react";
 import styled from "styled-components";
