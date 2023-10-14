@@ -16,6 +16,13 @@ export function setsAreEqual<T>(
   return true;
 }
 
+/**
+ * Compute the set intersection between `a` and `b`, or in layman words, find
+ * elements that `a` and `b` have in common and return them in a new set.
+ * @param a one set
+ * @param b another set
+ * @returns the intersection between `a` and `b`
+ */
 export function intersect<T>(
   a: Set<T> | undefined,
   b: Set<T> | undefined
@@ -32,6 +39,37 @@ export function intersect<T>(
   return common;
 }
 
+/**
+ * Determine if `a` and `b` intersect.
+ * @param a one set
+ * @param b another set
+ * @returns `true` if sets `a` and `b` have elements in common
+ */
+export function is_intersection<T>(
+  a: Set<T> | undefined,
+  b: Set<T> | undefined
+): boolean {
+  if (a === undefined || b === undefined) return false;
+
+  const [smallest, _largest] = a.size < b.size ? [a, b] : [b, a];
+
+  for (const element of _largest) {
+    if (smallest.has(element)) {
+      // exit early: as soon as the first element in common is found
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * Compute the set difference between `a` and `b`, or in layman words, substract
+ * `b` to `a` and return the result.
+ * @param a reference set
+ * @param b set to substract from reference set
+ * @returns reference set after substraction
+ */
 export function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
   const in_a_not_b = new Set<T>();
 
