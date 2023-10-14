@@ -1,6 +1,6 @@
 import { assertNever } from "../../exhaustive-match";
 import { unreachable } from "../devex";
-import { setsAreEqual } from "../set";
+import { is_intersection, setsAreEqual } from "../set";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
 import { TaskChanges, TaskManager } from "./task";
@@ -469,7 +469,8 @@ function shouldViewIncludeTask({
     return true;
   }
 
-  return setsAreEqual(view.tags, taskTags);
+  const at_least_one_tag_in_common = is_intersection(view.tags, taskTags);
+  return at_least_one_tag_in_common;
 }
 
 interface ViewDiffArgs {
