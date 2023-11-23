@@ -399,9 +399,6 @@ export function diffTasks({
   before: Task;
   after: Task;
 }): TaskDiff {
-  console.debug(`before:`, before);
-  console.debug(`after:`, after);
-
   if (before.id !== after.id) {
     throw unreachable({
       message: `tasks with different IDs cannot be compared: ${before.id} & ${after.id}`,

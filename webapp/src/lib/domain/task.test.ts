@@ -1,7 +1,7 @@
 import { buildTask } from "../../tests/factories/task";
 import { todo } from "../devex";
-import { TaskManager, mergeTasks } from "./task";
-import { Task } from "./types";
+import { TaskManager, diffTasks, mergeTasks } from "./task";
+import { Tag, Task, TaskId } from "./types";
 import { describe, expect, it } from "vitest";
 
 describe("TaskManager", () => {
@@ -104,5 +104,78 @@ describe("mergeTasks", () => {
   });
   it.skip(`handles entries with different timezones`, () => {
     todo();
+  });
+});
+
+describe("diffTasks", () => {
+  const before: Task = {
+    id: "task-id",
+    title: "task title",
+    content: "foo\nbar",
+    created: "2000-01-01T00:00:00Z",
+    updated: "2000-01-01T00:00:00Z",
+    tags: new Set<Tag>(),
+    blockedBy: new Set<TaskId>(),
+    blocks: new Set<TaskId>(),
+    completed: false,
+  };
+
+  it("detects tasks with different titles", () => {
+    const after: Task = { ...before, title: "fooo" };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedTitle).toBe("fooo");
+  });
+
+  it("detects tasks with different content", () => {
+    const after: Task = { ...before, content: "fooo" };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedContent).toEqual("fooo");
+  });
+
+  it("fails if tasks have different ids", () => {
+    const after: Task = { ...before, id: "fooo" };
+    expect(() => diffTasks({ before, after })).toThrow();
+  });
+
+  it("fails if task creation time changes", () => {
+    const after: Task = { ...before, created: "2000-01-02T00:00:00Z" };
+    //                                                 ^^
+    expect(() => diffTasks({ before, after })).toThrow();
+  });
+
+  it("reports no changes for tasks with same created datetime expressed in different timezones", () => {
+    const after: Task = { ...before, created: "2000-01-01T01:00:00+01:00" };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(false);
+  });
+
+  it("detects tasks with different tags", () => {
+    const after: Task = { ...before, tags: new Set<TaskId>(["fooo"]) };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedTags).toEqual(new Set(["fooo"]));
+  });
+
+  it("detects tasks with different downstream dependencies", () => {
+    const after: Task = { ...before, blocks: new Set<TaskId>(["fooo"]) };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedBlocks).toEqual(new Set(["fooo"]));
+  });
+
+  it("detects tasks with different upstream dependencies", () => {
+    const after: Task = { ...before, blockedBy: new Set<TaskId>(["fooo"]) };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedBlockedBy).toEqual(new Set(["fooo"]));
+  });
+
+  it("detects tasks with different completion status", () => {
+    const after: Task = { ...before, completed: true };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.updatedCompleted).toBe(true);
   });
 });
