@@ -81,3 +81,14 @@ export function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 
   return in_a_not_b;
 }
+
+/**
+ * Compute the set union between `a` and `b`, or in layman words, add `a` and
+ * `b` together
+ * @param a set A
+ * @param b set B
+ * @returns reference resulting union
+ */
+export function union<T>(a: Set<T>, b: Set<T>): Set<T> {
+  return new Set<T>([...a, ...b]);
+}

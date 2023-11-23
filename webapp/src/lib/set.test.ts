@@ -1,4 +1,4 @@
-import { difference, intersect, is_intersection } from "./set";
+import { difference, intersect, is_intersection, union } from "./set";
 import { describe, expect, it } from "vitest";
 
 describe("intersect", () => {
@@ -58,5 +58,26 @@ describe("difference", () => {
     const a = new Set([1, 2]);
     const b = new Set([3, 4]);
     expect(difference(a, b)).toEqual(a);
+  });
+});
+
+describe("union", () => {
+  it("when sets are identical", () => {
+    const a = new Set([1, 2, 3]);
+    const b = new Set([1, 2, 3]);
+    expect(union(a, b)).toEqual(a);
+    expect(union(a, b)).toEqual(b);
+  });
+
+  it("when one set is a superset of the other set", () => {
+    const a = new Set([1, 2, 3]);
+    const b = new Set([1, 2]);
+    expect(union(a, b)).toEqual(a);
+  });
+
+  it("when sets have at least one item not-in-common", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([2, 3]);
+    expect(union(a, b)).toEqual(new Set([1, 2, 3]));
   });
 });
