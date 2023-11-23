@@ -1,4 +1,4 @@
-import { difference, intersect, is_intersection, union } from "./set";
+import { addToSet, difference, intersect, is_intersection, union } from "./set";
 import { describe, expect, it } from "vitest";
 
 describe("intersect", () => {
@@ -79,5 +79,20 @@ describe("union", () => {
     const a = new Set([1, 2]);
     const b = new Set([2, 3]);
     expect(union(a, b)).toEqual(new Set([1, 2, 3]));
+  });
+});
+
+describe("addToSet", () => {
+  const original = new Set([1, 2, 3]);
+  it("when item does not exists in set", () => {
+    const result = addToSet(original, 4);
+    expect(result).toEqual(new Set([1, 2, 3, 4]));
+    expect(result).not.toBe(original);
+  });
+
+  it("when item already exists in set", () => {
+    const result = addToSet(original, 1);
+    expect(result).toEqual(original);
+    expect(result).not.toBe(original);
   });
 });

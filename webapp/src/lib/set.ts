@@ -92,3 +92,10 @@ export function difference<T>(a: Set<T>, b: Set<T>): Set<T> {
 export function union<T>(a: Set<T>, b: Set<T>): Set<T> {
   return new Set<T>([...a, ...b]);
 }
+
+/**
+ * Add item to a set without mutating the original set
+ */
+export function addToSet<T>(set: Set<T>, item: T): Set<T> {
+  return new Set<T>([...set, item]);
+}
