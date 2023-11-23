@@ -1,3 +1,4 @@
+import { datetimesAreEqual } from "../dates";
 import { unreachable } from "../devex";
 import { setsAreEqual } from "../set";
 import { nowIsoString } from "./dates";
@@ -408,7 +409,12 @@ export function diffTasks({
   }
 
   if (
-    new Date(before.created).getTime() !== new Date(after.created).getTime()
+    datetimesAreEqual({
+      // string comparison is not enough, the same instant might be in different
+      // timezones
+      a: new Date(before.created),
+      b: new Date(after.created),
+    }) === false
   ) {
     throw unreachable({
       message:
