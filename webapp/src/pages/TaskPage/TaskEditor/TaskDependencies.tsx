@@ -1,83 +1,36 @@
 import SearchBox, { NO_FILTER_QUERY } from "../../../components/SearchBox";
-import {
-  addBlockedTask,
-  addBlockingTask,
-  removeBlockedTask,
-  removeBlockingTask,
-} from "../../../lib/domain/task";
 import { Task, TaskId } from "../../../lib/domain/types";
 import { Wipman } from "../../../lib/domain/wipman";
+import { getTaskPath } from "../../../routes";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 interface Props {
-  taskId: TaskId;
   wipman: Wipman;
+
+  blockedBy: Set<TaskId>;
+  addBlockedBy: (id: TaskId) => void;
+  deleteBlockedBy: (id: TaskId) => void;
+
+  blocks: Set<TaskId>;
+  addBlocks: (id: TaskId) => void;
+  deleteBlocks: (id: TaskId) => void;
 }
 
-export function TaskDependencies({ taskId, wipman }: Props) {
-  const [task, setTask] = useState<Task | undefined>(undefined);
-  const [blockedTasks, setBlockedTasks] = useState<Task[]>([]);
-  const [blockedByTasks, setBlockedByTasks] = useState<Task[]>([]);
-
-  function loadTaskDependencies(): void {
-    const task = wipman.getTask({ id: taskId });
-    if (task === undefined) {
-      console.warn(
-        `${TaskDependencies.name}.${loadTaskDependencies.name}::no task found` +
-          ` with ID ${taskId}`
-      );
-      return;
-    }
-
-    setTask(task);
-    setBlockedTasks(wipman.getBlockedTasks({ task }));
-    setBlockedByTasks(wipman.getBlockingTasks({ task }));
-  }
-
-  useEffect(() => {
-    const subscription = wipman.taskManager.change$.subscribe((change) => {
-      switch (change.kind) {
-        case "TaskUpdated":
-          loadTaskDependencies();
-          break;
-        default:
-        // ...
-      }
-    });
-
-    loadTaskDependencies();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [taskId, wipman]);
-
-  function handleBlockedTaskAddition(blocked: TaskId): void {
-    if (task === undefined) return;
-    const updated = addBlockedTask({ task, blocked });
-    wipman.updateTask({ task: updated });
-  }
-
-  function handleBlockingTaskAddition(blocking: TaskId): void {
-    if (task === undefined) return;
-    const updated = addBlockingTask({ task, blocker: blocking });
-    wipman.updateTask({ task: updated });
-  }
-
-  function handleBlockedTaskRemoval(blocked: TaskId): void {
-    if (task === undefined) return;
-    const updated = removeBlockedTask({ task, blocked });
-    wipman.updateTask({ task: updated });
-  }
-
-  function handleBlockingTaskRemoval(blocking: TaskId): void {
-    if (task === undefined) return;
-    const updated = removeBlockingTask({ task, blockerId: blocking });
-    wipman.updateTask({ task: updated });
-  }
+export function TaskDependencies({
+  wipman,
+  blockedBy,
+  blocks,
+  addBlockedBy,
+  deleteBlockedBy,
+  addBlocks,
+  deleteBlocks,
+}: Props) {
+  const blockedByTasks: Task[] = getTasks({ ids: [...blockedBy], wipman });
+  const blocksTasks: Task[] = getTasks({ ids: [...blocks], wipman });
 
   return (
     <Container>
@@ -86,20 +39,20 @@ export function TaskDependencies({ taskId, wipman }: Props) {
         <Relationship
           key={task.id}
           related={task}
-          onRemove={() => handleBlockingTaskRemoval(task.id)}
+          onRemove={() => deleteBlockedBy(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={handleBlockingTaskAddition} />
+      <AddRelation wipman={wipman} onAdd={addBlockedBy} />
 
       <h4>Blocks</h4>
-      {blockedTasks.map((task) => (
+      {blocksTasks.map((task) => (
         <Relationship
           key={task.id}
           related={task}
-          onRemove={() => handleBlockedTaskRemoval(task.id)}
+          onRemove={() => deleteBlocks(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={handleBlockedTaskAddition} />
+      <AddRelation wipman={wipman} onAdd={addBlocks} />
     </Container>
   );
 }
@@ -116,7 +69,8 @@ interface RelationshipProps {
 function Relationship({ related, onRemove: handleRemove }: RelationshipProps) {
   return (
     <RelationshipContainer>
-      {related.title}
+      <Link to={getTaskPath(related.id)}>{related.title}</Link>
+
       <Button
         icon="pi pi-trash"
         className="p-button-rounded p-button-text p-button-sm"
@@ -229,6 +183,18 @@ function filterTasks({
     if (isAMatch) {
       result.push(task);
     }
+  }
+
+  return result;
+}
+
+function getTasks({ ids, wipman }: { ids: TaskId[]; wipman: Wipman }): Task[] {
+  const result: Task[] = [];
+
+  for (const id of ids) {
+    const task = wipman.taskManager.getTask(id);
+    if (task === undefined) continue;
+    result.push(task);
   }
 
   return result;

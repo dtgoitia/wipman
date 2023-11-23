@@ -4,6 +4,12 @@ import InputTextarea from "../../../components/InputTextArea";
 import { LastUpdated } from "../../../components/LastUpdated";
 import { TagSelector } from "../../../components/TagSelector";
 import { nowIsoString } from "../../../lib/domain/dates";
+import {
+  addBlockedTask,
+  addBlockingTask,
+  removeBlockedTask,
+  removeBlockingTask,
+} from "../../../lib/domain/task";
 import { Tag, Task, TaskId, TaskTitle } from "../../../lib/domain/types";
 import { Wipman } from "../../../lib/domain/wipman";
 import { setsAreEqual } from "../../../lib/set";
@@ -13,7 +19,7 @@ import { TaskIdBadge } from "./TaskIdBadge";
 import { Title } from "./Title";
 import { Button } from "primereact/button";
 import { InputSwitch } from "primereact/inputswitch";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -29,24 +35,51 @@ const Content = styled.section`
 `;
 
 interface Props {
-  task: Task;
+  taskId: TaskId;
   onUpdate: (task: Task) => void;
   onDelete: (id: TaskId) => void;
   wipman: Wipman;
 }
 
 export function TaskEditor({
-  task,
+  taskId,
   onUpdate: updateTask,
   onDelete: deleteTask,
   wipman,
 }: Props) {
   const navigateTo = useNavigate();
 
-  const [title, setTitle] = useState<TaskTitle>(task.title);
-  const [content, setContent] = useState<string>(task.content);
-  const [tags, setTags] = useState<Set<Tag>>(task.tags);
-  const [completed, setCompleted] = useState<boolean>(task.completed);
+  const [task, setTask] = useState<Task | undefined>();
+  const [title, setTitle] = useState<TaskTitle>("");
+  const [content, setContent] = useState<string>("");
+  const [tags, setTags] = useState<Set<Tag>>(new Set());
+  const [completed, setCompleted] = useState<boolean>(false);
+
+  useEffect(() => {
+    const subscription = wipman.taskManager.change$.subscribe((change) => {
+      switch (change.kind) {
+        case "TaskAdded":
+        // do nothing
+        case "TaskUpdated":
+          return setTask(wipman.getTask({ id: taskId }));
+        case "TaskDeleted":
+          return setTask(undefined);
+      }
+    });
+
+    const task = wipman.getTask({ id: taskId });
+    setTask(task);
+    if (task) {
+      setTitle(task.title);
+      setContent(task.content);
+      setTags(task.tags);
+      setCompleted(task.completed);
+    }
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [taskId, wipman]);
 
   function handleTaskTitleChange(title: TaskTitle): void {
     setTitle(title);
@@ -63,6 +96,7 @@ export function TaskEditor({
   function handleTaskSubmit(): void {
     // TODO: updating the whole task should be a standalone button, not just pressing enter in the text
     // TODO: probably this should do nothing, and then IF THE USER CANCELS, just revert changes
+    if (task === undefined) return;
     updateTask({
       ...task,
       title,
@@ -74,6 +108,7 @@ export function TaskEditor({
   }
 
   function discardContentChanges(): void {
+    if (task === undefined) return;
     setTitle(task.title);
     setContent(task.content);
     setTags(task.tags);
@@ -81,8 +116,37 @@ export function TaskEditor({
   }
 
   function handleTaskDeletion(): void {
+    if (task === undefined) return;
     deleteTask(task.id);
     navigateTo(Paths.tasks);
+  }
+
+  function handleAddBlockedBy(blocker: TaskId): void {
+    if (task === undefined) return;
+    const updated = addBlockingTask({ task, blocker });
+    wipman.updateTask({ task: updated });
+  }
+
+  function handleDeleteBlockedBy(blocker: TaskId): void {
+    if (task === undefined) return;
+    const updated = removeBlockingTask({ task, blocker });
+    wipman.updateTask({ task: updated });
+  }
+
+  function handleAddBlocks(blocked: TaskId): void {
+    if (task === undefined) return;
+    const updated = addBlockedTask({ task, blocked });
+    wipman.updateTask({ task: updated });
+  }
+
+  function handleDeleteBlocks(blocked: TaskId): void {
+    if (task === undefined) return;
+    const updated = removeBlockedTask({ task, blocked });
+    wipman.updateTask({ task: updated });
+  }
+
+  if (task === undefined) {
+    return <div>Task {taskId} does not exist</div>;
   }
 
   const changesSaved =
@@ -134,7 +198,15 @@ export function TaskEditor({
           />
         </div>
 
-        <TaskDependencies taskId={task.id} wipman={wipman} />
+        <TaskDependencies
+          wipman={wipman}
+          blockedBy={task.blockedBy}
+          blocks={task.blocks}
+          addBlockedBy={handleAddBlockedBy}
+          deleteBlockedBy={handleDeleteBlockedBy}
+          addBlocks={handleAddBlocks}
+          deleteBlocks={handleDeleteBlocks}
+        />
 
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}

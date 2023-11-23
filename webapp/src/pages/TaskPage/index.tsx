@@ -91,11 +91,9 @@ function TaskPage({ wipman }: TaskPageProps) {
     return <PageNotFound />;
   }
 
-  const task = maybeTask;
-
   return (
     <TaskEditor
-      task={task}
+      taskId={id}
       onUpdate={handleTaskUpdate}
       onDelete={handleTaskDeletion}
       wipman={wipman}

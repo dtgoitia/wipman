@@ -131,7 +131,7 @@ export class TaskManager {
         if (blockingTask === undefined) {
           // The blocking task ID does not belong to any Task, so drop the
           // blocking task ID from the task we are updating
-          task = removeBlockingTask({ task, blockerId: blockingTaskId });
+          task = removeBlockingTask({ task, blocker: blockingTaskId });
           continue;
         }
 
@@ -216,7 +216,7 @@ export class TaskManager {
         // `blockedBy`
         const updatedBlockedTask = removeBlockingTask({
           task: blockedTask,
-          blockerId: task.id,
+          blocker: task.id,
         });
         this.updateTask(updatedBlockedTask);
       }
@@ -642,10 +642,10 @@ export function removeBlockedTask({
 
 export function removeBlockingTask({
   task,
-  blockerId,
+  blocker: blockerId,
 }: {
   task: Task;
-  blockerId: TaskId;
+  blocker: TaskId;
 }): Task {
   const blockedByTasks = new Set<TaskId>([...task.blockedBy.values()]);
   blockedByTasks.delete(blockerId);

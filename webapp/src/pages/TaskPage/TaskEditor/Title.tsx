@@ -1,7 +1,7 @@
 import InputText from "../../../components/InputText";
 import { TaskTitle } from "../../../lib/domain/types";
 import { Button } from "primereact/button";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
@@ -26,6 +26,10 @@ export function Title({ title: originalTitle, onUpdate: updateTitle }: Props) {
   const [title, setTitleLocally] = useState<TaskTitle>(originalTitle);
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const isUnsaved: boolean = originalTitle !== title;
+
+  useEffect(() => {
+    setTitleLocally(originalTitle);
+  }, [originalTitle]);
 
   if (isEditing === false) {
     return (
