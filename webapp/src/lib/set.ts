@@ -99,3 +99,12 @@ export function union<T>(a: Set<T>, b: Set<T>): Set<T> {
 export function addToSet<T>(set: Set<T>, item: T): Set<T> {
   return new Set<T>([...set, item]);
 }
+
+/**
+ * Delete item from a set without mutating the original set
+ */
+export function deleteFromSet<T>(set: Set<T>, item: T): Set<T> {
+  const result = new Set<T>([...set]);
+  result.delete(item);
+  return result;
+}
