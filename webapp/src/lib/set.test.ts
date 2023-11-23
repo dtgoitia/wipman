@@ -1,5 +1,6 @@
 import {
   addToSet,
+  assessSetOverlap,
   deleteFromSet,
   difference,
   intersect,
@@ -117,5 +118,119 @@ describe("deleteFromSet", () => {
     const result = deleteFromSet(original, 1);
     expect(result).toEqual(new Set([2, 3]));
     expect(result).not.toBe(original);
+  });
+});
+
+describe("assessSetOverlap", () => {
+  it("when A and B are equal", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([1, 2]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inAButNotInB).toEqual(new Set());
+    expect(inBButNotInA).toEqual(new Set());
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([1, 2]));
+  });
+
+  it("when A is a subset of B", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([1, 2, 3]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inAButNotInB).toEqual(new Set());
+    expect(inBButNotInA).toEqual(new Set([3]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([1, 2, 3]));
+  });
+
+  it("when B is a subset of A", () => {
+    const a = new Set([1, 2, 3]);
+    const b = new Set([1, 2]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inAButNotInB).toEqual(new Set([3]));
+    expect(inBButNotInA).toEqual(new Set());
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2, 3]));
+    expect(b).toEqual(new Set([1, 2]));
+  });
+
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
+  });
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
+  });
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
+  });
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
+  });
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
+  });
+  it("when A and B do not overlap", () => {
+    const a = new Set([1, 2]);
+    const b = new Set([3, 4]);
+
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({ a, b });
+    expect(inBButNotInA).toEqual(new Set([3, 4]));
+    expect(inAButNotInB).toEqual(new Set([1, 2]));
+
+    // a and b should remain unchanged
+    expect(a).toEqual(new Set([1, 2]));
+    expect(b).toEqual(new Set([3, 4]));
   });
 });
