@@ -13,31 +13,69 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface Props {
-  task: Task;
+  taskId: TaskId;
   wipman: Wipman;
 }
 
-export function TaskDependencies({ task, wipman }: Props) {
-  const blockedTasks: Task[] = wipman.getBlockedTasks({ task });
-  const blockedByTasks: Task[] = wipman.getBlockingTasks({ task });
+export function TaskDependencies({ taskId, wipman }: Props) {
+  const [task, setTask] = useState<Task | undefined>(undefined);
+  const [blockedTasks, setBlockedTasks] = useState<Task[]>([]);
+  const [blockedByTasks, setBlockedByTasks] = useState<Task[]>([]);
+
+  function loadTaskDependencies(): void {
+    const task = wipman.getTask({ id: taskId });
+    if (task === undefined) {
+      console.warn(
+        `${TaskDependencies.name}.${loadTaskDependencies.name}::no task found` +
+          ` with ID ${taskId}`
+      );
+      return;
+    }
+
+    setTask(task);
+    setBlockedTasks(wipman.getBlockedTasks({ task }));
+    setBlockedByTasks(wipman.getBlockingTasks({ task }));
+  }
+
+  useEffect(() => {
+    const subscription = wipman.taskManager.change$.subscribe((change) => {
+      switch (change.kind) {
+        case "TaskUpdated":
+          loadTaskDependencies();
+          break;
+        default:
+        // ...
+      }
+    });
+
+    loadTaskDependencies();
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [taskId, wipman]);
 
   function handleBlockedTaskAddition(blocked: TaskId): void {
+    if (task === undefined) return;
     const updated = addBlockedTask({ task, blocked });
     wipman.updateTask({ task: updated });
   }
 
   function handleBlockingTaskAddition(blocking: TaskId): void {
-    const updated = addBlockingTask({ task, blocking });
+    if (task === undefined) return;
+    const updated = addBlockingTask({ task, blocker: blocking });
     wipman.updateTask({ task: updated });
   }
 
   function handleBlockedTaskRemoval(blocked: TaskId): void {
+    if (task === undefined) return;
     const updated = removeBlockedTask({ task, blocked });
     wipman.updateTask({ task: updated });
   }
 
   function handleBlockingTaskRemoval(blocking: TaskId): void {
-    const updated = removeBlockingTask({ task, blocking });
+    if (task === undefined) return;
+    const updated = removeBlockingTask({ task, blockerId: blocking });
     wipman.updateTask({ task: updated });
   }
 

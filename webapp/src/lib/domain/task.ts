@@ -1,6 +1,6 @@
 import { datetimesAreEqual } from "../dates";
 import { unreachable } from "../devex";
-import { setsAreEqual } from "../set";
+import { assessSetOverlap, setsAreEqual } from "../set";
 import { nowIsoString } from "./dates";
 import { generateHash } from "./hash";
 import { Hash, MarkdownString, Tag, Task, TaskId, TaskTitle } from "./types";
@@ -98,6 +98,7 @@ export class TaskManager {
       return task;
     }
 
+    // handle tag updates
     const tagsChanged = diff.updatedTags !== undefined;
     if (tagsChanged) {
       const newTags = diff.updatedTags;
@@ -112,9 +113,115 @@ export class TaskManager {
       this.addTaskToTagIndexes(task.id, newTags);
     }
 
+    // Save current changes before updating related items
     this.tasks.set(task.id, task);
-
     this.changeSubject.next({ kind: "TaskUpdated", id: task.id });
+
+    // handle items added to `blockedBy`
+    if (diff.addedBlockedBy !== undefined) {
+      console.debug(
+        `TaskManager.updateTask:`,
+        diff.addedBlockedBy,
+        ` added to previous blockedBy: `,
+        oldTask.blockedBy
+      );
+
+      for (const blockingTaskId of diff.addedBlockedBy) {
+        const blockingTask = this.tasks.get(blockingTaskId);
+        if (blockingTask === undefined) {
+          // The blocking task ID does not belong to any Task, so drop the
+          // blocking task ID from the task we are updating
+          task = removeBlockingTask({ task, blockerId: blockingTaskId });
+          continue;
+        }
+
+        // update the blocking task to show the current task under `blocks`
+        const updatedBlockingTask = addBlockedTask({
+          task: blockingTask,
+          blocked: task.id,
+        });
+        this.updateTask(updatedBlockingTask);
+      }
+    }
+
+    // handle items deleted from `blockedBy`
+    if (diff.deletedBlockedBy !== undefined) {
+      console.debug(
+        `TaskManager.updateTask:`,
+        diff.deletedBlockedBy,
+        ` deleted from previous blockedBy: `,
+        oldTask.blockedBy
+      );
+
+      for (const blockingTaskId of diff.deletedBlockedBy) {
+        const blockingTask = this.tasks.get(blockingTaskId);
+        if (blockingTask === undefined) {
+          // The blocking task ID belongs to a deleted Task, nothing to do here
+          continue;
+        }
+
+        // update the blocking task to stop showing the current task under `blocks`
+        const updatedBlockingTask = removeBlockedTask({
+          task: blockingTask,
+          blocked: task.id,
+        });
+        this.updateTask(updatedBlockingTask);
+      }
+    }
+
+    // handle items added to `blocks`
+    if (diff.addedBlocks !== undefined) {
+      console.debug(
+        `TaskManager.updateTask:`,
+        diff.addedBlocks,
+        ` added to previous blockedBy: `,
+        oldTask.blockedBy
+      );
+
+      for (const blockedTaskId of diff.addedBlocks) {
+        const blockedTask = this.tasks.get(blockedTaskId);
+        if (blockedTask === undefined) {
+          // The blocked task ID does not belong to any Task, so drop the
+          // blocked task ID from the task we are updating
+          task = removeBlockedTask({ task, blocked: blockedTaskId });
+          continue;
+        }
+
+        // update the blocked task to show the current task under `blockedBy`
+        const updatedBlockedTask = addBlockingTask({
+          task: blockedTask,
+          blocker: task.id,
+        });
+        this.updateTask(updatedBlockedTask);
+      }
+    }
+
+    // handle items deleted from `blocks`
+    if (diff.deletedBlocks !== undefined) {
+      console.debug(
+        `TaskManager.updateTask:`,
+        diff.deletedBlocks,
+        ` deleted from previous blockedBy: `,
+        oldTask.blockedBy
+      );
+
+      for (const blockedTaskId of diff.deletedBlocks) {
+        const blockedTask = this.tasks.get(blockedTaskId);
+        if (blockedTask === undefined) {
+          // The blocked task ID belongs to a deleted Task, nothing to do here
+          continue;
+        }
+
+        // update the blocked task to stop showing the current task under
+        // `blockedBy`
+        const updatedBlockedTask = removeBlockingTask({
+          task: blockedTask,
+          blockerId: task.id,
+        });
+        this.updateTask(updatedBlockedTask);
+      }
+    }
+
     return task;
   }
 
@@ -349,43 +456,55 @@ export type TaskChanges =
 
 interface TaskDiffArgs {
   updatedTitle?: TaskTitle;
-  updatedTags?: Set<Tag>;
-  updatedBlockedBy?: Set<TaskId>;
-  updatedBlocks?: Set<TaskId>;
-  updatedCompleted?: boolean;
   updatedContent?: MarkdownString;
+  updatedTags?: Set<Tag>;
+  updatedCompleted?: boolean;
+  addedBlockedBy?: Set<TaskId>;
+  removedBlockedBy?: Set<TaskId>;
+  addedBlocks?: Set<TaskId>;
+  removedBlocks?: Set<TaskId>;
 }
 class TaskDiff {
-  public readonly updatedTitle?: TaskTitle;
-  public readonly updatedTags?: Set<Tag>;
-  public readonly updatedBlockedBy?: Set<TaskId>;
-  public readonly updatedBlocks?: Set<TaskId>;
-  public readonly updatedCompleted?: boolean;
-  public readonly updatedContent?: MarkdownString;
   public readonly hasChanges: boolean;
+
+  public readonly updatedTitle?: TaskTitle;
+  public readonly updatedContent?: MarkdownString;
+  public readonly updatedTags?: Set<Tag>;
+  public readonly updatedCompleted?: boolean;
+
+  public readonly addedBlockedBy?: Set<TaskId>;
+  public readonly deletedBlockedBy?: Set<TaskId>;
+  public readonly addedBlocks?: Set<TaskId>;
+  public readonly deletedBlocks?: Set<TaskId>;
 
   constructor({
     updatedTitle,
-    updatedTags,
-    updatedBlockedBy,
-    updatedBlocks,
-    updatedCompleted,
     updatedContent,
+    updatedTags,
+    updatedCompleted,
+    addedBlockedBy,
+    removedBlockedBy,
+    addedBlocks,
+    removedBlocks,
   }: TaskDiffArgs) {
     this.updatedTitle = updatedTitle;
-    this.updatedTags = updatedTags;
-    this.updatedBlockedBy = updatedBlockedBy;
-    this.updatedBlocks = updatedBlocks;
-    this.updatedCompleted = updatedCompleted;
     this.updatedContent = updatedContent;
+    this.updatedTags = updatedTags;
+    this.updatedCompleted = updatedCompleted;
+    this.addedBlockedBy = addedBlockedBy;
+    this.deletedBlockedBy = removedBlockedBy;
+    this.addedBlocks = addedBlocks;
+    this.deletedBlocks = removedBlocks;
 
     this.hasChanges =
       this.updatedTitle !== undefined ||
       this.updatedTags !== undefined ||
-      this.updatedBlockedBy !== undefined ||
-      this.updatedBlocks !== undefined ||
+      this.updatedContent !== undefined ||
       this.updatedCompleted !== undefined ||
-      this.updatedContent !== undefined;
+      this.addedBlockedBy !== undefined ||
+      this.deletedBlockedBy !== undefined ||
+      this.addedBlocks !== undefined ||
+      this.deletedBlocks !== undefined;
   }
 }
 
@@ -421,14 +540,24 @@ export function diffTasks({
   }
 
   let updatedTitle: TaskTitle | undefined = undefined;
-  let updatedTags: Set<Tag> | undefined = undefined;
-  let updatedBlockedBy: Set<TaskId> | undefined = undefined;
-  let updatedBlocks: Set<TaskId> | undefined = undefined;
-  let updatedCompleted: boolean | undefined = undefined;
   let updatedContent: MarkdownString | undefined = undefined;
+  let updatedCompleted: boolean | undefined = undefined;
+  let updatedTags: Set<Tag> | undefined = undefined;
+  let addedBlockedBy: Set<TaskId> | undefined = undefined;
+  let addedBlocks: Set<TaskId> | undefined = undefined;
+  let removedBlockedBy: Set<TaskId> | undefined = undefined;
+  let removedBlocks: Set<TaskId> | undefined = undefined;
 
   if (before.title !== after.title) {
     updatedTitle = after.title;
+  }
+
+  if (before.content !== after.content) {
+    updatedContent = after.content;
+  }
+
+  if (before.completed !== after.completed) {
+    updatedCompleted = after.completed;
   }
 
   if (setsAreEqual(before.tags, after.tags) === false) {
@@ -436,28 +565,34 @@ export function diffTasks({
   }
 
   if (setsAreEqual(before.blockedBy, after.blockedBy) === false) {
-    updatedBlockedBy = after.blockedBy;
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({
+      a: before.blockedBy,
+      b: after.blockedBy,
+    });
+
+    addedBlockedBy = inBButNotInA;
+    removedBlockedBy = inAButNotInB;
   }
 
   if (setsAreEqual(before.blocks, after.blocks) === false) {
-    updatedBlocks = after.blocks;
-  }
+    const { inAButNotInB, inBButNotInA } = assessSetOverlap({
+      a: before.blocks,
+      b: after.blocks,
+    });
 
-  if (before.completed !== after.completed) {
-    updatedCompleted = after.completed;
-  }
-
-  if (before.content !== after.content) {
-    updatedContent = after.content;
+    addedBlocks = inBButNotInA;
+    removedBlocks = inAButNotInB;
   }
 
   return new TaskDiff({
     updatedTitle,
     updatedTags,
-    updatedBlockedBy,
-    updatedBlocks,
-    updatedCompleted,
     updatedContent,
+    updatedCompleted,
+    addedBlockedBy,
+    removedBlockedBy,
+    addedBlocks,
+    removedBlocks,
   });
 }
 
@@ -478,10 +613,10 @@ export function addBlockedTask({
 
 export function addBlockingTask({
   task,
-  blocking,
+  blocker: blocking,
 }: {
   task: Task;
-  blocking: TaskId;
+  blocker: TaskId;
 }): Task {
   const updated: Task = {
     ...task,
@@ -507,13 +642,13 @@ export function removeBlockedTask({
 
 export function removeBlockingTask({
   task,
-  blocking,
+  blockerId,
 }: {
   task: Task;
-  blocking: TaskId;
+  blockerId: TaskId;
 }): Task {
   const blockedByTasks = new Set<TaskId>([...task.blockedBy.values()]);
-  blockedByTasks.delete(blocking);
+  blockedByTasks.delete(blockerId);
 
   const updated: Task = { ...task, blockedBy: blockedByTasks };
   return updated;

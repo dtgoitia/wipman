@@ -1,5 +1,6 @@
 import { buildTask } from "../../tests/factories/task";
 import { todo } from "../devex";
+import { addToSet, deleteFromSet } from "../set";
 import { TaskManager, diffTasks, mergeTasks } from "./task";
 import { Tag, Task, TaskId } from "./types";
 import { describe, expect, it } from "vitest";
@@ -115,8 +116,8 @@ describe("diffTasks", () => {
     created: "2000-01-01T00:00:00Z",
     updated: "2000-01-01T00:00:00Z",
     tags: new Set<Tag>(),
-    blockedBy: new Set<TaskId>(),
-    blocks: new Set<TaskId>(),
+    blockedBy: new Set<TaskId>(["upstream-task-a", "upstream-task-b"]),
+    blocks: new Set<TaskId>(["downstream-task-a", "downstream-task-b"]),
     completed: false,
   };
 
@@ -158,24 +159,47 @@ describe("diffTasks", () => {
     expect(diff.updatedTags).toEqual(new Set(["fooo"]));
   });
 
-  it("detects tasks with different downstream dependencies", () => {
-    const after: Task = { ...before, blocks: new Set<TaskId>(["fooo"]) };
-    const diff = diffTasks({ before, after });
-    expect(diff.hasChanges).toBe(true);
-    expect(diff.updatedBlocks).toEqual(new Set(["fooo"]));
-  });
-
-  it("detects tasks with different upstream dependencies", () => {
-    const after: Task = { ...before, blockedBy: new Set<TaskId>(["fooo"]) };
-    const diff = diffTasks({ before, after });
-    expect(diff.hasChanges).toBe(true);
-    expect(diff.updatedBlockedBy).toEqual(new Set(["fooo"]));
-  });
-
   it("detects tasks with different completion status", () => {
     const after: Task = { ...before, completed: true };
     const diff = diffTasks({ before, after });
     expect(diff.hasChanges).toBe(true);
     expect(diff.updatedCompleted).toBe(true);
+  });
+
+  it("detects tasks with more blocked tasks", () => {
+    const after: Task = { ...before, blocks: addToSet(before.blocks, "added") };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.addedBlocks).toEqual(new Set(["added"]));
+  });
+
+  it("detects tasks with less blocked tasks", () => {
+    const after: Task = {
+      ...before,
+      blocks: deleteFromSet(before.blocks, "downstream-task-a"),
+    };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.deletedBlocks).toEqual(new Set(["downstream-task-a"]));
+  });
+
+  it("detects tasks with more upstream dependencies", () => {
+    const after: Task = {
+      ...before,
+      blockedBy: addToSet(before.blockedBy, "added"),
+    };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.addedBlockedBy).toEqual(new Set(["added"]));
+  });
+
+  it("detects tasks with less upstream dependencies", () => {
+    const after: Task = {
+      ...before,
+      blockedBy: deleteFromSet(before.blockedBy, "upstream-task-a"),
+    };
+    const diff = diffTasks({ before, after });
+    expect(diff.hasChanges).toBe(true);
+    expect(diff.deletedBlockedBy).toEqual(new Set(["upstream-task-a"]));
   });
 });

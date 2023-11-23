@@ -134,7 +134,7 @@ export function TaskEditor({
           />
         </div>
 
-        <TaskDependencies task={task} wipman={wipman} />
+        <TaskDependencies taskId={task.id} wipman={wipman} />
 
         <DeleteConfirmationDialog
           title={`Do you want to delete task ${task.id}?`}

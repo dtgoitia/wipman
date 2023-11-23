@@ -77,7 +77,7 @@ export class Wipman {
   private statusSubject: Subject<WipmanStatus>;
   private tasksSubject: BehaviorSubject<Map<TaskId, Task>>;
   private viewsSubject: BehaviorSubject<Map<ViewId, View>>;
-  private taskManager: TaskManager;
+  public taskManager: TaskManager;
   private viewManager: ViewManager;
   private operationsManager: OperationsManager;
 
