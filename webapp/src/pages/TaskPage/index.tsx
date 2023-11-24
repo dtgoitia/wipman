@@ -1,9 +1,10 @@
+import { WipmanContext } from "../..";
 import { assertNever } from "../../exhaustive-match";
 import { Task, TaskId } from "../../lib/domain/types";
-import { Wipman, WipmanStatus } from "../../lib/domain/wipman";
+import { WipmanStatus } from "../../lib/domain/wipman";
 import PageNotFound from "../PageNotFound";
 import { TaskEditor } from "./TaskEditor";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 
 function isLoading(status: WipmanStatus): boolean {
@@ -49,10 +50,9 @@ function isLoading(status: WipmanStatus): boolean {
   }
 }
 
-interface TaskPageProps {
-  wipman: Wipman;
-}
-function TaskPage({ wipman }: TaskPageProps) {
+function TaskPage() {
+  const wipman = useContext(WipmanContext);
+
   const [loading, setLoading] = useState<boolean>(true);
 
   // TODO: action: ?
@@ -96,7 +96,6 @@ function TaskPage({ wipman }: TaskPageProps) {
       taskId={id}
       onUpdate={handleTaskUpdate}
       onDelete={handleTaskDeletion}
-      wipman={wipman}
     />
   );
 }

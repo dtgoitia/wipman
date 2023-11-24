@@ -15,6 +15,7 @@ import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
 import "./style/primereact";
 import React from "react";
+import { createContext } from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
@@ -55,9 +56,14 @@ const wipman = new Wipman({
   errors,
 });
 
+export const WipmanContext = createContext(wipman);
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <GlobalStyle theme={activeTheme} />
-    <App wipman={wipman} />
+
+    <WipmanContext.Provider value={wipman}>
+      <App wipman={wipman} />
+    </WipmanContext.Provider>
   </React.StrictMode>
 );

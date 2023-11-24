@@ -92,7 +92,7 @@ function App({ wipman }: { wipman: Wipman }) {
               path={Paths.tasks}
               element={<TaskExplorer wipman={wipman} />}
             />
-            <Route path={Paths.task} element={<TaskPage wipman={wipman} />} />
+            <Route path={Paths.task} element={<TaskPage />} />
             <Route
               path={Paths.views}
               element={<ViewExplorer wipman={wipman} />}

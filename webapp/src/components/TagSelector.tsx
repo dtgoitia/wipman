@@ -1,3 +1,4 @@
+import { WipmanContext } from "..";
 import { sortTags } from "../lib/domain/tag";
 import { Tag } from "../lib/domain/types";
 import { Wipman } from "../lib/domain/wipman";
@@ -7,7 +8,7 @@ import SearchBox from "./SearchBox";
 import { Button } from "primereact/button";
 import { Chip } from "primereact/chip";
 // import { MultiSelect } from "primereact/multiselect";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface Props {
@@ -16,7 +17,9 @@ interface Props {
   wipman: Wipman;
 }
 
-export function TagSelector({ selected, onUpdate, wipman }: Props) {
+export function TagSelector({ selected, onUpdate }: Props) {
+  const wipman = useContext(WipmanContext);
+
   const [isEditing, setIsEditing] = useState<boolean>(false);
   const [all, setAll] = useState<Set<Tag>>(new Set());
   const [typed, setTyped] = useState<string | undefined>();

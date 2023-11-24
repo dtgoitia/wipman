@@ -1,3 +1,4 @@
+import { WipmanContext } from "../../..";
 import CenteredPage from "../../../components/CenteredPage";
 import { DeleteConfirmationDialog } from "../../../components/DeleteConfirmationDialog";
 import InputTextarea from "../../../components/InputTextArea";
@@ -11,7 +12,6 @@ import {
   removeBlockingTask,
 } from "../../../lib/domain/task";
 import { Tag, Task, TaskId, TaskTitle } from "../../../lib/domain/types";
-import { Wipman } from "../../../lib/domain/wipman";
 import { setsAreEqual } from "../../../lib/set";
 import Paths from "../../../routes";
 import { TaskDependencies } from "./TaskDependencies";
@@ -19,7 +19,7 @@ import { TaskIdBadge } from "./TaskIdBadge";
 import { Title } from "./Title";
 import { Button } from "primereact/button";
 import { InputSwitch } from "primereact/inputswitch";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
@@ -38,16 +38,15 @@ interface Props {
   taskId: TaskId;
   onUpdate: (task: Task) => void;
   onDelete: (id: TaskId) => void;
-  wipman: Wipman;
 }
 
 export function TaskEditor({
   taskId,
   onUpdate: updateTask,
   onDelete: deleteTask,
-  wipman,
 }: Props) {
   const navigateTo = useNavigate();
+  const wipman = useContext(WipmanContext);
 
   const [task, setTask] = useState<Task | undefined>();
   const [title, setTitle] = useState<TaskTitle>("");
@@ -199,7 +198,6 @@ export function TaskEditor({
         </div>
 
         <TaskDependencies
-          wipman={wipman}
           blockedBy={task.blockedBy}
           blocks={task.blocks}
           addBlockedBy={handleAddBlockedBy}

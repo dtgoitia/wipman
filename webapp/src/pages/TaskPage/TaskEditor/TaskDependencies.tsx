@@ -1,16 +1,16 @@
+import { WipmanContext } from "../../..";
 import SearchBox, { NO_FILTER_QUERY } from "../../../components/SearchBox";
 import { Task, TaskId } from "../../../lib/domain/types";
 import { Wipman } from "../../../lib/domain/wipman";
 import { getTaskPath } from "../../../routes";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
+import { useContext } from "react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 interface Props {
-  wipman: Wipman;
-
   blockedBy: Set<TaskId>;
   addBlockedBy: (id: TaskId) => void;
   deleteBlockedBy: (id: TaskId) => void;
@@ -21,7 +21,6 @@ interface Props {
 }
 
 export function TaskDependencies({
-  wipman,
   blockedBy,
   blocks,
   addBlockedBy,
@@ -29,6 +28,8 @@ export function TaskDependencies({
   addBlocks,
   deleteBlocks,
 }: Props) {
+  const wipman = useContext(WipmanContext);
+
   const blockedByTasks: Task[] = getTasks({ ids: [...blockedBy], wipman });
   const blocksTasks: Task[] = getTasks({ ids: [...blocks], wipman });
 
@@ -90,7 +91,9 @@ interface AddRelationProps {
   onAdd: (related: TaskId) => void;
 }
 
-function AddRelation({ wipman, onAdd }: AddRelationProps) {
+function AddRelation({ onAdd }: AddRelationProps) {
+  const wipman = useContext(WipmanContext);
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>(NO_FILTER_QUERY);
