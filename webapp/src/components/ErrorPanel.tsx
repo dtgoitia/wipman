@@ -1,4 +1,4 @@
-import { Wipman } from "../lib/domain/wipman";
+import { useWipman } from "..";
 import { ErrorMessage } from "../services/errors";
 import { Button } from "primereact/button";
 import { useEffect, useState } from "react";
@@ -21,11 +21,12 @@ const ErrorsContainer = styled.div`
   margin: 0.2rem;
 `;
 
-interface ErrorPanelProps {
-  wipman: Wipman;
-}
-export function ErrorPanel({ wipman }: ErrorPanelProps) {
+interface ErrorPanelProps {}
+
+export function ErrorPanel({}: ErrorPanelProps) {
+  const wipman = useWipman();
   const [errors, setErrors] = useState<ErrorMessage[]>([]);
+
   useEffect(() => {
     const subscription = wipman.errors.errorsFeed$.subscribe(setErrors);
     return () => subscription.unsubscribe();

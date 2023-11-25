@@ -1,3 +1,4 @@
+import { useWipman } from "../..";
 import AddTask from "../../components/AddTask";
 import CenteredPage from "../../components/CenteredPage";
 import ListedTask from "../../components/ListedTask";
@@ -9,7 +10,6 @@ import {
   TaskId,
   TaskTitle,
 } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "./TaskFilter";
@@ -19,11 +19,10 @@ import { DndProvider } from "react-dnd";
 import { TouchBackend } from "react-dnd-touch-backend";
 import { useNavigate } from "react-router-dom";
 
-interface TaskExplorerProps {
-  wipman: Wipman;
-}
-function TaskExplorer({ wipman }: TaskExplorerProps) {
+interface TaskExplorerProps {}
+function TaskExplorer({}: TaskExplorerProps) {
   const navigateTo = useNavigate();
+  const wipman = useWipman();
   const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
 
   const [showCompleted, setShowCompleted] = useState<boolean>(

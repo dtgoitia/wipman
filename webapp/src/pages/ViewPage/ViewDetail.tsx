@@ -1,3 +1,4 @@
+import { useWipman } from "../..";
 import AddTask from "../../components/AddTask";
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { LastUpdated } from "../../components/LastUpdated";
@@ -10,7 +11,6 @@ import {
   ViewId,
   ViewTitle,
 } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { setsAreEqual } from "../../lib/set";
 import { ViewTitleComponent } from "./ViewTitle";
 import { Button } from "primereact/button";
@@ -26,10 +26,10 @@ const AlignRight = styled.div`
 
 interface ViewDetailProps {
   viewId: ViewId;
-  wipman: Wipman;
 }
 
-export function ViewDetail({ viewId: id, wipman }: ViewDetailProps) {
+export function ViewDetail({ viewId: id }: ViewDetailProps) {
+  const wipman = useWipman();
   const [view, setView] = useState<View | undefined>();
   const [title, setTitle] = useState<ViewTitle | undefined>();
   const [tags, setTags] = useState<Set<Tag>>(new Set());
@@ -102,11 +102,7 @@ export function ViewDetail({ viewId: id, wipman }: ViewDetailProps) {
         onDelete={() => wipman.removeView({ id: view.id })}
       />
       <LastUpdated date={view.updated} />
-      <TagSelector
-        selected={tags}
-        onUpdate={handleViewTagsChange}
-        wipman={wipman}
-      />
+      <TagSelector selected={tags} onUpdate={handleViewTagsChange} />
       {changesSaved ? (
         <AddTask onAdd={handleAddTask} />
       ) : (

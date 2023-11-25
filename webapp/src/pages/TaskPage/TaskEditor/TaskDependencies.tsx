@@ -1,3 +1,4 @@
+import { useWipman } from "../../..";
 import SearchBox, { NO_FILTER_QUERY } from "../../../components/SearchBox";
 import { Task, TaskId } from "../../../lib/domain/types";
 import { Wipman } from "../../../lib/domain/wipman";
@@ -9,8 +10,6 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 
 interface Props {
-  wipman: Wipman;
-
   blockedBy: Set<TaskId>;
   addBlockedBy: (id: TaskId) => void;
   deleteBlockedBy: (id: TaskId) => void;
@@ -21,7 +20,6 @@ interface Props {
 }
 
 export function TaskDependencies({
-  wipman,
   blockedBy,
   blocks,
   addBlockedBy,
@@ -29,6 +27,8 @@ export function TaskDependencies({
   addBlocks,
   deleteBlocks,
 }: Props) {
+  const wipman = useWipman();
+
   const blockedByTasks: Task[] = getTasks({ ids: [...blockedBy], wipman });
   const blocksTasks: Task[] = getTasks({ ids: [...blocks], wipman });
 
@@ -42,7 +42,7 @@ export function TaskDependencies({
           onRemove={() => deleteBlockedBy(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={addBlockedBy} />
+      <AddRelation onAdd={addBlockedBy} />
 
       <h4>Blocks</h4>
       {blocksTasks.map((task) => (
@@ -52,7 +52,7 @@ export function TaskDependencies({
           onRemove={() => deleteBlocks(task.id)}
         />
       ))}
-      <AddRelation wipman={wipman} onAdd={addBlocks} />
+      <AddRelation onAdd={addBlocks} />
     </Container>
   );
 }
@@ -86,11 +86,12 @@ const RelationshipContainer = styled.div`
 `;
 
 interface AddRelationProps {
-  wipman: Wipman;
   onAdd: (related: TaskId) => void;
 }
 
-function AddRelation({ wipman, onAdd }: AddRelationProps) {
+function AddRelation({ onAdd }: AddRelationProps) {
+  const wipman = useWipman();
+
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [query, setQuery] = useState<string>(NO_FILTER_QUERY);

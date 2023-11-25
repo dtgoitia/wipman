@@ -1,5 +1,5 @@
+import { useWipman } from "../..";
 import { Task, TaskTitle, View } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { Card } from "primereact/card";
 import styled from "styled-components";
 
@@ -12,10 +12,11 @@ const CustomCard = styled(Card)`
 interface Props {
   view: View;
   onClick: () => void;
-  wipman: Wipman;
 }
 
-export function ViewSummary({ view, onClick: handleClick, wipman }: Props) {
+export function ViewSummary({ view, onClick: handleClick }: Props) {
+  const wipman = useWipman();
+
   const titles: TaskTitle[] = view.tasks
     .map((taskId) => wipman.getTask({ id: taskId }) as Task)
     .filter((task) => task !== undefined && task.completed === false)

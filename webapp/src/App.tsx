@@ -1,9 +1,10 @@
+import { useWipman } from ".";
 import CenteredPage from "./components/CenteredPage";
 import { ErrorPanel } from "./components/ErrorPanel";
 // import ReloadPage from "./components/ReloadPage";
 import NavBar from "./components/NaviBar";
 import { BASE_URL } from "./constants";
-import { Wipman, WipmanStatus } from "./lib/domain/wipman";
+import { WipmanStatus } from "./lib/domain/wipman";
 import PageNotFound from "./pages/PageNotFound";
 import SettingsPage from "./pages/SettingsPage";
 import TaskExplorer from "./pages/TaskExplorer";
@@ -37,7 +38,9 @@ const SpinnerText = styled.p`
   font-size: large;
 `;
 
-function App({ wipman }: { wipman: Wipman }) {
+function App() {
+  const wipman = useWipman();
+
   const [initializationIsComplete, setInitializationIsComplete] =
     useState(false);
 
@@ -66,7 +69,7 @@ function App({ wipman }: { wipman: Wipman }) {
   if (initializationIsComplete === false) {
     return (
       <FullPage>
-        <ErrorPanel wipman={wipman} />
+        <ErrorPanel />
         <FullPageVerticallyCentered>
           <CenteredPage>
             <ProgressSpinner />
@@ -80,28 +83,16 @@ function App({ wipman }: { wipman: Wipman }) {
   return (
     <BrowserRouter basename={BASE_URL}>
       <FullPage>
-        <ErrorPanel wipman={wipman} />
+        <ErrorPanel />
         <NavBar />
         <ScrollableSectionBellowNavBar>
           <Routes>
-            <Route
-              path={Paths.root}
-              element={<ViewExplorer wipman={wipman} />}
-            />
-            <Route
-              path={Paths.tasks}
-              element={<TaskExplorer wipman={wipman} />}
-            />
-            <Route path={Paths.task} element={<TaskPage wipman={wipman} />} />
-            <Route
-              path={Paths.views}
-              element={<ViewExplorer wipman={wipman} />}
-            />
-            <Route path={Paths.view} element={<ViewPage wipman={wipman} />} />
-            <Route
-              path={Paths.settings}
-              element={<SettingsPage wipman={wipman} />}
-            />
+            <Route path={Paths.root} element={<ViewExplorer />} />
+            <Route path={Paths.tasks} element={<TaskExplorer />} />
+            <Route path={Paths.task} element={<TaskPage />} />
+            <Route path={Paths.views} element={<ViewExplorer />} />
+            <Route path={Paths.view} element={<ViewPage />} />
+            <Route path={Paths.settings} element={<SettingsPage />} />
             <Route path={Paths.notFound} element={<PageNotFound />} />
           </Routes>
         </ScrollableSectionBellowNavBar>

@@ -14,7 +14,8 @@ import { Storage } from "./services/persistence/persist";
 import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
 import "./style/primereact";
-import React from "react";
+import React, { useContext } from "react";
+import { createContext } from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
@@ -55,9 +56,17 @@ const wipman = new Wipman({
   errors,
 });
 
+const WipmanContext = createContext(wipman);
+export function useWipman(): Wipman {
+  return useContext(WipmanContext);
+}
+
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
     <GlobalStyle theme={activeTheme} />
-    <App wipman={wipman} />
+
+    <WipmanContext.Provider value={wipman}>
+      <App />
+    </WipmanContext.Provider>
   </React.StrictMode>
 );

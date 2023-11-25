@@ -1,8 +1,9 @@
+import { useWipman } from "../..";
 import CenteredPage from "../../components/CenteredPage";
 import { assertNever } from "../../exhaustive-match";
 import { OperationStatusChange } from "../../lib/domain/operations";
 import { View, ViewId } from "../../lib/domain/types";
-import { INIT_OPERATION_ID, Wipman } from "../../lib/domain/wipman";
+import { INIT_OPERATION_ID } from "../../lib/domain/wipman";
 import PageNotFound from "../PageNotFound";
 import { ViewDetail } from "./ViewDetail";
 import { ViewTasks } from "./ViewTasks";
@@ -27,10 +28,10 @@ function shouldShowSpinner(change: OperationStatusChange): ShowSpinner {
   }
 }
 
-interface Props {
-  wipman: Wipman;
-}
-function ViewPage({ wipman }: Props) {
+interface Props {}
+function ViewPage({}: Props) {
+  const wipman = useWipman();
+
   const [spinnerIsVisible, setSpinnerIsVisible] = useState<boolean>(true);
   const [view, setView] = useState<View | undefined>();
 
@@ -74,8 +75,8 @@ function ViewPage({ wipman }: Props) {
 
   return (
     <CenteredPage>
-      <ViewDetail viewId={view.id} wipman={wipman} />
-      <ViewTasks view={view} wipman={wipman} />
+      <ViewDetail viewId={view.id} />
+      <ViewTasks view={view} />
     </CenteredPage>
   );
 }

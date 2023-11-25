@@ -1,7 +1,7 @@
+import { useWipman } from "../..";
 import AddView from "../../components/AddView";
 import CenteredPage from "../../components/CenteredPage";
 import { View, ViewId, ViewTitle } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { getViewPath } from "../../routes";
 import { ViewSummary } from "./ViewSummary";
 import { useEffect, useState } from "react";
@@ -17,11 +17,10 @@ const Toolbar = styled.div`
   gap: 1rem;
 `;
 
-interface Props {
-  wipman: Wipman;
-}
+interface Props {}
 
-function ViewExplorer({ wipman }: Props) {
+function ViewExplorer({}: Props) {
+  const wipman = useWipman();
   const navigate = useNavigate();
   const [views, setViews] = useState<View[]>([]);
 
@@ -60,7 +59,6 @@ function ViewExplorer({ wipman }: Props) {
         {views.map((view) => (
           <ViewSummary
             key={view.id}
-            wipman={wipman}
             view={view}
             onClick={() => openView(view.id)}
           />

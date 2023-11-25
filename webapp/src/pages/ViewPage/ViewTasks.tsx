@@ -1,3 +1,4 @@
+import { useWipman } from "../..";
 import { DraggableListedTask } from "../../components/DraggableListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { isMobile } from "../../device";
@@ -10,7 +11,6 @@ import {
   TaskId,
   View,
 } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "../TaskExplorer/TaskFilter";
@@ -28,11 +28,11 @@ const Container = styled.div`
 
 interface Props {
   view: View;
-  wipman: Wipman;
 }
 
-export function ViewTasks({ view, wipman }: Props) {
+export function ViewTasks({ view }: Props) {
   const navigate = useNavigate();
+  const wipman = useWipman();
   const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
 
   const [taskIds, setTaskIds] = useState<TaskId[]>([]);

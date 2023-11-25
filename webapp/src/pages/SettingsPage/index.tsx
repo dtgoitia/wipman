@@ -1,9 +1,9 @@
+import { useWipman } from "../..";
 import InputText from "../../components/InputText";
 import ReloadPageButton from "../../components/ReloadPageButton";
 import { assertNever } from "../../exhaustive-match";
 import { findVersionHash } from "../../findVersion";
 import { Settings } from "../../lib/domain/types";
-import { Wipman } from "../../lib/domain/wipman";
 import { Button } from "primereact/button";
 import { Panel } from "primereact/panel";
 import { useEffect, useState } from "react";
@@ -17,10 +17,10 @@ const CustomCard = styled(Panel)`
   margin: 1rem;
 `;
 
-interface SettingsPageProps {
-  wipman: Wipman;
-}
-function SettingsPage({ wipman }: SettingsPageProps) {
+interface SettingsPageProps {}
+function SettingsPage({}: SettingsPageProps) {
+  const wipman = useWipman();
+
   const [apiUrl, setApiUrl] = useState<string | undefined>();
   const [apiToken, setApiToken] = useState<string | undefined>();
 

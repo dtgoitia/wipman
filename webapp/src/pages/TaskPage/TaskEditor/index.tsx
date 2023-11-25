@@ -1,3 +1,4 @@
+import { useWipman } from "../../..";
 import CenteredPage from "../../../components/CenteredPage";
 import { DeleteConfirmationDialog } from "../../../components/DeleteConfirmationDialog";
 import InputTextarea from "../../../components/InputTextArea";
@@ -11,7 +12,6 @@ import {
   removeBlockingTask,
 } from "../../../lib/domain/task";
 import { Tag, Task, TaskId, TaskTitle } from "../../../lib/domain/types";
-import { Wipman } from "../../../lib/domain/wipman";
 import { setsAreEqual } from "../../../lib/set";
 import Paths from "../../../routes";
 import { TaskDependencies } from "./TaskDependencies";
@@ -38,16 +38,15 @@ interface Props {
   taskId: TaskId;
   onUpdate: (task: Task) => void;
   onDelete: (id: TaskId) => void;
-  wipman: Wipman;
 }
 
 export function TaskEditor({
   taskId,
   onUpdate: updateTask,
   onDelete: deleteTask,
-  wipman,
 }: Props) {
   const navigateTo = useNavigate();
+  const wipman = useWipman();
 
   const [task, setTask] = useState<Task | undefined>();
   const [title, setTitle] = useState<TaskTitle>("");
@@ -181,11 +180,7 @@ export function TaskEditor({
         <Title title={title} onUpdate={handleTaskTitleChange} />
         <TaskIdBadge id={task.id} />
         <LastUpdated date={task.updated} />
-        <StyledTaskTags
-          selected={tags}
-          onUpdate={handleTaskTagsChange}
-          wipman={wipman}
-        />
+        <StyledTaskTags selected={tags} onUpdate={handleTaskTagsChange} />
 
         <div>
           <label htmlFor="completed">
@@ -199,7 +194,6 @@ export function TaskEditor({
         </div>
 
         <TaskDependencies
-          wipman={wipman}
           blockedBy={task.blockedBy}
           blocks={task.blocks}
           addBlockedBy={handleAddBlockedBy}
