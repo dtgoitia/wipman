@@ -124,9 +124,17 @@ export function ViewTasks({ view, onViewUpdate: handleViewUpdate }: Props) {
       />
       <DndProvider backend={isMobile() ? TouchBackend : HTML5Backend}>
         <ul>
-          {tasks.map((task) => (
+          {tasks.map((task, i) => (
             <DraggableListedTask
-              key={task.id}
+              /**
+               * Make that the `key` changes when the position of the Task in
+               * the list task. Otherwise, the component will not re-render, and
+               * the `handleInsertBefore` function will not be updated, which
+               * means that the value of `view` inside the `handleInsertBefore`
+               * closure is not updated - which is visual appreciated as items
+               * randomly jumping up and down the list
+               */
+              key={`${task.id}-${i}`}
               task={task}
               onOpenTaskView={() => openTask(task.id)}
               onInsertBefore={handleInsertBefore}
