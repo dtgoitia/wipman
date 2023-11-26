@@ -64,6 +64,10 @@ function ViewPage({}: Props) {
     };
   }, [wipman]);
 
+  function handleViewUpdate({ view }: { view: View }): void {
+    wipman.updateView({ view });
+  }
+
   if (spinnerIsVisible === true) {
     return <div>LOADING VIEW</div>;
   }
@@ -76,7 +80,7 @@ function ViewPage({}: Props) {
   return (
     <CenteredPage>
       <ViewDetail viewId={view.id} />
-      <ViewTasks view={view} />
+      <ViewTasks view={view} onViewUpdate={handleViewUpdate} />
     </CenteredPage>
   );
 }

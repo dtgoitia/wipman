@@ -2,7 +2,6 @@ import { useWipman } from "../..";
 import { DraggableListedTask } from "../../components/DraggableListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";
 import { isMobile } from "../../device";
-import { unreachable } from "../../lib/devex";
 import { nowIsoString } from "../../lib/domain/dates";
 import {
   FilterQuery,
@@ -15,7 +14,7 @@ import { useUrlSearchParams } from "../../navigation";
 import { getTaskPath } from "../../routes";
 import { TaskFilter } from "../TaskExplorer/TaskFilter";
 import { shouldShowTask } from "../TaskExplorer/filter";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { TouchBackend } from "react-dnd-touch-backend";
@@ -28,36 +27,20 @@ const Container = styled.div`
 
 interface Props {
   view: View;
+  onViewUpdate: ({ view }: { view: View }) => void;
 }
 
-export function ViewTasks({ view }: Props) {
+export function ViewTasks({ view, onViewUpdate: handleViewUpdate }: Props) {
   const navigate = useNavigate();
   const wipman = useWipman();
   const [filterSpecInUrl, setFilterSpecInUrl] = useUrlSearchParams();
 
-  const [taskIds, setTaskIds] = useState<TaskId[]>([]);
   const [showCompleted, setShowCompleted] = useState<boolean>(
     filterSpecInUrl.showCompleted || false
   );
   const [query, setQuery] = useState<FilterQuery>(
     filterSpecInUrl.query || NO_FILTER_QUERY
   );
-
-  useEffect(() => {
-    const subscription = wipman.views$.subscribe(() => {
-      const latestView = wipman.getView({ id: view.id });
-      if (latestView === undefined) {
-        throw unreachable({ message: `View ${view.id} not found` });
-      }
-      setTaskIds(latestView.tasks);
-    });
-
-    setTaskIds(view.tasks);
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [view, wipman]);
 
   function handleTaskFilterChange(updated: FilterSpec): void {
     if (updated.query !== query) {
@@ -81,7 +64,7 @@ export function ViewTasks({ view }: Props) {
     // This happens during the first render of the component, and in the rare
     // case that the user manages to change things fast enough, you don't want
     // to set `view.tasks` to `[]`.
-    if (taskIds.length === 0) {
+    if (view.tasks.length === 0) {
       return;
     }
 
@@ -91,7 +74,7 @@ export function ViewTasks({ view }: Props) {
     }
 
     const reorderedTasks: TaskId[] = insertBefore({
-      list: taskIds,
+      list: [...view.tasks],
       toInsert,
       before,
     });
@@ -101,10 +84,7 @@ export function ViewTasks({ view }: Props) {
       tasks: reorderedTasks,
       updated: nowIsoString(),
     };
-    wipman.updateView({ view: updated });
-
-    // Needed to pick up the view.tasks change and re-render
-    setTaskIds(reorderedTasks);
+    handleViewUpdate({ view: updated });
   }
 
   function openTask(id: TaskId): void {
@@ -112,7 +92,7 @@ export function ViewTasks({ view }: Props) {
   }
 
   const tasks: Task[] = [];
-  for (const taskId of taskIds) {
+  for (const taskId of view.tasks) {
     const task = wipman.getTask({ id: taskId });
     if (task === undefined) {
       continue;
