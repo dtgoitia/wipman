@@ -6,7 +6,7 @@ import styled from "styled-components";
 
 interface RelationshipProps {
   related: Task;
-  onRemove: () => void;
+  onRemove: undefined | (() => void);
 }
 
 export function Relationship({
@@ -25,11 +25,13 @@ export function Relationship({
         <TodoTask to={getTaskPath(related.id)}>{related.title}</TodoTask>
       )}
 
-      <DeleteButton
-        icon="pi pi-trash"
-        className="p-button-text p-button-sm"
-        onClick={handleRemove}
-      />
+      {handleRemove && (
+        <DeleteButton
+          icon="pi pi-trash"
+          className="p-button-text p-button-sm"
+          onClick={handleRemove}
+        />
+      )}
     </Container>
   );
 }
@@ -39,6 +41,7 @@ const Container = styled.div`
   justify-content: flex-start;
   align-items: center;
   gap: 0.7rem;
+  height: 2.2rem;
 `;
 
 const TodoTask = styled(Link)`
