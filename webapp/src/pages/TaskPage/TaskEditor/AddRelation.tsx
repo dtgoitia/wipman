@@ -1,95 +1,16 @@
 import { useWipman } from "../../..";
 import SearchBox, { NO_FILTER_QUERY } from "../../../components/SearchBox";
 import { Task, TaskId } from "../../../lib/domain/types";
-import { Wipman } from "../../../lib/domain/wipman";
-import { getTaskPath } from "../../../routes";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import styled from "styled-components";
-
-interface Props {
-  blockedBy: Set<TaskId>;
-  addBlockedBy: (id: TaskId) => void;
-  deleteBlockedBy: (id: TaskId) => void;
-
-  blocks: Set<TaskId>;
-  addBlocks: (id: TaskId) => void;
-  deleteBlocks: (id: TaskId) => void;
-}
-
-export function TaskDependencies({
-  blockedBy,
-  blocks,
-  addBlockedBy,
-  deleteBlockedBy,
-  addBlocks,
-  deleteBlocks,
-}: Props) {
-  const wipman = useWipman();
-
-  const blockedByTasks: Task[] = getTasks({ ids: [...blockedBy], wipman });
-  const blocksTasks: Task[] = getTasks({ ids: [...blocks], wipman });
-
-  return (
-    <Container>
-      <h4>Blocked by</h4>
-      {blockedByTasks.map((task) => (
-        <Relationship
-          key={task.id}
-          related={task}
-          onRemove={() => deleteBlockedBy(task.id)}
-        />
-      ))}
-      <AddRelation onAdd={addBlockedBy} />
-
-      <h4>Blocks</h4>
-      {blocksTasks.map((task) => (
-        <Relationship
-          key={task.id}
-          related={task}
-          onRemove={() => deleteBlocks(task.id)}
-        />
-      ))}
-      <AddRelation onAdd={addBlocks} />
-    </Container>
-  );
-}
-
-const Container = styled.div`
-  padding-top: 1rem;
-  padding-bottom: 1rem;
-`;
-
-interface RelationshipProps {
-  related: Task;
-  onRemove: () => void;
-}
-function Relationship({ related, onRemove: handleRemove }: RelationshipProps) {
-  return (
-    <RelationshipContainer>
-      <Link to={getTaskPath(related.id)}>{related.title}</Link>
-
-      <Button
-        icon="pi pi-trash"
-        className="p-button-rounded p-button-text p-button-sm"
-        onClick={handleRemove}
-      />
-    </RelationshipContainer>
-  );
-}
-
-const RelationshipContainer = styled.div`
-  border: 1px solid #333;
-  margin: 0.5rem;
-`;
 
 interface AddRelationProps {
   onAdd: (related: TaskId) => void;
 }
 
-function AddRelation({ onAdd }: AddRelationProps) {
+export function AddRelation({ onAdd }: AddRelationProps) {
   const wipman = useWipman();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -184,18 +105,6 @@ function filterTasks({
     if (isAMatch) {
       result.push(task);
     }
-  }
-
-  return result;
-}
-
-function getTasks({ ids, wipman }: { ids: TaskId[]; wipman: Wipman }): Task[] {
-  const result: Task[] = [];
-
-  for (const id of ids) {
-    const task = wipman.taskManager.getTask(id);
-    if (task === undefined) continue;
-    result.push(task);
   }
 
   return result;

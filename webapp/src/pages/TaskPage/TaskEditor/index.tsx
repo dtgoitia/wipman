@@ -14,7 +14,7 @@ import {
 import { Tag, Task, TaskId, TaskTitle } from "../../../lib/domain/types";
 import { setsAreEqual } from "../../../lib/set";
 import Paths from "../../../routes";
-import { TaskDependencies } from "./TaskDependencies";
+import { Relationships } from "./Relationships";
 import { TaskIdBadge } from "./TaskIdBadge";
 import { Title } from "./Title";
 import { Button } from "primereact/button";
@@ -193,7 +193,7 @@ export function TaskEditor({
           />
         </div>
 
-        <TaskDependencies
+        <Relationships
           blockedBy={task.blockedBy}
           blocks={task.blocks}
           addBlockedBy={handleAddBlockedBy}
