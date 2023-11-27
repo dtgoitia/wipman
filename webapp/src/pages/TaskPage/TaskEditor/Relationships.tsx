@@ -30,25 +30,29 @@ export function Relationships({
 
   return (
     <Container>
-      <h4>Blocked by</h4>
-      {blockedByTasks.map((task) => (
-        <Relationship
-          key={task.id}
-          related={task}
-          onRemove={() => deleteBlockedBy(task.id)}
-        />
-      ))}
-      <AddRelation onAdd={addBlockedBy} />
+      <SectionHeader>Blocked by</SectionHeader>
+      <SectionBody>
+        {blockedByTasks.map((task) => (
+          <Relationship
+            key={task.id}
+            related={task}
+            onRemove={() => deleteBlockedBy(task.id)}
+          />
+        ))}
+        <AddRelation text="add blocking task" onAdd={addBlockedBy} />
+      </SectionBody>
 
-      <h4>Blocks</h4>
-      {blocksTasks.map((task) => (
-        <Relationship
-          key={task.id}
-          related={task}
-          onRemove={() => deleteBlocks(task.id)}
-        />
-      ))}
-      <AddRelation onAdd={addBlocks} />
+      <SectionHeader>Blocks</SectionHeader>
+      <SectionBody>
+        {blocksTasks.map((task) => (
+          <Relationship
+            key={task.id}
+            related={task}
+            onRemove={() => deleteBlocks(task.id)}
+          />
+        ))}
+        <AddRelation text="add blocked" onAdd={addBlocks} />
+      </SectionBody>
     </Container>
   );
 }
@@ -56,6 +60,15 @@ export function Relationships({
 const Container = styled.div`
   padding-top: 1rem;
   padding-bottom: 1rem;
+`;
+
+const SectionHeader = styled.h4`
+  margin-top: 0.5rem;
+  margin-bottom: 0.4rem;
+`;
+
+const SectionBody = styled.div`
+  padding-left: 1rem;
 `;
 
 function getTasks({ ids, wipman }: { ids: TaskId[]; wipman: Wipman }): Task[] {

@@ -7,10 +7,11 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface AddRelationProps {
+  text: string;
   onAdd: (related: TaskId) => void;
 }
 
-export function AddRelation({ onAdd }: AddRelationProps) {
+export function AddRelation({ text, onAdd }: AddRelationProps) {
   const wipman = useWipman();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -40,7 +41,7 @@ export function AddRelation({ onAdd }: AddRelationProps) {
     <AddRelationContainer>
       <Button
         icon="pi pi-times"
-        label="select related task"
+        label={text}
         className="p-button-rounded p-button-text p-button-sm"
         onClick={() => setIsOpen(true)}
       />
