@@ -14,19 +14,46 @@ export function Relationship({
   onRemove: handleRemove,
 }: RelationshipProps) {
   return (
-    <RelationshipContainer>
-      <Link to={getTaskPath(related.id)}>{related.title}</Link>
+    <Container>
+      {related.completed && <CompletedMark />}
 
-      <Button
+      {related.completed ? (
+        <CompletedTask to={getTaskPath(related.id)}>
+          {related.title}
+        </CompletedTask>
+      ) : (
+        <TodoTask to={getTaskPath(related.id)}>{related.title}</TodoTask>
+      )}
+
+      <DeleteButton
         icon="pi pi-trash"
-        className="p-button-rounded p-button-text p-button-sm"
+        className="p-button-text p-button-sm"
         onClick={handleRemove}
       />
-    </RelationshipContainer>
+    </Container>
   );
 }
 
-const RelationshipContainer = styled.div`
-  border: 1px solid #333;
-  margin: 0.5rem;
+const Container = styled.div`
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0.7rem;
 `;
+
+const TodoTask = styled(Link)`
+  display: block;
+  text-decoration: inherit;
+  color: inherit;
+  flex-grow: 1;
+`;
+
+const CompletedTask = styled(TodoTask)`
+  opacity: 0.5;
+`;
+
+const DeleteButton = styled(Button)``;
+
+function CompletedMark() {
+  return <span>✅</span>;
+}
