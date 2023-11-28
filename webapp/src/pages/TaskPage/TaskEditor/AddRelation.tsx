@@ -54,7 +54,7 @@ export function AddRelation({ text, onAdd, exclude }: AddRelationProps) {
         onClick={() => setIsOpen(true)}
       />
 
-      <Dialog
+      <SearchBoxDialog
         header="select a related task"
         visible={isOpen}
         dismissableMask
@@ -68,19 +68,21 @@ export function AddRelation({ text, onAdd, exclude }: AddRelationProps) {
           clearSearch={() => setQuery(NO_FILTER_QUERY)}
         />
 
-        <div>
-          {tasksNotFound
-            ? "no tasks found"
-            : filtered.map((task) => (
-                <RelatedTask
-                  key={task.id}
-                  onClick={() => handleSelectRelatedTask(task.id)}
-                >
-                  {task.title}
-                </RelatedTask>
-              ))}
-        </div>
-      </Dialog>
+        <SearchResults>
+          {tasksNotFound ? (
+            <SearchResult>no tasks found</SearchResult>
+          ) : (
+            filtered.map((task) => (
+              <SearchResult
+                key={task.id}
+                onClick={() => handleSelectRelatedTask(task.id)}
+              >
+                {task.title}
+              </SearchResult>
+            ))
+          )}
+        </SearchResults>
+      </SearchBoxDialog>
     </AddRelationContainer>
   );
 }
@@ -89,7 +91,15 @@ const AddRelationContainer = styled.div`
   margin: 0.5rem;
 `;
 
-const RelatedTask = styled.div`
+const SearchBoxDialog = styled(Dialog)`
+  width: 100vh;
+`;
+
+const SearchResults = styled.div`
+  margin-top: 0.7rem;
+`;
+
+const SearchResult = styled.div`
   padding: 0.5rem;
 `;
 

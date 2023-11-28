@@ -12,7 +12,7 @@ interface Props {
   placeholder: string;
 }
 
-function SearchBox({
+export default function SearchBox({
   placeholder,
   query,
   onChange: onFilterQueryChange,
@@ -21,7 +21,7 @@ function SearchBox({
   const showDeleteIcon = query && query.length > 0;
 
   return (
-    <span
+    <Container
       className={
         showDeleteIcon
           ? "p-input-icon-left p-input-icon-right"
@@ -30,7 +30,7 @@ function SearchBox({
     >
       <i className="pi pi-search" />
 
-      <PrimeInputText
+      <FullWidthTextInput
         className="p-inputtext-lg"
         placeholder={placeholder}
         value={query}
@@ -42,14 +42,20 @@ function SearchBox({
       {showDeleteIcon && (
         <ClickableIcon className="pi pi-times" onClick={() => clearSearch()} />
       )}
-    </span>
+    </Container>
   );
 }
 
-export default SearchBox;
+const Container = styled.div`
+  width: 100%;
+`;
 
 const ClickableIcon = styled.i`
   &:hover {
     cursor: pointer;
   }
+`;
+
+const FullWidthTextInput = styled(PrimeInputText)`
+  width: 100%;
 `;
