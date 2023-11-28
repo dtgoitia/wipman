@@ -38,8 +38,7 @@ export class SettingsManager {
 
   public setApiUrl(value: string | undefined): void {
     if (value === undefined) {
-      const settings: Settings = { ...this.settings };
-      delete settings["apiUrl"];
+      const { apiUrl, ...settings } = this.settings;
       this.settings = settings;
       this.changeSubject.next({ kind: "ApiUrlDeleted" });
     } else {
@@ -50,8 +49,7 @@ export class SettingsManager {
 
   public setApiToken(value: string | undefined): void {
     if (value === undefined) {
-      const settings: Settings = { ...this.settings };
-      delete settings["apiToken"];
+      const { apiToken, ...settings } = this.settings;
       this.settings = settings;
       this.changeSubject.next({ kind: "ApiTokenDeleted" });
     } else {
