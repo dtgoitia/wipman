@@ -19,9 +19,12 @@ import { createContext } from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
+const isLocalhost = window.location.hostname === "localhost";
+
 const updateSW = registerSW({
   onNeedRefresh: function () {
     if (
+      isLocalhost ||
       confirm("There is an newer version of this app. Do you want to update?")
     ) {
       updateSW(true);
