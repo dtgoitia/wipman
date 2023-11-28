@@ -196,6 +196,7 @@ export function TaskEditor({
           </div>
 
           <Relationships
+            current={task.id}
             blockedBy={task.blockedBy}
             blocks={task.blocks}
             addBlockedBy={handleAddBlockedBy}

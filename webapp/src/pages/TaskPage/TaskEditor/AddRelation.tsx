@@ -9,9 +9,10 @@ import styled from "styled-components";
 interface AddRelationProps {
   text: string;
   onAdd: (related: TaskId) => void;
+  exclude: Set<TaskId>;
 }
 
-export function AddRelation({ text, onAdd }: AddRelationProps) {
+export function AddRelation({ text, onAdd, exclude }: AddRelationProps) {
   const wipman = useWipman();
 
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -20,12 +21,14 @@ export function AddRelation({ text, onAdd }: AddRelationProps) {
 
   useEffect(() => {
     const subscription = wipman.tasks$.subscribe((taskMap) => {
-      const unsortedTasks: Task[] = [...taskMap.values()];
+      const unsortedTasks: Task[] = [...taskMap.values()].filter(
+        (task) => exclude.has(task.id) === false
+      );
       setTasks(unsortedTasks);
     });
 
     return () => subscription.unsubscribe();
-  }, [wipman]);
+  }, [wipman, exclude]);
 
   function handleSelectRelatedTask(id: TaskId): void {
     setIsOpen(false);

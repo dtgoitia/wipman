@@ -8,6 +8,7 @@ import { useState } from "react";
 import styled from "styled-components";
 
 interface Props {
+  current: TaskId;
   blockedBy: Set<TaskId>;
   addBlockedBy: (id: TaskId) => void;
   deleteBlockedBy: (id: TaskId) => void;
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function Relationships({
+  current,
   blockedBy,
   blocks,
   addBlockedBy,
@@ -31,6 +33,8 @@ export function Relationships({
 
   const blockedByTasks: Task[] = getTasks({ ids: [...blockedBy], wipman });
   const blocksTasks: Task[] = getTasks({ ids: [...blocks], wipman });
+
+  const toExclude = new Set([current, ...blockedBy, ...blocks]);
 
   return (
     <Container>
@@ -48,7 +52,11 @@ export function Relationships({
       <SectionHeader>Blocked by</SectionHeader>
       <SectionBody>
         {isEditing && (
-          <AddRelation text="add blocking task" onAdd={addBlockedBy} />
+          <AddRelation
+            exclude={toExclude}
+            text="add blocking task"
+            onAdd={addBlockedBy}
+          />
         )}
 
         {blockedByTasks.map((task) => (
@@ -62,7 +70,13 @@ export function Relationships({
 
       <SectionHeader>Blocks</SectionHeader>
       <SectionBody>
-        {isEditing && <AddRelation text="add blocked" onAdd={addBlocks} />}
+        {isEditing && (
+          <AddRelation
+            exclude={toExclude}
+            text="add blocked"
+            onAdd={addBlocks}
+          />
+        )}
 
         {blocksTasks.map((task) => (
           <Relationship
