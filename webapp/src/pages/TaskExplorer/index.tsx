@@ -1,5 +1,5 @@
 import { useWipman } from "../..";
-import AddTask from "../../components/AddTask";
+import { AddTask } from "../../components/AddTask";
 import CenteredPage from "../../components/CenteredPage";
 import ListedTask from "../../components/ListedTask";
 import { NO_FILTER_QUERY } from "../../components/SearchBox";

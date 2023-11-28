@@ -1,5 +1,5 @@
 import { useWipman } from "../..";
-import AddTask from "../../components/AddTask";
+import { AddTask } from "../../components/AddTask";
 import { DeleteConfirmationDialog } from "../../components/DeleteConfirmationDialog";
 import { LastUpdated } from "../../components/LastUpdated";
 import { TagSelector } from "../../components/TagSelector";
@@ -87,7 +87,8 @@ export function ViewDetail({ viewId: id }: ViewDetailProps) {
   const changesSaved = view.title === title && setsAreEqual(view.tags, tags);
 
   function handleAddTask(title: TaskTitle) {
-    wipman.addTask({ title, tags });
+    if (view === undefined) return;
+    wipman.addTask({ title, tags, insertAtStart: [view.id] });
   }
 
   return (

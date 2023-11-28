@@ -20,13 +20,13 @@ const AlignRight = styled.div`
 interface AddTaskProps {
   onAdd: (title: TaskTitle) => void;
 }
-function AddTask({ onAdd }: AddTaskProps) {
+export function AddTask({ onAdd: addTask }: AddTaskProps) {
   const [taskTitleInputIsOpen, openTaskTitleInput] = useState<boolean>(false);
   const [title, setTitle] = useState<string | undefined>();
 
   function handleSubmit() {
     if (title) {
-      onAdd(title);
+      addTask(title);
     } else {
       console.debug("Task title not provided, aborting task creation");
     }
@@ -75,5 +75,3 @@ function AddTask({ onAdd }: AddTaskProps) {
     </AlignRight>
   );
 }
-
-export default AddTask;

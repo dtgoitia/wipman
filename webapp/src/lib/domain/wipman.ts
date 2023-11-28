@@ -216,8 +216,36 @@ export class Wipman {
     this.viewManager.recompute();
   }
 
-  public addTask({ title, tags }: { title: TaskTitle; tags?: Set<Tag> }): void {
-    this.taskManager.addTask({ title, tags });
+  /**
+   * any View whose ID is passed at `insertAtStart` will get the newly created
+   * Task inserted at the front
+   */
+  public addTask({
+    title,
+    tags,
+    insertAtStart,
+  }: {
+    title: TaskTitle;
+    tags?: Set<Tag>;
+    insertAtStart?: ViewId[];
+  }): void {
+    const task = this.taskManager.addTask({ title, tags });
+
+    // add task is added at the front
+    if (insertAtStart) {
+      for (const viewId of insertAtStart) {
+        const view = this.viewManager.getView(viewId);
+        if (view === undefined) continue;
+
+        const tasks = [
+          task.id,
+          ...view.tasks.filter((taskId) => taskId !== task.id),
+        ];
+        console.log(`>>>>> tasks:`, tasks);
+
+        this.viewManager.updateView({ ...view, tasks });
+      }
+    }
   }
 
   public updateTask({ task }: { task: Task }): void {
