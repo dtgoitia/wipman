@@ -36,6 +36,11 @@ export function AddRelation({ text, onAdd, exclude }: AddRelationProps) {
     onAdd(id);
   }
 
+  function closeDialog(): void {
+    setIsOpen(false);
+    setQuery(NO_FILTER_QUERY);
+  }
+
   // If a task has been selected, do not show any task
   const filtered = filterTasks({ tasks, criteria: query });
   const tasksNotFound = filtered.length === 0 && query !== NO_FILTER_QUERY;
@@ -54,7 +59,7 @@ export function AddRelation({ text, onAdd, exclude }: AddRelationProps) {
         visible={isOpen}
         dismissableMask
         // footer={}
-        onHide={() => setIsOpen(false)}
+        onHide={closeDialog}
       >
         <SearchBox
           query={query}
