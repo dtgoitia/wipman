@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 const Container = styled.div`
-  margin: 1rem 0;
+  margin-top: 1rem;
   display: flex;
   flex-flow: row nowrap;
   gap: 0.3rem;

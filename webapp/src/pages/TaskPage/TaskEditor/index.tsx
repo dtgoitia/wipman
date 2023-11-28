@@ -1,5 +1,6 @@
 import { useWipman } from "../../..";
 import CenteredPage from "../../../components/CenteredPage";
+import { Collapsable } from "../../../components/Collapsable";
 import { DeleteConfirmationDialog } from "../../../components/DeleteConfirmationDialog";
 import InputTextarea from "../../../components/InputTextArea";
 import { LastUpdated } from "../../../components/LastUpdated";
@@ -23,17 +24,6 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 
-const StyledTaskTags = styled(TagSelector)`
-  padding: 0rem 4rem;
-`;
-
-const MetadataSection = styled.section`
-  margin: 1rem 0;
-`;
-const Content = styled.section`
-  margin: 1.5rem 0 2rem 0;
-`;
-
 interface Props {
   taskId: TaskId;
   onUpdate: (task: Task) => void;
@@ -53,6 +43,7 @@ export function TaskEditor({
   const [content, setContent] = useState<string>("");
   const [tags, setTags] = useState<Set<Tag>>(new Set());
   const [completed, setCompleted] = useState<boolean>(false);
+  const [isMetadataVisible, setIsMetadataVisible] = useState<boolean>(false);
 
   useEffect(() => {
     const subscription = wipman.taskManager.change$.subscribe((change) => {
@@ -156,58 +147,70 @@ export function TaskEditor({
 
   return (
     <CenteredPage>
-      <MetadataSection id="metadata">
-        {changesSaved === false && (
-          <div>
-            <Button
-              icon="floppy-disk"
-              size="large"
-              // intent={Intent.PRIMARY}
-              onClick={handleTaskSubmit}
-            >
-              Save
-            </Button>
-            <Button
-              className="bp4-minimal"
-              size="large"
-              // intent={Intent.NONE}
-              onClick={() => discardContentChanges()}
-            >
-              Discard
-            </Button>
-          </div>
-        )}
-        <Title title={title} onUpdate={handleTaskTitleChange} />
-        <TaskIdBadge id={task.id} />
-        <LastUpdated date={task.updated} />
-        <StyledTaskTags selected={tags} onUpdate={handleTaskTagsChange} />
+      <TaskHeader>
+        <TaskHeaderLeft>
+          <Title title={title} onUpdate={handleTaskTitleChange} />
+        </TaskHeaderLeft>
 
-        <div>
-          <label htmlFor="completed">
-            {completed ? "task is completed" : "task is incomplete"}
-          </label>
-          <InputSwitch
-            inputId="completed"
-            checked={completed}
-            onChange={() => setCompleted(!completed)}
+        <TaskHeaderRight>
+          <Button
+            icon={`pi ${isMetadataVisible ? "pi-times" : "pi-bars"}`}
+            className="p-button-secondary"
+            onClick={() => setIsMetadataVisible(!isMetadataVisible)}
           />
-        </div>
+        </TaskHeaderRight>
+      </TaskHeader>
+      {changesSaved === false && (
+        <SaveChanges>
+          <Button icon="floppy-disk" size="large" onClick={handleTaskSubmit}>
+            Save
+          </Button>
+          <Button
+            className="bp4-minimal"
+            size="large"
+            onClick={() => discardContentChanges()}
+          >
+            Discard
+          </Button>
+        </SaveChanges>
+      )}
 
-        <Relationships
-          blockedBy={task.blockedBy}
-          blocks={task.blocks}
-          addBlockedBy={handleAddBlockedBy}
-          deleteBlockedBy={handleDeleteBlockedBy}
-          addBlocks={handleAddBlocks}
-          deleteBlocks={handleDeleteBlocks}
-        />
+      <Collapsable
+        isOpen={isMetadataVisible}
+        onCollapse={() => setIsMetadataVisible(false)}
+      >
+        <Metadata id="metadata">
+          <TaskIdBadge id={task.id} />
+          <LastUpdated date={task.updated} />
+          <StyledTaskTags selected={tags} onUpdate={handleTaskTagsChange} />
 
-        <DeleteConfirmationDialog
-          title={`Do you want to delete task ${task.id}?`}
-          input={task.id}
-          onDelete={handleTaskDeletion}
-        />
-      </MetadataSection>
+          <div>
+            <label htmlFor="completed">
+              {completed ? "task is completed" : "task is incomplete"}
+            </label>
+            <InputSwitch
+              inputId="completed"
+              checked={completed}
+              onChange={() => setCompleted(!completed)}
+            />
+          </div>
+
+          <Relationships
+            blockedBy={task.blockedBy}
+            blocks={task.blocks}
+            addBlockedBy={handleAddBlockedBy}
+            deleteBlockedBy={handleDeleteBlockedBy}
+            addBlocks={handleAddBlocks}
+            deleteBlocks={handleDeleteBlocks}
+          />
+
+          <DeleteConfirmationDialog
+            title={`Do you want to delete task ${task.id}?`}
+            input={task.id}
+            onDelete={handleTaskDeletion}
+          />
+        </Metadata>
+      </Collapsable>
       <Content id="content">
         <InputTextarea
           id="task-content"
@@ -221,3 +224,37 @@ export function TaskEditor({
     </CenteredPage>
   );
 }
+
+const TaskHeader = styled.div`
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: flex-start;
+  align-items: top;
+  gap: 1rem;
+`;
+
+const TaskHeaderLeft = styled.div`
+  flex-basis: auto;
+  flex-grow: 1;
+  flex-shrink: 1;
+`;
+
+const TaskHeaderRight = styled.div`
+  margin-top: 1.2rem;
+`;
+
+const SaveChanges = styled.section`
+  margin: 1rem 0 1.5rem 0;
+`;
+
+const StyledTaskTags = styled(TagSelector)`
+  padding: 0rem 4rem;
+`;
+
+const Metadata = styled.section`
+  margin: 1rem 0;
+`;
+
+const Content = styled.section`
+  margin: 1rem 0 2rem 0;
+`;

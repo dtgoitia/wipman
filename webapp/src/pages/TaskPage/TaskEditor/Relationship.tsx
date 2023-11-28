@@ -42,6 +42,11 @@ const Container = styled.div`
   align-items: center;
   gap: 0.7rem;
   height: 2.2rem;
+
+  background-color: rgba(122, 122, 122, 0.15);
+  border-radius: 0.3rem;
+  margin: 0.3rem;
+  padding-left: 0.7rem;
 `;
 
 const TodoTask = styled(Link)`
