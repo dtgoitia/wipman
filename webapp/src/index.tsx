@@ -14,8 +14,7 @@ import { Storage } from "./services/persistence/persist";
 import { GlobalStyle } from "./style/globalStyle";
 import { activeTheme } from "./style/globalStyle";
 import "./style/primereact";
-import React, { useContext } from "react";
-import { createContext } from "react";
+import React, { useContext, createContext } from "react";
 import ReactDOM from "react-dom/client";
 import { registerSW } from "virtual:pwa-register";
 
