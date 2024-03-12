@@ -266,7 +266,7 @@ In order to be iterable, non-array objects must have a [Symbol.iterator]() metho
   margin-top: 0.7rem;
 `,Bg=Y.div`
   padding: 0.5rem;
-`;function aP({tasks:e,criteria:t}){if(t===ht)return[];const n=[];for(const r of e)[r.id,r.title,r.content].join(" ").includes(t)&&n.push(r);return n}function zg({related:e,onRemove:t}){return S.jsxs(lP,{children:[e.completed&&S.jsx(dP,{}),e.completed?S.jsx(uP,{to:ja(e.id),children:e.title}):S.jsx(x1,{to:ja(e.id),children:e.title}),t&&S.jsx(cP,{icon:"pi pi-trash",className:"p-button-text p-button-sm",onClick:t})]})}const lP=Y.div`
+`;function aP({tasks:e,criteria:t}){if(t===ht)return[];const n=t.toLowerCase(),r=[];for(const i of e)[i.id,i.title.toLowerCase(),i.content.toLowerCase()].join(" ").includes(n)&&r.push(i);return r}function zg({related:e,onRemove:t}){return S.jsxs(lP,{children:[e.completed&&S.jsx(dP,{}),e.completed?S.jsx(uP,{to:ja(e.id),children:e.title}):S.jsx(x1,{to:ja(e.id),children:e.title}),t&&S.jsx(cP,{icon:"pi pi-trash",className:"p-button-text p-button-sm",onClick:t})]})}const lP=Y.div`
   display: flex;
   justify-content: flex-start;
   align-items: center;
