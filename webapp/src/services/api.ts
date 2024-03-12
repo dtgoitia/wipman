@@ -28,6 +28,14 @@ export class WipmanApi {
     return navigator.onLine;
   }
 
+  private getAuthHeaders() {
+    const apiToken = this.settingsManager.settings.apiToken;
+    if (apiToken) {
+      return { "x-api-key": apiToken };
+    }
+    return undefined;
+  }
+
   private isApiUrlInSettings(): boolean {
     return this.settingsManager.settings.apiUrl !== undefined;
   }
@@ -74,7 +82,16 @@ export class WipmanApi {
     const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
 
-    const result = await Client.post(url, payload).then((result) => {
+    interface Ok {
+      created_task: ApiTask;
+    }
+    type Error = InvalidToken;
+    const result = await Client.post<Ok, Error>(url, payload, {
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json; charset=utf8",
+      },
+    }).then((result) => {
       return result.match({
         Ok: ({ data }) => parseTask(data.created_task),
         Err: (error) => {
@@ -103,7 +120,16 @@ export class WipmanApi {
     const url = `${baseUrl}/task`;
     const payload = { task: taskToJson(task) };
 
-    const result = await Client.put(url, payload).then((result) => {
+    interface Ok {
+      updated_task: ApiTask;
+    }
+    type Error = InvalidToken;
+    const result = await Client.put<Ok, Error>(url, payload, {
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json; charset=utf8",
+      },
+    }).then((result) => {
       return result.match({
         Ok: ({ data }) => parseTask(data.updated_task),
         Err: (error) => {
@@ -131,9 +157,18 @@ export class WipmanApi {
     }
     const url = `${baseUrl}/task/${taskId}`;
 
-    const result = await Client.delete(url).then((result) => {
+    interface Ok {
+      deleted_task_id: TaskId;
+    }
+    type Error = InvalidToken;
+    const client = new Client<Ok, Error>("delete", url);
+    const headers = this.getAuthHeaders();
+    if (headers) {
+      client.addHeaders(headers);
+    }
+    const result = await client.send().then((result) => {
       return result.match({
-        Ok: ({ data }) => data.deleted_task_id as TaskId,
+        Ok: ({ data }) => data.deleted_task_id,
         Err: (error) => {
           const reason =
             "response" in error && error.response.status === 0
@@ -161,7 +196,16 @@ export class WipmanApi {
     const url = `${baseUrl}/view`;
     const payload = { view: viewToJson(view) };
 
-    const result = await Client.post(url, payload).then((result) => {
+    interface Ok {
+      created_view: ApiView;
+    }
+    type Error = InvalidToken;
+    const result = await Client.post<Ok, Error>(url, payload, {
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json; charset=utf8",
+      },
+    }).then((result) => {
       return result.match({
         Ok: ({ data }) => parseView(data.created_view),
         Err: (error) => {
@@ -190,7 +234,16 @@ export class WipmanApi {
     const url = `${baseUrl}/view`;
     const payload = { view: viewToJson(view) };
 
-    const result = await Client.put(url, payload).then((result) => {
+    interface Ok {
+      updated_view: ApiView;
+    }
+    type Error = InvalidToken;
+    const result = await Client.put<Ok, Error>(url, payload, {
+      headers: {
+        ...this.getAuthHeaders(),
+        "Content-Type": "application/json; charset=utf8",
+      },
+    }).then((result) => {
       return result.match({
         Ok: ({ data }) => parseView(data.updated_view),
         Err: (error) => {
@@ -218,9 +271,18 @@ export class WipmanApi {
     }
     const url = `${baseUrl}/view/${viewId}`;
 
-    const result = await Client.delete(url).then((result) => {
+    interface Ok {
+      deleted_view_id: ViewId;
+    }
+    type Error = InvalidToken;
+    const client = new Client<Ok, Error>("delete", url);
+    const headers = this.getAuthHeaders();
+    if (headers) {
+      client.addHeaders(headers);
+    }
+    const result = await client.send().then((result) => {
       return result.match({
-        Ok: ({ data }) => data.deleted_view_id as ViewId,
+        Ok: ({ data }) => data.deleted_view_id,
         Err: (error) => {
           const reason =
             "response" in error && error.response.status === 0
@@ -263,7 +325,20 @@ export class WipmanApi {
       return new Promise(() => {}); // eslint-disable-line  @typescript-eslint/no-empty-function
     }
     const url = `${baseUrl}/get-all`;
-    const result = await Client.get(url).then((result) => {
+
+    interface Ok {
+      tasks: ApiTask[];
+      views: ApiView[];
+    }
+    type Error = InvalidToken;
+
+    const client = new Client<Ok, Error>("get", url);
+    const headers = this.getAuthHeaders();
+    if (headers) {
+      client.addHeaders(headers);
+    }
+
+    const result = await client.send().then((result) => {
       return result.match({
         Ok: ({ data }) => ({
           tasks: data.tasks.map(parseTask),
@@ -376,4 +451,8 @@ function viewToJson(view: View): ApiView {
     tags: setToJson(view.tags),
     task_ids: view.tasks,
   };
+}
+
+interface InvalidToken {
+  error: string;
 }

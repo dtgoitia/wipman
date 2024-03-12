@@ -1,7 +1,7 @@
 import datetime
 import logging
 
-from flask import Flask, request
+from flask import Flask, jsonify, make_response, request
 from flask_cors import CORS
 from src.adapter.json import json_to_task, json_to_view, task_to_json, view_to_json
 from src.config import get_config
@@ -147,6 +147,35 @@ if __name__ == "__main__":
         )
 
     set_up_minimum_db(config=config)
+
+    if expected_token := config.api_token:
+        logger.info(
+            "token validation middleware has enabled with API token found in config"
+        )
+
+        @app.before_request
+        def before_request_callback():
+            if request.method == "OPTIONS":
+                return  # let the request in
+
+            if token := request.headers.get("x-api-key"):
+                if token == expected_token:
+                    logger.debug("incoming request carries a valid API token")
+                    return  # let the request in
+                else:
+                    logger.debug("incoming request carries an invalid API token")
+
+            logger.warning("incoming request is missing an API token")
+            return make_response(
+                jsonify({"error": "missing or invalid token"}),
+                401,
+            )
+
+    else:
+        logger.info(
+            "token validation middleware has been disabled because no API token"
+            " found in config"
+        )
 
     # By default, flask serves in `localhost`, which makes the webserver
     # inaccessible once you containerize it.
