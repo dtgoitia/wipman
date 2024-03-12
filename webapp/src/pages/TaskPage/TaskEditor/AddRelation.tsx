@@ -105,19 +105,24 @@ const SearchResult = styled.div`
 
 function filterTasks({
   tasks,
-  criteria,
+  criteria: rawCriteria,
 }: {
   tasks: Task[];
   criteria: string;
 }): Task[] {
-  if (criteria === NO_FILTER_QUERY) {
+  if (rawCriteria === NO_FILTER_QUERY) {
     return [];
   }
 
-  const result: Task[] = [];
+  const criteria = rawCriteria.toLowerCase();
 
+  const result: Task[] = [];
   for (const task of tasks) {
-    const isAMatch = [task.id, task.title, task.content]
+    const isAMatch = [
+      task.id,
+      task.title.toLowerCase(),
+      task.content.toLowerCase(),
+    ]
       .join(" ")
       .includes(criteria);
 
