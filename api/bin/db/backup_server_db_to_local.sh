@@ -31,7 +31,7 @@ set -u
 
 db_backup_path="$(pwd)/${db_backup_file}"
 
-# Push file to server
+# Pull file from server
 source="${remote_user}@${K3S_CLUSTER_URL}:/home/${remote_user}/k3s-data/wipman-api-db.sqlite"
 destiny="${db_backup_path}"
 echo "Sending file over SSH:"
