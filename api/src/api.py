@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # inaccessible once you containerize it.
     host = "0.0.0.0"
 
-    app.run(host=host, port=5000, debug=True)
+    app.run(host=host, port=5000, debug=config.debug)
 
 """
 # On start:

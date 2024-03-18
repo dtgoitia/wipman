@@ -40,6 +40,7 @@ services:
       - WIPMAN_DIR=/wipman_dir
       - DB_PATH=${DB_PATH}
       - API_TOKEN=${API_TOKEN}
+      - DEBUG=true
     volumes:
       - ./api:/app
       - ${WIPMAN_DIR}:/wipman_dir
