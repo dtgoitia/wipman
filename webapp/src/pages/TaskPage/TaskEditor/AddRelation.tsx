@@ -118,13 +118,18 @@ function filterTasks({
 
   const result: Task[] = [];
   for (const task of tasks) {
-    const isAMatch = [
-      task.id,
-      task.title.toLowerCase(),
-      task.content.toLowerCase(),
-    ]
-      .join(" ")
-      .includes(criteria);
+    const chunks: string[] = [task.id];
+    if (task.title) {
+      chunks.push(task.title.toLowerCase());
+    }
+
+    if (task.content) {
+      chunks.push(task.content.toLowerCase());
+    }
+
+    const searchable = chunks.join(" ");
+
+    const isAMatch = searchable.includes(criteria);
 
     if (isAMatch) {
       result.push(task);
